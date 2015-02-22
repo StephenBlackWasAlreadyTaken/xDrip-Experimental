@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<lint>
+    <issue id="InvalidPackage" severity="warning" />
+    <issue id="MissingPrefix" severity="warning" />
+    <issue id="MissingPrefix" severity="warning" />
+    <issue id="MissingRegistered" severity="warning" />
+    <issue id="MenuTitle" severity="warning" />
+</lint>
