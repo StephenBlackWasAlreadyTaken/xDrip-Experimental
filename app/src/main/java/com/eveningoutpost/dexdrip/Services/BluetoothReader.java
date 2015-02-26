@@ -4,7 +4,6 @@ import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothSocket;
 import android.content.Context;
 import android.util.Log;
-import android.widget.Toast;
 
 import com.eveningoutpost.dexdrip.Models.BgReading;
 import com.eveningoutpost.dexdrip.Models.TransmitterData;
@@ -55,10 +54,21 @@ public class BluetoothReader extends Thread {
         }
     }
 
+    private void saveTransmitterData(TransmitterData transmitterData) {
+        Sensor sensor = Sensor.currentSensor();
+        if (sensor != null) {
+            BgReading.create(transmitterData.raw_data, mContext, new Date().getTime());
+            sensor.latest_battery_level = transmitterData.sensor_battery_level;
+            sensor.save();
+        } else {
+            Log.w(TAG, "No Active Sensor, Data only stored in Transmitter Data");
+        }
+    }
+
     /* data format "len raw dex_battery wixelbattery"
      * where len in the length of string "raw dex_battery wixel_battery"
      */
-    private void readDataFromStream(InputStream stream) throws  IOException{
+    private void readDataFromStream(InputStream stream) throws IOException {
         byte[] buffer = new byte[100];
         int totalRead = 0;
         int readSize;
@@ -82,14 +92,7 @@ public class BluetoothReader extends Thread {
 
         TransmitterData transmitterData = TransmitterData.create(buffer, totalRead, new Date().getTime());
         if (transmitterData != null) {
-            Sensor sensor = Sensor.currentSensor();
-            if (sensor != null) {
-                BgReading.create(transmitterData.raw_data, mContext, new Date().getTime());
-                sensor.latest_battery_level = transmitterData.sensor_battery_level;
-                sensor.save();
-            } else {
-                Log.w(TAG, "No Active Sensor, Data only stored in Transmitter Data");
-            }
+            saveTransmitterData(transmitterData);
         }
     }
 
