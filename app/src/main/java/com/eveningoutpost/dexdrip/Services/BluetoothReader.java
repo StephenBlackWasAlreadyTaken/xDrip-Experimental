@@ -6,6 +6,7 @@ import android.content.Context;
 import android.util.Log;
 
 import com.eveningoutpost.dexdrip.Models.BgReading;
+import com.eveningoutpost.dexdrip.Models.DexdripPacket;
 import com.eveningoutpost.dexdrip.Models.TransmitterData;
 import com.eveningoutpost.dexdrip.Sensor;
 import com.eveningoutpost.dexdrip.UtilityModels.HC05Attributes;
@@ -96,6 +97,34 @@ public class BluetoothReader extends Thread {
         }
     }
 
+    private void readBinaryData(InputStream stream) throws IOException {
+        byte packet_header[] = new byte[2];
+        int total_read = 0;
+        byte len;
+        while (total_read < 2) {
+            total_read += stream.read(packet_header, total_read, 2 - total_read);
+        }
+        Log.d(TAG, "got new packet - type " + packet_header[0] + " len " + packet_header[1]);
+        len = packet_header[1];
+        total_read = 0;
+
+        byte payload[] = new byte[packet_header[1]];
+        while (total_read < len) {
+            total_read += stream.read(payload, total_read, len - total_read);
+        }
+
+        if (packet_header[0] == DexdripPacket.PACKET_DATA) {
+            TransmitterData transmitterData = TransmitterData.createFromBinary(payload);
+            if (transmitterData != null)
+                saveTransmitterData(transmitterData);
+            else
+                throw new IOException("Incompatible wixel API");
+        } else {
+            /* packet unknown - something got seriously wrong reset bluetooth connection */
+            throw new IOException("Unexpected packet");
+        }
+    }
+
     public void run() {
         InputStream stream = null;
         boolean exception = true;
@@ -109,7 +138,8 @@ public class BluetoothReader extends Thread {
                 }
 
                 exception = false;
-                readDataFromStream(stream);
+                readBinaryData(stream);
+                //readDataFromStream(stream);
             } catch (IOException e) {
                 Log.i(TAG, "bluetooth exception " + e);
                 exception = true;
