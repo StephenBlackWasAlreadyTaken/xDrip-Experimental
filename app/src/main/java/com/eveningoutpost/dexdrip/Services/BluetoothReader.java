@@ -133,6 +133,7 @@ public class BluetoothReader extends Thread {
         while (isRunning && !interrupted()) {
             try {
                 if (exception) {
+                    bluetooth_stop();
                     connect();
                     stream = mSocket.getInputStream();
                 }
@@ -155,7 +156,9 @@ public class BluetoothReader extends Thread {
 
     private void bluetooth_stop() {
         try {
-            mSocket.close();
+            if (mSocket != null)
+                mSocket.close();
+            mSocket = null;
         } catch ( IOException e) { }
     }
 
