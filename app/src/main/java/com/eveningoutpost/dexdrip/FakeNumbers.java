@@ -13,8 +13,11 @@ import android.widget.DatePicker;
 import android.widget.EditText;
 import android.widget.TimePicker;
 
+import com.eveningoutpost.dexdrip.Models.ActiveBgAlert;
+import com.eveningoutpost.dexdrip.Models.AlertType;
 import com.eveningoutpost.dexdrip.Models.BgReading;
 
+import java.util.Date;
 
 public class FakeNumbers extends Activity {
     public Button button;
@@ -45,6 +48,25 @@ public class FakeNumbers extends Activity {
                 finish();
             }
 
+        });
+        
+        button = (Button)findViewById(R.id.StartTest);
+        button.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+                ActiveBgAlert aba = ActiveBgAlert.getOnly();
+                ActiveBgAlert.ClearData();
+                ActiveBgAlert.Create("some string", true, new Date().getTime());
+                
+                
+            }
+        });
+        
+        button = (Button)findViewById(R.id.StartTestAlerts);
+        button.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+                AlertType.testAll();
+                
+            }
         });
     }
 }
