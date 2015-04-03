@@ -32,6 +32,11 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 
+// This code and this particular library are from the NightScout android uploader
+// Check them out here: https://github.com/nightscout/android-uploader
+// Some of this code may have been modified for use in this project
+
+
 /**
  * An {@link IntentService} subclass for handling asynchronous CGM Receiver downloads and cloud uploads
  * requests in a service on a separate handler thread.
@@ -214,8 +219,7 @@ public class SyncingService extends IntentService {
 
     private void save_most_recent_cal_record(CalRecord[] calRecords) {
         int size = calRecords.length;
-
-        Calibration.create(calRecords, getApplicationContext(), false);
+        Calibration.create(calRecords,getApplicationContext(), false, 0);
     }
 
     private boolean acquireSerialDevice() {

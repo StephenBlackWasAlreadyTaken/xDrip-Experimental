@@ -1,5 +1,9 @@
 package com.eveningoutpost.dexdrip.ImportedLibraries.dexcom;
 
+// This code and this particular library are from the NightScout android uploader
+// Check them out here: https://github.com/nightscout/android-uploader
+// Some of this code may have been modified for use in this project
+
 public class Constants {
 
     public final static int NULL = 0;
@@ -86,8 +90,8 @@ public class Constants {
         DOWN_45(5,"\u2198", "FortyFiveDown"),
         SINGLE_DOWN(6,"\u2193", "SingleDown"),
         DOUBLE_DOWN(7,"\u21CA", "DoubleDown"),
-        NOT_COMPUTABLE(8),
-        OUT_OF_RANGE(9);
+        NOT_COMPUTABLE(8, "", "NOT_COMPUTABLE"),
+        OUT_OF_RANGE(9, "", "OUT_OF_RANGE");
 
         private String arrowSymbol;
         private String trendName;
@@ -182,6 +186,23 @@ public class Constants {
         BAD_TRANSMITTER,
         MANUFACTURING_MODE,
         MAX_VALUE
+    }
+
+    public enum NOISE {
+        NOISE_NONE(0),
+        CLEAN(1),
+        LIGHT(2),
+        MEDIUM(3),
+        HEAVY(4),
+        NOT_COMPUTED(5),
+        MAX(6);
+
+        private final int value;
+
+        private NOISE(int value) {
+            this.value = value;
+        }
+
     }
 
 }
