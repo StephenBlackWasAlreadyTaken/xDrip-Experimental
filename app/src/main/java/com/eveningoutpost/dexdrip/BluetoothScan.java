@@ -25,6 +25,7 @@ import com.activeandroid.query.Select;
 import com.eveningoutpost.dexdrip.Models.ActiveBluetoothDevice;
 import com.eveningoutpost.dexdrip.Services.BluetoothReader;
 import com.eveningoutpost.dexdrip.Services.DexCollectionService;
+import com.eveningoutpost.dexdrip.UtilityModels.CollectionServiceStarter;
 
 import java.util.ArrayList;
 import java.util.Set;
@@ -52,8 +53,7 @@ public class BluetoothScan extends ListActivity implements NavigationDrawerFragm
 
         ListView lv = (ListView)findViewById(android.R.id.list);
 
-        final BluetoothManager bluetooth_manager =
-                (BluetoothManager) getSystemService(Context.BLUETOOTH_SERVICE);
+        final BluetoothManager bluetooth_manager = (BluetoothManager) getSystemService(Context.BLUETOOTH_SERVICE);
 
         bluetooth_adapter = bluetooth_manager.getAdapter();
         mHandler = new Handler();
@@ -65,6 +65,17 @@ public class BluetoothScan extends ListActivity implements NavigationDrawerFragm
             return;
         } else {
             has_bluetooth = true;
+        }
+        if(bluetooth_manager == null) {
+            Toast.makeText(this, "This device does not seem to support bluetooth", Toast.LENGTH_LONG).show();
+        } else {
+            if(!bluetooth_manager.getAdapter().isEnabled()) {
+                Toast.makeText(this, "Bluetooth is turned off on this device currently", Toast.LENGTH_LONG).show();
+            } else {
+                if(android.os.Build.VERSION.SDK_INT < android.os.Build.VERSION_CODES.JELLY_BEAN_MR2){
+                    Toast.makeText(this, "The android version of this device is not compatible with Bluetooth Low Energy", Toast.LENGTH_LONG).show();
+                }
+            }
         }
         mLeDeviceListAdapter = new LeDeviceListAdapter();
         setListAdapter(mLeDeviceListAdapter);
@@ -113,7 +124,19 @@ public class BluetoothScan extends ListActivity implements NavigationDrawerFragm
         switch (item.getItemId()) {
             case R.id.menu_scan:
                 scanLeDevice(true);
+                BluetoothManager bluetooth_manager = (BluetoothManager) getSystemService(Context.BLUETOOTH_SERVICE);
                 Toast.makeText(this, "Scanning", Toast.LENGTH_LONG).show();
+                if(bluetooth_manager == null) {
+                    Toast.makeText(this, "This device does not seem to support bluetooth", Toast.LENGTH_LONG).show();
+                } else {
+                    if(!bluetooth_manager.getAdapter().isEnabled()) {
+                        Toast.makeText(this, "Bluetooth is turned off on this device currently", Toast.LENGTH_LONG).show();
+                    } else {
+                        if(android.os.Build.VERSION.SDK_INT < android.os.Build.VERSION_CODES.JELLY_BEAN_MR2){
+                            Toast.makeText(this, "The android version of this device is not compatible with Bluetooth Low Energy", Toast.LENGTH_LONG).show();
+                        }
+                    }
+                }
                 return true;
 //            case R.id.menu_stop:
 //                Intent tableIntent = new Intent(this, RawDataTable.class);
@@ -151,8 +174,6 @@ public class BluetoothScan extends ListActivity implements NavigationDrawerFragm
         final BluetoothDevice device = mLeDeviceListAdapter.getDevice(position);
         if (device == null) return;
         Toast.makeText(this, R.string.connecting_to_device, Toast.LENGTH_LONG).show();
-        Intent intent = new Intent(this, Home.class);
-        Intent serviceIntent = new Intent(this, DexCollectionService.class);
 
         ActiveBluetoothDevice btDevice = new Select().from(ActiveBluetoothDevice.class)
                 .orderBy("_ID desc")
@@ -172,10 +193,9 @@ public class BluetoothScan extends ListActivity implements NavigationDrawerFragm
             bluetooth_adapter.stopLeScan(mLeScanCallback);
             is_scanning = false;
         }
-
-        startService(serviceIntent);
+        Intent intent = new Intent(this, Home.class);
+        CollectionServiceStarter.newStart(getApplicationContext());
         startActivity(intent);
-
         finish();
     }
 

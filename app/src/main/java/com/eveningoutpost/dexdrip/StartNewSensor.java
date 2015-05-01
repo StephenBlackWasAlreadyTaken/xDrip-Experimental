@@ -13,6 +13,8 @@ import android.widget.DatePicker;
 import android.widget.TimePicker;
 import android.widget.Toast;
 
+import com.eveningoutpost.dexdrip.UtilityModels.CollectionServiceStarter;
+
 import java.util.Calendar;
 import java.util.List;
 
@@ -49,14 +51,15 @@ public class StartNewSensor extends Activity implements NavigationDrawerFragment
         mNavigationDrawerFragment = (NavigationDrawerFragment) getFragmentManager().findFragmentById(R.id.navigation_drawer);
         mNavigationDrawerFragment.setUp(R.id.navigation_drawer, (DrawerLayout) findViewById(R.id.drawer_layout), menu_name, this);
     }
+
     @Override
     public void onNavigationDrawerItemSelected(int position) {
-        NavDrawerBuilder navDrawerBuilder = new NavDrawerBuilder();
-        List<String> menu_option_list = navDrawerBuilder.nav_drawer_options(getApplicationContext());
+        NavDrawerBuilder navDrawerBuilder = new NavDrawerBuilder(getApplicationContext());
+        List<String> menu_option_list = navDrawerBuilder.nav_drawer_options;
         int menu_position = menu_option_list.indexOf(menu_name);
 
         if (position != menu_position) {
-            List<Intent> intent_list = navDrawerBuilder.nav_drawer_intents(this);
+            List<Intent> intent_list = navDrawerBuilder.nav_drawer_intents;
             Intent[] intent_array = intent_list.toArray(new Intent[intent_list.size()]);
             startActivity(intent_array[position]);
             finish();
@@ -81,6 +84,7 @@ public class StartNewSensor extends Activity implements NavigationDrawerFragment
 
               Toast.makeText(getApplicationContext(), "NEW SENSOR STARTED", Toast.LENGTH_LONG).show();
               Intent intent = new Intent(getApplicationContext(), Home.class);
+              CollectionServiceStarter.newStart(getApplicationContext());
               startActivity(intent);
               finish();
           }

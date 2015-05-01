@@ -141,7 +141,6 @@ public class Calibration extends Model {
     @Column(name = "second_scale")
     public double second_scale;
 
-
     public static void initialCalibration(double bg1, double bg2, Context context) {
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
         String unit = prefs.getString("units", "mgdl");
@@ -172,7 +171,7 @@ public class Calibration extends Model {
         }
 
         higherCalibration.bg = higher_bg;
-        higherCalibration.slope = 0;
+        higherCalibration.slope = 1;
         higherCalibration.intercept = higher_bg;
         higherCalibration.sensor = sensor;
         higherCalibration.estimate_raw_at_time_of_calibration = highBgReading.age_adjusted_raw_value;
@@ -188,7 +187,7 @@ public class Calibration extends Model {
         higherCalibration.save();
 
         lowerCalibration.bg = lower_bg;
-        lowerCalibration.slope = 0;
+        lowerCalibration.slope = 1;
         lowerCalibration.intercept = lower_bg;
         lowerCalibration.sensor = sensor;
         lowerCalibration.estimate_raw_at_time_of_calibration = lowBgReading.age_adjusted_raw_value;
@@ -233,7 +232,9 @@ public class Calibration extends Model {
     }
 
     //Create Calibration Checkin
-    public static void create(CalRecord[] calRecords, Context context, boolean override) {
+    public static void create(CalRecord[] calRecords, long addativeOffset, Context context) { create(calRecords, context, false, addativeOffset); }
+    public static void create(CalRecord[] calRecords, Context context) { create(calRecords, context, false, 0); }
+    public static void create(CalRecord[] calRecords, Context context, boolean override, long addativeOffset) {
         //TODO: Change calibration.last and other queries to order calibrations by timestamp rather than ID
         Log.w("CALIBRATION-CHECK-IN: ", "Creating Calibration Record");
         Sensor sensor = Sensor.currentSensor();
@@ -242,28 +243,20 @@ public class Calibration extends Model {
 //        CalRecord secondCalRecord = calRecords[calRecords.length - 1];
         //TODO: Figgure out how the ratio between the two is determined
         double calSlope = ((secondCalRecord.getScale() / secondCalRecord.getSlope()) + (3 * firstCalRecord.getScale() / firstCalRecord.getSlope())) * 250;
+
         double calIntercept = (((secondCalRecord.getScale() * secondCalRecord.getIntercept()) / secondCalRecord.getSlope()) + ((3 * firstCalRecord.getScale() * firstCalRecord.getIntercept()) / firstCalRecord.getSlope())) / -4;
-
-        Log.d("CAL CHECK IN ", "fDecay "+firstCalRecord.getDecay());
-        Log.d("CAL CHECK IN ", "sDecay "+secondCalRecord.getDecay());
-        Log.d("CAL CHECK IN ", "fSLope "+firstCalRecord.getSlope());
-        Log.d("CAL CHECK IN ", "sSlope "+secondCalRecord.getSlope());
-        Log.d("CAL CHECK IN ", "fScale "+firstCalRecord.getScale());
-        Log.d("CAL CHECK IN ", "sScale "+secondCalRecord.getScale());
-        Log.d("CAL CHECK IN ", "fIntercept "+firstCalRecord.getIntercept());
-        Log.d("CAL CHECK IN ", "sIntercept "+secondCalRecord.getIntercept());
-
-        Log.d("CAL CHECK IN ", "calSlope "+calSlope);
-        Log.d("CAL CHECK IN ", "calIntercept "+calIntercept);
-
         if (sensor != null) {
             for(int i = 0; i < firstCalRecord.getCalSubrecords().length - 1; i++) {
-                if (((firstCalRecord.getCalSubrecords()[i] != null && Calibration.is_new(firstCalRecord.getCalSubrecords()[i]))) || (i == 0 && override)) {
+                if (((firstCalRecord.getCalSubrecords()[i] != null && Calibration.is_new(firstCalRecord.getCalSubrecords()[i], addativeOffset))) || (i == 0 && override)) {
                     CalSubrecord calSubrecord = firstCalRecord.getCalSubrecords()[i];
 
                     Calibration calibration = new Calibration();
                     calibration.bg = calSubrecord.getCalBGL();
-                    calibration.timestamp = calSubrecord.getDateEntered().getTime();
+                    calibration.timestamp = calSubrecord.getDateEntered().getTime() + addativeOffset;
+                    if (calibration.timestamp > new Date().getTime()) {
+                        Log.e(TAG, "ERROR - Calibration timestamp is from the future, wont save!");
+                        return;
+                    }
                     calibration.raw_value = calSubrecord.getCalRaw() / 1000;
                     calibration.slope = calSlope;
                     calibration.intercept = calIntercept;
@@ -290,37 +283,45 @@ public class Calibration extends Model {
                     calibration.second_intercept = secondCalRecord.getIntercept();
 
                     calibration.save();
-
-                    adjustRecentBgReadings(5);
                     CalibrationSendQueue.addToQueue(calibration, context);
                     Calibration.requestCalibrationIfRangeTooNarrow();
                 }
             }
             if(firstCalRecord.getCalSubrecords()[0] != null && firstCalRecord.getCalSubrecords()[2] == null) {
                 if(Calibration.latest(2).size() == 1) {
-                    Calibration.create(calRecords, context, true);
+                    Calibration.create(calRecords, context, true, 0);
                 }
             }
             Notifications.notificationSetter(context);
         }
     }
 
-    public static boolean is_new(CalSubrecord calSubrecord) {
+    public static boolean is_new(CalSubrecord calSubrecord, long addativeOffset) {
         Sensor sensor = Sensor.currentSensor();
         Calibration calibration = new Select()
                 .from(Calibration.class)
                 .where("Sensor = ? ", sensor.getId())
-                .where("slope_confidence != 0")
-                .where("sensor_confidence != 0")
-                .where("timestamp = ?", calSubrecord.getDateEntered().getTime())
+                .where("timestamp <= ?", calSubrecord.getDateEntered().getTime() + addativeOffset + (1000 * 60 * 2))
+                .orderBy("timestamp desc")
                 .executeSingle();
-        if(calibration == null) {
-            Log.d("CAL CHECK IN ", "Looks like a new calibration!");
-            return true;
-        } else {
+        if(calibration != null && Math.abs(calibration.timestamp - (calSubrecord.getDateEntered().getTime() + addativeOffset)) < (4*60*1000)) {
             Log.d("CAL CHECK IN ", "Already have that calibration!");
             return false;
+        } else {
+            Log.d("CAL CHECK IN ", "Looks like a new calibration!");
+            return true;
         }
+    }
+    public static Calibration getForTimestamp(double timestamp) {
+        Sensor sensor = Sensor.currentSensor();
+        return new Select()
+                .from(Calibration.class)
+                .where("Sensor = ? ", sensor.getId())
+                .where("slope_confidence != 0")
+                .where("sensor_confidence != 0")
+                .where("timestamp < ?", timestamp)
+                .orderBy("timestamp desc")
+                .executeSingle();
     }
 
     public static Calibration create(double bg, Context context) {
@@ -401,8 +402,8 @@ public class Calibration extends Model {
             List<Calibration> calibrations = allForSensorInLastFourDays(); //5 days was a bit much, dropped this to 4
             if (calibrations.size() == 1) {
                 Calibration calibration = Calibration.last();
-                calibration.intercept = calibration.bg;
-                calibration.slope = 0;
+                calibration.slope = 1;
+                calibration.intercept = calibration.bg - (calibration.raw_value * calibration.slope);
                 calibration.save();
             } else {
                 for (Calibration calibration : calibrations) {
@@ -500,7 +501,7 @@ public class Calibration extends Model {
     public static void adjustRecentBgReadings(int adjustCount) {
         //TODO: add some handling around calibration overrides as they come out looking a bit funky
         List<Calibration> calibrations = Calibration.latest(3);
-        List<BgReading> bgReadings = BgReading.latest(adjustCount);
+        List<BgReading> bgReadings = BgReading.latestUnCalculated(adjustCount);
         if (calibrations.size() == 3) {
             int denom = bgReadings.size();
             Calibration latestCalibration = calibrations.get(0);
@@ -594,7 +595,11 @@ public class Calibration extends Model {
                 .where("timestamp > ?", (new Date().getTime() - (60000 * 60 * 24 * 4)))
                 .orderBy("bg desc")
                 .executeSingle();
-        return calibration.bg;
+        if(calibration != null) {
+            return calibration.bg;
+        } else {
+            return 120;
+        }
     }
 
     public static double min_recent() {
@@ -607,7 +612,11 @@ public class Calibration extends Model {
                 .where("timestamp > ?", (new Date().getTime() - (60000 * 60 * 24 * 4)))
                 .orderBy("bg asc")
                 .executeSingle();
-        return calibration.bg;
+        if(calibration != null) {
+            return calibration.bg;
+        } else {
+            return 100;
+        }
     }
 
     public static List<Calibration> latest(int number) {
