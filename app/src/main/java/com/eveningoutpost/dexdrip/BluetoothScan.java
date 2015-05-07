@@ -23,10 +23,12 @@ import android.widget.Toast;
 
 import com.activeandroid.query.Select;
 import com.eveningoutpost.dexdrip.Models.ActiveBluetoothDevice;
+import com.eveningoutpost.dexdrip.Services.BluetoothReader;
 import com.eveningoutpost.dexdrip.Services.DexCollectionService;
 import com.eveningoutpost.dexdrip.UtilityModels.CollectionServiceStarter;
 
 import java.util.ArrayList;
+import java.util.Set;
 
 @TargetApi(android.os.Build.VERSION_CODES.JELLY_BEAN_MR2)
 public class BluetoothScan extends ListActivity implements NavigationDrawerFragment.NavigationDrawerCallbacks {
@@ -78,6 +80,14 @@ public class BluetoothScan extends ListActivity implements NavigationDrawerFragm
         mLeDeviceListAdapter = new LeDeviceListAdapter();
         setListAdapter(mLeDeviceListAdapter);
 
+        Set<BluetoothDevice> pairedDevices = bluetooth_adapter.getBondedDevices();
+        if (pairedDevices.size() > 0) {
+            // Loop through paired devices
+            for (BluetoothDevice device : pairedDevices) {
+                // Add the name and address to an array adapter to show in a ListView
+                mLeDeviceListAdapter.addDevice(device);
+            }
+        }
     }
 
     @Override
