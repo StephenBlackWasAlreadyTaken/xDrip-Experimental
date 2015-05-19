@@ -30,6 +30,14 @@ public class CollectionServiceStarter {
         }
         return false;
     }
+    public static boolean isDexbridgeWixel(Context context) {
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
+        String collection_method = prefs.getString("dex_collection_method", "DexbridgeWixel");
+        if(collection_method.compareTo("DexbridgeWixel") == 0) {
+            return true;
+        }
+        return false;
+    }
     public static boolean isBTShare(Context context) {
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
         String collection_method = prefs.getString("dex_collection_method", "BluetoothWixel");
@@ -57,7 +65,7 @@ public class CollectionServiceStarter {
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(mContext);
         String collection_method = prefs.getString("dex_collection_method", "BluetoothWixel");
 
-        if(isBTWixel(context)) {
+        if(isBTWixel(context)||isDexbridgeWixel(context)) {
             Log.d("DexDrip", "Starting bt wixel collector");
             stopWifWixelThread();
             stopBtShareService();
