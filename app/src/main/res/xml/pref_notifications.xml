@@ -73,6 +73,12 @@
                     android:inputType="number"
                     android:summary=""
                     android:defaultValue="90" />
+                <CheckBoxPreference
+                    android:dependency="bg_unclear_readings_alerts"
+                    android:key="bg_unclear_readings_alerts_highvolume"
+                    android:title="play xdrip default alert"
+                    android:summary="Play high volume alert in the case of bad (noisy) value alerts"
+                    android:defaultValue="true" />
             </PreferenceCategory>
 
             <PreferenceCategory

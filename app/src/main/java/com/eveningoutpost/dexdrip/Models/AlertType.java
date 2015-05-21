@@ -118,12 +118,21 @@ public class AlertType extends Model {
 
         Boolean bg_unclear_readings_alerts = prefs.getBoolean("bg_unclear_readings_alerts", false);
         Long UnclearTimeSetting = Long.parseLong(prefs.getString("bg_unclear_readings_minutes", "90")) * 60000;
+        Boolean bg_unclear_readings_alerts_highvolume = prefs.getBoolean("bg_unclear_readings_alerts_highvolume", true);
 
         Long UnclearTime = BgReading.getUnclearTime(UnclearTimeSetting);
         AlertType at;
         if (UnclearTime >= UnclearTimeSetting && bg_unclear_readings_alerts ) {
             Log.w("NOTIFICATIONS", "Readings have been unclear for too long!!");
             Notifications.bgUnclearAlert(context);
+            if(bg_unclear_readings_alerts_highvolume) {
+                Log.e(TAG_ALERT, "We are in an unclear state for too long, ring 55 alert");
+                at = get_alert(LOW_ALERT_55);
+                if(at == null) {
+                    Log.wtf(TAG, "ERROR, the 55 alert is missing");
+                }
+                return at;
+            }
         }
         if (UnclearTime > 0) {
             Log.e(TAG_ALERT, "We are in an clear state, but not for too long. Alerts are disabled");
