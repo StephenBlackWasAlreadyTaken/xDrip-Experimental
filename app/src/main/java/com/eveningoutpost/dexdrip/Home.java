@@ -32,6 +32,7 @@ import com.eveningoutpost.dexdrip.UtilityModels.BgGraphBuilder;
 import com.eveningoutpost.dexdrip.UtilityModels.CollectionServiceStarter;
 import com.eveningoutpost.dexdrip.UtilityModels.IdempotentMigrations;
 import com.eveningoutpost.dexdrip.UtilityModels.Intents;
+import com.eveningoutpost.dexdrip.email.Emailer;
 import com.eveningoutpost.dexdrip.utils.ActivityWithMenu;
 import com.eveningoutpost.dexdrip.utils.DatabaseUtil;
 
@@ -444,14 +445,15 @@ public class Home extends ActivityWithMenu {
                 protected void onPostExecute(String filename) {
                     super.onPostExecute(filename);
                     if (filename != null) {
-                        SnackbarManager.show(
+                        /*SnackbarManager.show(
                                 Snackbar.with(Home.this)
                                         .type(SnackbarType.MULTI_LINE)
                                         .duration(4000)
                                         .text("Exported to " + filename) // text to display
                                         .actionLabel("Share") // action button label
                                         .actionListener(new SnackbarUriListener(Uri.fromFile(new File(filename)))),
-                                Home.this);
+                                Home.this);*/
+                        Emailer.emailDatabase(filename, Home.this);
                     } else {
                         Toast.makeText(Home.this, "Could not export Database :(", Toast.LENGTH_LONG).show();
                     }
