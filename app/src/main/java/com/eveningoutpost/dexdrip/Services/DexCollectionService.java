@@ -98,7 +98,8 @@ public class DexCollectionService extends Service {
             stopSelf();
             return START_NOT_STICKY;
         }
-        if (CollectionServiceStarter.isBTWixel(getApplicationContext()) || CollectionServiceStarter.isDexbridgeWixel(getApplicationContext())) {
+        if (CollectionServiceStarter.isBTWixel(getApplicationContext()) || CollectionServiceStarter.isDexbridgeWixel(getApplicationContext())
+                || CollectionServiceStarter.isWifiandBTWixel(getApplicationContext())) {
             setFailoverTimer();
         } else {
             stopSelf();
@@ -144,7 +145,8 @@ public class DexCollectionService extends Service {
     }
 
     public void setRetryTimer() {
-        if (CollectionServiceStarter.isBTWixel(getApplicationContext()) || CollectionServiceStarter.isDexbridgeWixel(getApplicationContext())) {
+        if (CollectionServiceStarter.isBTWixel(getApplicationContext()) || CollectionServiceStarter.isDexbridgeWixel(getApplicationContext())
+                || CollectionServiceStarter.isWifiandBTWixel(getApplicationContext())) {
             long retry_in = (1000 * 65);
             Log.d(TAG, "setRetryTimer: Restarting in: " + (retry_in/1000)  + " seconds");
             Calendar calendar = Calendar.getInstance();
@@ -158,7 +160,8 @@ public class DexCollectionService extends Service {
     }
 
     public void setFailoverTimer() {
-        if (CollectionServiceStarter.isBTWixel(getApplicationContext())|| CollectionServiceStarter.isDexbridgeWixel(getApplicationContext())) {
+        if (CollectionServiceStarter.isBTWixel(getApplicationContext())|| CollectionServiceStarter.isDexbridgeWixel(getApplicationContext())
+                || CollectionServiceStarter.isWifiandBTWixel(getApplicationContext())) {
             long retry_in = (1000 * 60 * 6);
             Log.d(TAG, "setFailoverTimer: Fallover Restarting in: " + (retry_in / (60 * 1000)) + " minutes");
             Calendar calendar = Calendar.getInstance();

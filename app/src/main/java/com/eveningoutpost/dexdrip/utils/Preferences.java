@@ -290,9 +290,10 @@ public class Preferences extends PreferenceActivity {
                 collectionCategory.removePreference(runInForeground);
             }
 
-            if(prefs.getString("dex_collection_method", "BluetoothWixel").compareTo("WifiWixel") != 0) {
-                collectionCategory.removePreference(wifiRecievers);
-            }
+            // jamorham always show wifi receivers option as we may switch modes dynamically
+            //if(prefs.getString("dex_collection_method", "BluetoothWixel").compareTo("WifiWixel") != 0) {
+            //    collectionCategory.removePreference(wifiRecievers);
+            //}
 
             if(prefs.getString("dex_collection_method", "BluetoothWixel").compareTo("DexbridgeWixel") != 0) {
                 collectionCategory.removePreference(transmitterId);
