@@ -30,5 +30,10 @@
             android:title="Store logs for troubleshooting"
             android:summary="Only enable if you are having trouble with the app."
             android:defaultValue="false" />
+        <CheckBoxPreference
+            android:key="bg_to_speech"
+            android:title="Read reading."
+            android:summary="If the phone has text-to-speech capabilities it will read new readings out loud."
+            android:defaultValue="false" />
     </PreferenceCategory>
 </PreferenceScreen>
