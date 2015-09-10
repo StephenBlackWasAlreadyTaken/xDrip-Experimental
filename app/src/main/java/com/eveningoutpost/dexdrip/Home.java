@@ -70,6 +70,7 @@ public class Home extends ActivityWithMenu {
     private TextView                 dexbridgeBattery;
     private TextView                 currentBgValueText;
     private TextView                 notificationText;
+    private boolean                  alreadyDisplayedBgInfoCommon = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -204,6 +205,7 @@ public class Home extends ActivityWithMenu {
         isWifiBluetoothWixel = CollectionServiceStarter.isWifiandBTWixel(getApplicationContext());
         isBTShare = CollectionServiceStarter.isBTShare(getApplicationContext());
         isWifiWixel = CollectionServiceStarter.isWifiWixel(getApplicationContext());
+        alreadyDisplayedBgInfoCommon = false; // reset flag
         if (isBTShare) {
             updateCurrentBgInfoForBtShare(notificationText);
         }
@@ -244,6 +246,9 @@ public class Home extends ActivityWithMenu {
     }
 
     private void updateCurrentBgInfoCommon(TextView notificationText) {
+        if (alreadyDisplayedBgInfoCommon) return; // with bluetooth and wifi, skip second time
+        alreadyDisplayedBgInfoCommon = true;
+
         final boolean isSensorActive = Sensor.isActive();
         if(!isSensorActive){
             notificationText.setText("Now start your sensor");

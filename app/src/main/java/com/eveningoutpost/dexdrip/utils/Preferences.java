@@ -286,7 +286,10 @@ public class Preferences extends PreferenceActivity {
                 prefs.edit().putBoolean("calibration_notifications", false).apply();
             }
 
-            if(prefs.getString("dex_collection_method", "BluetoothWixel").compareTo("BluetoothWixel") != 0 && prefs.getString("dex_collection_method", "BluetoothWixel").compareTo("DexcomShare") != 0 && prefs.getString("dex_collection_method", "BluetoothWixel").compareTo("DexbridgeWixel") != 0) {
+            if(prefs.getString("dex_collection_method", "BluetoothWixel").compareTo("BluetoothWixel") != 0
+                    && prefs.getString("dex_collection_method", "BluetoothWixel").compareTo("WifiBlueToothWixel") != 0
+                    && prefs.getString("dex_collection_method", "BluetoothWixel").compareTo("DexcomShare") != 0
+                    && prefs.getString("dex_collection_method", "BluetoothWixel").compareTo("DexbridgeWixel") != 0) {
                 collectionCategory.removePreference(runInForeground);
             }
 
@@ -339,7 +342,8 @@ public class Preferences extends PreferenceActivity {
                         collectionCategory.addPreference(runInForeground);
                     }
 
-                    if(((String) newValue).compareTo("WifiWixel") != 0) {
+                    if((((String) newValue).compareTo("WifiWixel") != 0)
+                            && (((String) newValue).compareTo("WifiBlueToothWixel") != 0)) {
                         collectionCategory.removePreference(wifiRecievers);
                     } else {
                         collectionCategory.addPreference(wifiRecievers);
