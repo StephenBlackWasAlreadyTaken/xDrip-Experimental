@@ -293,10 +293,8 @@ public class Preferences extends PreferenceActivity {
                 collectionCategory.removePreference(runInForeground);
             }
 
-            // jamorham always show wifi receivers option as we may switch modes dynamically
-            //if(prefs.getString("dex_collection_method", "BluetoothWixel").compareTo("WifiWixel") != 0) {
-            //    collectionCategory.removePreference(wifiRecievers);
-            //}
+
+
 
             if(prefs.getString("dex_collection_method", "BluetoothWixel").compareTo("DexbridgeWixel") != 0) {
                 collectionCategory.removePreference(transmitterId);
@@ -342,9 +340,16 @@ public class Preferences extends PreferenceActivity {
                         collectionCategory.addPreference(runInForeground);
                     }
 
+                    // jamorham always show wifi receivers option if populated as we may switch modes dynamically
                     if((((String) newValue).compareTo("WifiWixel") != 0)
                             && (((String) newValue).compareTo("WifiBlueToothWixel") != 0)) {
-                        collectionCategory.removePreference(wifiRecievers);
+                        String recieversIpAddresses;
+                        recieversIpAddresses = prefs.getString("wifi_recievers_addresses", "");
+                        if(recieversIpAddresses == null || recieversIpAddresses.equals("") ) {
+                            collectionCategory.removePreference(wifiRecievers);
+                        } else {
+                            collectionCategory.addPreference(wifiRecievers);
+                        }
                     } else {
                         collectionCategory.addPreference(wifiRecievers);
                     }
