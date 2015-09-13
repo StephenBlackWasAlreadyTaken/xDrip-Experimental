@@ -2,7 +2,9 @@ package com.eveningoutpost.dexdrip;
 
 import android.app.Activity;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.support.v4.widget.DrawerLayout;
 import android.util.Log;
 import android.view.Menu;
@@ -22,9 +24,9 @@ import java.util.List;
 
 public class StartNewSensor extends ActivityWithMenu {
     public static String menu_name = "Start Sensor";
-    public Button button;
-    public DatePicker dp;
-    public TimePicker tp;
+    private Button button;
+    private DatePicker dp;
+    private TimePicker tp;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -59,16 +61,24 @@ public class StartNewSensor extends ActivityWithMenu {
               tp.getCurrentHour(), tp.getCurrentMinute(), 0);
               long startTime = calendar.getTime().getTime();
 
-              Sensor sensor = Sensor.create(startTime);
+              Sensor.create(startTime);
               Log.w("NEW SENSOR", "Sensor started at " + startTime);
 
               Toast.makeText(getApplicationContext(), "NEW SENSOR STARTED", Toast.LENGTH_LONG).show();
-              Intent intent = new Intent(getApplicationContext(), Home.class);
               CollectionServiceStarter.newStart(getApplicationContext());
+              SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
+              Intent intent;
+              if(prefs.getBoolean("store_sensor_location",true)) {
+                  intent = new Intent(getApplicationContext(), NewSensorLocation.class);
+              } else {
+                  intent = new Intent(getApplicationContext(), Home.class);
+              }
+              
               startActivity(intent);
               finish();
           }
 
         });
+        
     }
 }
