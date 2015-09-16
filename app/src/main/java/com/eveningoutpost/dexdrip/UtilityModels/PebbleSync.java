@@ -24,14 +24,6 @@ import java.util.UUID;
  */
 public class PebbleSync extends Service {
     private final static String TAG = PebbleSync.class.getSimpleName();
-    //    CGM_ICON_KEY = 0x0,		// TUPLE_CSTRING, MAX 2 BYTES (10)
-    //    CGM_BG_KEY = 0x1,		// TUPLE_CSTRING, MAX 4 BYTES (253 OR 22.2)
-    //    CGM_TCGM_KEY = 0x2,		// TUPLE_INT, 4 BYTES (CGM TIME)
-    //    CGM_TAPP_KEY = 0x3,		// TUPLE_INT, 4 BYTES (APP / PHONE TIME)
-    //    CGM_DLTA_KEY = 0x4,		// TUPLE_CSTRING, MAX 5 BYTES (BG DELTA, -100 or -10.0)
-    //    CGM_UBAT_KEY = 0x5,		// TUPLE_CSTRING, MAX 3 BYTES (UPLOADER BATTERY, 100)
-    //    CGM_NAME_KEY = 0x6		// TUPLE_CSTRING, MAX 9 BYTES (xDrip)
-    //public static final UUID PEBBLEAPP_UUID = UUID.fromString("2c3f5ab3-7506-44e7-b8d0-2c63de32e1ec");
     public static final UUID PEBBLEAPP_UUID = UUID.fromString("79f8ecb3-7214-4bfc-b996-cb95148ee6d3");
     public static final int ICON_KEY = 0;
     public static final int BG_KEY = 1;
