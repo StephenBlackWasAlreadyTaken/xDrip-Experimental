@@ -22,6 +22,16 @@ public class CollectionServiceStarter {
 
     private final static String TAG = CollectionServiceStarter.class.getSimpleName();
 
+
+    public static boolean isWifiandBTWixel(Context context) {
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
+        String collection_method = prefs.getString("dex_collection_method", "BluetoothWixel");
+        if(collection_method.compareTo("WifiBlueToothWixel") == 0) {
+            return true;
+        }
+        return false;
+    }
+
     public static boolean isBTWixel(Context context) {
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
         String collection_method = prefs.getString("dex_collection_method", "BluetoothWixel");
@@ -86,6 +96,17 @@ public class CollectionServiceStarter {
             stopBtWixelService();
             stopWifWixelThread();
             startBtShareService();
+        } else if (isWifiandBTWixel(context)) {
+            Log.d("DexDrip", "Starting wifi and bt wixel collector");
+            stopBtWixelService();
+            stopWifWixelThread();
+            stopBtShareService();
+            // start both
+            Log.d("DexDrip", "Starting wifi wixel collector first");
+            startWifWixelThread();
+            Log.d("DexDrip", "Starting bt wixel collector second");
+            startBtWixelService();
+            Log.d("DexDrip", "Started wifi and bt wixel collector");
         }
         if(prefs.getBoolean("broadcast_to_pebble", false)){
             startPebbleSyncService();
