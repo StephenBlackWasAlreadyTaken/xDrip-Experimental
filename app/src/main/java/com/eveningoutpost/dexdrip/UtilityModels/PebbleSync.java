@@ -5,6 +5,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.graphics.Bitmap;
 import android.os.BatteryManager;
 import android.os.IBinder;
 import android.preference.PreferenceManager;
@@ -13,6 +14,7 @@ import com.eveningoutpost.dexdrip.Models.BgReading;
 import com.getpebble.android.kit.PebbleKit;
 import com.getpebble.android.kit.util.PebbleDictionary;
 
+import java.io.ByteArrayOutputStream;
 import java.util.Date;
 import java.util.TimeZone;
 import java.util.UUID;
@@ -38,6 +40,7 @@ public class PebbleSync extends Service {
     public static final int BG_DELTA_KEY = 4;
     public static final int UPLOADER_BATTERY_KEY = 5;
     public static final int NAME_KEY = 6;
+    public static final int TREND_KEY = 7;
 
     private Context mContext;
     private BgGraphBuilder bgGraphBuilder;
@@ -116,6 +119,20 @@ public class PebbleSync extends Service {
             dictionary.addString(UPLOADER_BATTERY_KEY, phoneBattery());
             dictionary.addString(NAME_KEY, "Phone");
         }
+        //create a sparkline bitmap to send to the pebble
+        Bitmap bgTrend = new BgSparklineBuilder(mContext)
+                .setHeightPx(84)
+                .setWidthPx(144)
+                .setStart(System.currentTimeMillis() - 60000 * 60 * 3)
+                .setBgGraphBuilder(bgGraphBuilder)
+                .build();
+        //create a ByteArrayOutputStream
+        ByteArrayOutputStream stream = new ByteArrayOutputStream();
+
+        //compress the bitmap into a PNG.  This makes the transfer smaller
+        bgTrend.compress(Bitmap.CompressFormat.PNG, 100, stream);
+        //add this to the dictionary.
+        dictionary.addBytes(TREND_KEY, stream.toByteArray());
         return dictionary;
     }
 
