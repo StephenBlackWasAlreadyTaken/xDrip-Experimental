@@ -310,10 +310,10 @@ public class WixelReader  extends Thread {
             MySocket.close();
             return trd_list;
         }catch(SocketTimeoutException s) {
-            Log.e(TAG, "Socket timed out! ", s);
+            Log.e(TAG, "Socket timed out! "+ s.toString());
         }
         catch(IOException e) {
-            Log.e(TAG, "cought IOException! ", e);
+            Log.e(TAG, "cought IOException! "+ e.toString());
         }
         return trd_list;
     }
