@@ -149,7 +149,12 @@ public class DexCollectionService extends Service {
 
     public void setRetryTimer() {
         if (CollectionServiceStarter.isBTWixel(getApplicationContext()) || CollectionServiceStarter.isDexbridgeWixel(getApplicationContext())) {
-            long retry_in = (1000 * 65);
+            long retry_in;
+            if(CollectionServiceStarter.isDexbridgeWixel(getApplicationContext())) {
+                retry_in = (1000 * 25);
+            } else {
+                retry_in = (1000*65);
+            }
             Log.d(TAG, "setRetryTimer: Restarting in: " + (retry_in/1000)  + " seconds");
             Calendar calendar = Calendar.getInstance();
             AlarmManager alarm = (AlarmManager) getSystemService(ALARM_SERVICE);
