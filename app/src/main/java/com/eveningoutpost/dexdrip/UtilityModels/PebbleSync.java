@@ -124,6 +124,7 @@ public class PebbleSync extends Service {
         //compress the bitmap into a PNG.  This makes the transfer smaller
         bgTrend.compress(Bitmap.CompressFormat.PNG, 100, stream);
         //add this to the dictionary.
+        Log.d(TAG,"PebbleSync: Size of Trend png is "+ stream.size());
         dictionary.addBytes(TREND_KEY, stream.toByteArray());
         return dictionary;
     }
