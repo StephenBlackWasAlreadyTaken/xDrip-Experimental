@@ -384,7 +384,8 @@ public class BgGraphBuilder {
             return delta_sign + df.format(unitized(value)) +  (showUnit?" mg/dl":"");
         } else {
 
-            if(highGranularity){
+            // only show 2 decimal places on mmol/l delta when less than 0.1 mmol/l
+            if(highGranularity && (Math.abs(value)<(Constants.MMOLL_TO_MGDL*0.1))){
                 df.setMaximumFractionDigits(2);
             } else {
                 df.setMaximumFractionDigits(1);
