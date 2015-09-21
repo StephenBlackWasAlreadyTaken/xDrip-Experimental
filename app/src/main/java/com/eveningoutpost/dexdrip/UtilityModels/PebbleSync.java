@@ -14,8 +14,14 @@ import com.eveningoutpost.dexdrip.Models.BgReading;
 import com.getpebble.android.kit.PebbleKit;
 import com.getpebble.android.kit.util.PebbleDictionary;
 
+import org.bson.ByteBuf;
+
 import java.io.ByteArrayOutputStream;
+import java.nio.ByteBuffer;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
+import java.util.List;
 import java.util.TimeZone;
 import java.util.UUID;
 
@@ -32,7 +38,10 @@ public class PebbleSync extends Service {
     public static final int BG_DELTA_KEY = 4;
     public static final int UPLOADER_BATTERY_KEY = 5;
     public static final int NAME_KEY = 6;
-    public static final int TREND_KEY = 7;
+    public static final int TREND_BEGIN_KEY = 7;
+    public static final int TREND_DATA_KEY = 8;
+    public static final int TREND_END_KEY = 9;
+
 
     private Context mContext;
     private BgGraphBuilder bgGraphBuilder;
@@ -61,7 +70,7 @@ public class PebbleSync extends Service {
     }
     @Override
     public void onDestroy() {
-        Log.d(TAG,"onDestroy called");
+        Log.d(TAG, "onDestroy called");
         super.onDestroy();
         if(newSavedBgReceiver != null) {
             unregisterReceiver(newSavedBgReceiver);
@@ -111,6 +120,16 @@ public class PebbleSync extends Service {
             dictionary.addString(UPLOADER_BATTERY_KEY, phoneBattery());
             dictionary.addString(NAME_KEY, "Phone");
         }
+        return dictionary;
+    }
+    public void sendTrendToPebble () {
+        int current_size = 0;
+        int image_size =0;
+        byte [] chunk = new byte[1024];
+        if (!PebbleKit.isWatchConnected(mContext)){
+            return;
+        }
+        PebbleDictionary dictionary = new PebbleDictionary();
         //create a sparkline bitmap to send to the pebble
         Bitmap bgTrend = new BgSparklineBuilder(mContext)
                 .setHeightPx(84)
@@ -123,10 +142,32 @@ public class PebbleSync extends Service {
 
         //compress the bitmap into a PNG.  This makes the transfer smaller
         bgTrend.compress(Bitmap.CompressFormat.PNG, 100, stream);
-        //add this to the dictionary.
-        Log.d(TAG,"PebbleSync: Size of Trend png is "+ stream.size());
-        dictionary.addBytes(TREND_KEY, stream.toByteArray());
-        return dictionary;
+        image_size = stream.size();
+        ByteBuffer buff=ByteBuffer.wrap(stream.toByteArray());
+        //Prepare the TREND_BEGIN_KEY dictionary.  We expect the length of the image to always be less than 65535 bytes.
+        dictionary.addInt16(TREND_BEGIN_KEY, (short) image_size);
+        Log.d(TAG, "sendTrendToPebble: Sending TREND_BEGIN_KEY to pebble, image size is " + bgTrend.getByteCount());
+        PebbleKit.sendDataToPebble(mContext, PEBBLEAPP_UUID, dictionary);
+        dictionary.remove(TREND_BEGIN_KEY);
+        // send image chunks to Pebble.
+        while (current_size > image_size){
+            for(int i = 0; i < image_size; i=+1024) {
+                if((image_size-i)<0) {
+                    buff.get(chunk, i, image_size - 1024);
+                } else {
+                    buff.get(chunk, i, 1024);
+                }
+                dictionary.addBytes(TREND_DATA_KEY, chunk);
+                PebbleKit.sendDataToPebble(mContext, PEBBLEAPP_UUID, dictionary);
+                dictionary.remove(TREND_DATA_KEY);
+            }
+        }
+
+        // prepare the TREND_END_KEY dictionary and send it.
+        dictionary.addUint8(TREND_END_KEY, (byte) 0);
+        Log.d(TAG, "sendTrendToPebble: Sending TREND_END_KEY to pebble.");
+        PebbleKit.sendDataToPebble(mContext, PEBBLEAPP_UUID, dictionary);
+        dictionary.remove(TREND_END_KEY);
     }
 
     public String bridgeBatteryString() {
@@ -135,9 +176,10 @@ public class PebbleSync extends Service {
 
     public void sendData(){
         mBgReading = BgReading.last();
-        if(mBgReading != null) {
+        if(mBgReading != null && PebbleKit.isWatchConnected(mContext)) {
             sendDownload(buildDictionary());
         }
+        sendTrendToPebble();
     }
 
     public String bgReading() {
