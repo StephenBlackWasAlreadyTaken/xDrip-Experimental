@@ -27,7 +27,7 @@ import java.util.List;
 import java.util.TimeZone;
 
 /**
- * Created by adrian on 24/09/15.
+ * Created by adrian on 24/09/15.*
  */
 public class MongoLabRest {
 
@@ -139,16 +139,13 @@ public class MongoLabRest {
             HttpParams params = new BasicHttpParams();
             HttpConnectionParams.setSoTimeout(params, SOCKET_TIMEOUT);
             HttpConnectionParams.setConnectionTimeout(params, CONNECTION_TIMEOUT);
-
             DefaultHttpClient httpclient = new DefaultHttpClient(params);
-
             HttpPost post = new HttpPost(url);
             String jsonString = json.toString();
             StringEntity se = new StringEntity(jsonString);
             post.setEntity(se);
             //post.setHeader("Accept", "application/json");
             post.setHeader("Content-type", "application/json");
-
             ResponseHandler responseHandler = new BasicResponseHandler();
             httpclient.execute(post, responseHandler);
         } catch (ClientProtocolException e) {
@@ -175,7 +172,7 @@ public class MongoLabRest {
             json.put("sgv", (int) bgReading.calculated_value);
             json.put("direction", bgReading.slopeName());
             json.put("type", "sgv");
-            json.put("filtered", bgReading.ageAdjustedFiltered() * 1000);
+            json.put("filtered", bgReading.filtered_data * 1000);
             json.put("unfiltered", bgReading.usedRaw() * 1000);
             json.put("rssi", 100);
             json.put("noise", bgReading.noiseValue());
