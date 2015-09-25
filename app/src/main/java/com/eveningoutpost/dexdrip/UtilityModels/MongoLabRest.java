@@ -4,12 +4,18 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
 import android.util.Log;
+import android.widget.Toast;
 
 import com.eveningoutpost.dexdrip.Models.BgReading;
 import com.eveningoutpost.dexdrip.Models.Calibration;
+import com.eveningoutpost.dexdrip.Services.TransmitterRawData;
 
+import org.apache.http.HttpEntity;
+import org.apache.http.HttpResponse;
 import org.apache.http.client.ClientProtocolException;
+import org.apache.http.client.HttpClient;
 import org.apache.http.client.ResponseHandler;
+import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.BasicResponseHandler;
@@ -20,7 +26,23 @@ import org.apache.http.params.HttpParams;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.reflect.TypeToken;
+
+import java.lang.reflect.Type;
+
+
+
+
+
+
+
+
+
+import java.io.BufferedInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.text.SimpleDateFormat;
 import java.util.List;
@@ -35,7 +57,7 @@ public class MongoLabRest {
     // FOR TESTING:
     // Should be read from settings/preferences in final version
     private static final String DATABASE = "mydb";
-    private static final String API_KEY = ;
+    private static final String API_KEY = "D2a6iaurh-oihXrraOquZSySx9QnT_Gs";
     // How to get an API-Key: http://docs.mongolab.com/data-api/#authentication
     // TODO: DELETE APIKEY! (provoke syntax error on purpose -> error while building if not set again)
     //*********************************************************************
@@ -231,4 +253,115 @@ public class MongoLabRest {
             return false;
         }
     }
+    
+    
+    
+    public List<TransmitterRawData> fromJson(Context ctx, String data) {
+        
+        Gson gson = new Gson();
+        Type listType = new TypeToken<List<TransmitterRawData>>(){}.getType();
+        
+        List<TransmitterRawData> trdList = gson.fromJson(data, listType); 
+        
+        //Toast.makeText(ctx, "objects read " + asd.size(), Toast.LENGTH_LONG).show();
+        Log.e(TAG,  "objects read " + trdList.size());
+        return trdList;
+        
+        
+    }
+    
+    
+    // This function is based on    
+    //http://www.javacodegeeks.com/2012/09/simple-rest-client-in-java.html
+    
+    // To encode a query use:
+    // web encoder: http://www.w3schools.com/jsref/tryit.asp?filename=tryjsref_encodeuricomponent 
+    // after that replace 3d with "="
+    
+    public List<TransmitterRawData> ReadFromMongo(Context ctx, String collectionName) {
+
+        List<TransmitterRawData> trdList = null;
+
+        apiKey = "D2a6iaurh-oihXrraOquZSySx9QnT_Gs";
+        dbName = "nightscout";
+
+
+        String sort = "s=%7B%22CaptureDateTime%22:%20-1%7D"; // &s={"CaptureDateTime":%20%201}
+        String exists = "q=%7B%22RawValue%22%3A%20%7B%22%24exists%22%3A%20true%7D%7D"; //q={\"RawValue\": {\"$exists\": true}}
+        //String url = BASE_URL + dbName + "/collections/" + collectionName +"?" +   "s=%7B%22CaptureDateTime%22:%20-1%7D&l=1"+ "&apiKey=" + apiKey;
+
+        String url = BASE_URL + dbName + "/collections/" + collectionName +"?" + exists + "&"  + sort+ "&l=1&apiKey=" + apiKey;
+
+
+        HttpClient httpClient = new DefaultHttpClient();
+        try {
+
+            HttpGet httpGetRequest = new HttpGet(url);
+
+            // Execute HTTP request
+            HttpResponse httpResponse = httpClient.execute(httpGetRequest);
+
+            Log.e(TAG, "read returned" + httpResponse.getStatusLine());
+            //????????? Do  we need this line
+            if (httpResponse.getStatusLine().getStatusCode() != 200) {
+                //??? Should we close things here 
+                return null;
+            }
+
+            // Get hold of the response entity
+            HttpEntity entity = httpResponse.getEntity();
+
+            // If the response does not enclose an entity, there is no need
+            // to bother about connection release
+            byte[] buffer = new byte[1024];
+            String total = new String();
+            if (entity != null) {
+                InputStream inputStream = entity.getContent();
+                try {
+                    int bytesRead = 0;
+                    BufferedInputStream bis = new BufferedInputStream(inputStream);
+                    while ((bytesRead = bis.read(buffer)) != -1) {
+                        String chunk = new String(buffer, 0, bytesRead);
+                        System.out.println("writing chunk");
+                        System.out.println(chunk);
+                        Log.e(TAG, "read chunk" + chunk);
+                        total += chunk;
+                    }
+                } catch (IOException ioException) {
+                    // In case of an IOException the connection will be released
+                    // back to the connection manager automatically
+                    Log.e(TAG, "ReadFromMongo cought ioException ", ioException);
+                } catch (RuntimeException runtimeException) {
+                    // In case of an unexpected exception you may want to abort
+                    // the HTTP request in order to shut down the underlying
+                    // connection immediately.
+                    Log.e(TAG, "ReadFromMongo cought runtimeException ", runtimeException);
+                    httpGetRequest.abort();
+                    runtimeException.printStackTrace();
+                } finally {
+                    // Closing the input stream will trigger connection release
+                    trdList = fromJson(ctx ,total);
+                    try {
+                        inputStream.close();
+                    } catch (Exception ignore) {
+                        Log.e(TAG, "ReadFromMongo cought ignore exception", ignore);
+                    }
+                }
+            }
+        } catch (ClientProtocolException e) {
+            // thrown by httpClient.execute(httpGetRequest)
+            Log.e(TAG, "ReadFromMongo cought ClientProtocolExceptionn", e);
+        } catch (IOException e) {
+            // thrown by entity.getContent();
+            Log.e(TAG, "ReadFromMongo cought IOException", e);
+        } finally {
+            // When HttpClient instance is no longer needed,
+            // shut down the connection manager to ensure
+            // immediate deallocation of all system resources
+            Log.e(TAG, "ReadFromMongo finally reached finally");
+            httpClient.getConnectionManager().shutdown();
+        }
+        return trdList;
+    }
+
 }
