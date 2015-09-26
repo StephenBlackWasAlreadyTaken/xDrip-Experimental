@@ -20,14 +20,34 @@
                 android:title="Enable Nightscout Mongo DB sync"
                 android:defaultValue="false" />
             <EditTextPreference
+                android:enabled="false"
                 android:dependency="cloud_storage_mongodb_enable"
-                android:title="Mongo DB Uri"
+                android:title="Mongo DB Uri - please configure rest api below. see ?????"
                 android:key="cloud_storage_mongodb_uri"
                 android:dialogTitle="@string/pref_dialog_mongodb_uri"
                 android:dialogMessage="@string/pref_message_mongodb_uri"
                 android:defaultValue="@string/pref_default_mongodb_uri"
                 android:inputType="textUri">
             </EditTextPreference>
+            
+            <EditTextPreference
+                android:dependency="cloud_storage_mongodb_enable"
+                android:title="key for mongolab rest api"
+                android:key="cloud_storage_mongodb_rest_key"
+                android:dialogTitle="@string/pref_dialog_mongodb_collection"
+                android:dialogMessage="This is the key that identifies your rest api"
+                android:defaultValue="D2a6iaurh-oihXrraOquZSySx9QnT_G">
+            </EditTextPreference>
+            
+            <EditTextPreference
+                android:dependency="cloud_storage_mongodb_enable"
+                android:title="database name"
+                android:key="cloud_storage_mongodb_rest_database"
+                android:dialogTitle="Enter key name"
+                android:dialogMessage="@string/pref_message_mongodb_collection"
+                android:defaultValue="nightscout">
+            </EditTextPreference>
+            
             <EditTextPreference
                 android:dependency="cloud_storage_mongodb_enable"
                 android:title="@string/pref_title_mongodb_collection"

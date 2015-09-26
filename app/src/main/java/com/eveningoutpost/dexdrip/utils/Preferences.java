@@ -258,6 +258,8 @@ public class Preferences extends PreferenceActivity {
             setupBarcodeShareScanner();
             bindPreferenceSummaryToValue(findPreference("cloud_storage_mongodb_uri"));
             bindPreferenceSummaryToValue(findPreference("cloud_storage_mongodb_collection"));
+            bindPreferenceSummaryToValue(findPreference("cloud_storage_mongodb_rest_key"));
+            bindPreferenceSummaryToValue(findPreference("cloud_storage_mongodb_rest_database"));
             bindPreferenceSummaryToValue(findPreference("cloud_storage_mongodb_device_status_collection"));
             bindPreferenceSummaryToValue(findPreference("cloud_storage_api_base"));
 

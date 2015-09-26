@@ -226,8 +226,8 @@ public class WixelReader  extends Thread {
             if (host.startsWith("mongodb://")) {
             	tmpList = ReadFromMongo(host ,numberOfRecords);
             } else if (host.startsWith("mongodb-rest")) {
-                MongoLabRest mongoLabRest = MongoLabRest.testInstance(null);
-                tmpList = mongoLabRest.ReadFromMongo(ctx, "SnirData");
+                MongoLabRest mongoLabRest = MongoLabRest.testInstance(ctx);
+                tmpList = mongoLabRest.readFromMongo(ctx, "SnirData");
             }
             else {
             	tmpList = ReadHost(host, numberOfRecords);

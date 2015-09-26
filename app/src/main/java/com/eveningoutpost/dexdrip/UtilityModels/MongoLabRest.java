@@ -36,10 +36,6 @@ import java.lang.reflect.Type;
 
 
 
-
-
-
-
 import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -64,10 +60,6 @@ public class MongoLabRest {
 
     public static final String BASE_URL = "https://api.mongolab.com/api/1/databases/";
     public static final String TAG = "MongoLabRest";
-    private static final String DEFAULT_BG_COLLECTION = "entries";
-    private static final String DEFAULT_METER_COLLECTION = "entries";
-    private static final String DEFAULT_CALIBRATION_COLLECTION = "entries";
-    private static final String DEFAULT_DEVICESTATUS_COLLECTION = "devicestatus";
     private static final String UPSERT = "&u=true";
     private static final int SOCKET_TIMEOUT = 60000;
     private static final int CONNECTION_TIMEOUT = 30000;
@@ -83,7 +75,11 @@ public class MongoLabRest {
     }
 
     public static MongoLabRest testInstance(Context ctx) {
-        return new MongoLabRest(DATABASE, API_KEY, ctx);
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(ctx);
+        String dbName = prefs.getString("cloud_storage_mongodb_rest_database", "nightscout");
+        String apiKey = prefs.getString("cloud_storage_mongodb_rest_key", "");
+        
+        return new MongoLabRest(dbName, apiKey, ctx);
     }
 
     public boolean sendSGVToMongo(List<BgReading> bgReadings) {
@@ -124,7 +120,8 @@ public class MongoLabRest {
         if (!populateJasonBG(json, bgReading)) {
             return false;
         }
-        return sendToMongo(DEFAULT_BG_COLLECTION, json);
+        String collectionName = prefs.getString("cloud_storage_mongodb_collection", null);
+        return sendToMongo(collectionName, json);
     }
 
     public boolean sendMBGToMongo(Calibration cal) {
@@ -132,7 +129,9 @@ public class MongoLabRest {
         if (!populateJasonMBG(json, cal)) {
             return false;
         }
-        return sendToMongo(DEFAULT_METER_COLLECTION, json);
+        
+        String dsCollectionName = prefs.getString("cloud_storage_mongodb_device_status_collection", "devicestatus");
+        return sendToMongo(dsCollectionName, json);
     }
 
     public boolean sendCALToMongo(Calibration cal) {
@@ -140,7 +139,8 @@ public class MongoLabRest {
         if (!populateJasonCAL(json, cal)) {
             return false;
         }
-        return sendToMongo(DEFAULT_CALIBRATION_COLLECTION, json);
+        String dsCollectionName = prefs.getString("cloud_storage_mongodb_device_status_collection", "devicestatus");
+        return sendToMongo(dsCollectionName, json);
     }
 
     public boolean sendDeviceStatusToMongo(int batteryLevel){
@@ -148,7 +148,8 @@ public class MongoLabRest {
         if (!populateJasonDeviceStatus(json, batteryLevel)) {
             return false;
         }
-        return sendToMongo(DEFAULT_DEVICESTATUS_COLLECTION, json);
+        String dsCollectionName = prefs.getString("cloud_storage_mongodb_device_status_collection", "devicestatus");
+        return sendToMongo(dsCollectionName, json);
     }
 
 
@@ -156,7 +157,7 @@ public class MongoLabRest {
         Log.d(TAG, "sendToMongo");
         String url = BASE_URL + dbName + "/collections/" + collectionName + "?apiKey=" + apiKey + UPSERT;
 
-
+        boolean success = false;
         try {
             HttpParams params = new BasicHttpParams();
             HttpConnectionParams.setSoTimeout(params, SOCKET_TIMEOUT);
@@ -168,19 +169,26 @@ public class MongoLabRest {
             post.setEntity(se);
             //post.setHeader("Accept", "application/json");
             post.setHeader("Content-type", "application/json");
-            ResponseHandler responseHandler = new BasicResponseHandler();
-            httpclient.execute(post, responseHandler);
+            HttpResponse response = httpclient.execute(post);
+            Log.d(TAG, "Send returned code is " + response.getStatusLine().getStatusCode());
+            if( response.getStatusLine().getStatusCode() == 200) {
+                success  = true;
+            }
         } catch (ClientProtocolException e) {
-            Log.e(TAG, "failed: ", e);
+            Log.e(TAG, "sendToMongo ClientProtocolException: ", e);
             return false;
         } catch (UnsupportedEncodingException e) {
-            Log.e(TAG, "failed: ", e);
+            Log.e(TAG, "sendToMongo UnsupportedEncodingException: ", e);
             return false;
         } catch (IOException e) {
-            Log.e(TAG, "failed: ", e);
+            Log.e(TAG, "sendToMongo IOException: ", e);
+            return false;
+        }catch (Exception e) {
+            Log.e(TAG, "sendToMongo Exception: ", e);
             return false;
         }
-        return true;
+        
+        return success;
     }
 
 
@@ -278,17 +286,13 @@ public class MongoLabRest {
     // web encoder: http://www.w3schools.com/jsref/tryit.asp?filename=tryjsref_encodeuricomponent 
     // after that replace 3d with "="
     
-    public List<TransmitterRawData> ReadFromMongo(Context ctx, String collectionName) {
+    public List<TransmitterRawData> readFromMongo(Context ctx, String collectionName) {
 
         List<TransmitterRawData> trdList = null;
-
-        apiKey = "D2a6iaurh-oihXrraOquZSySx9QnT_Gs";
-        dbName = "nightscout";
 
 
         String sort = "s=%7B%22CaptureDateTime%22:%20-1%7D"; // &s={"CaptureDateTime":%20%201}
         String exists = "q=%7B%22RawValue%22%3A%20%7B%22%24exists%22%3A%20true%7D%7D"; //q={\"RawValue\": {\"$exists\": true}}
-        //String url = BASE_URL + dbName + "/collections/" + collectionName +"?" +   "s=%7B%22CaptureDateTime%22:%20-1%7D&l=1"+ "&apiKey=" + apiKey;
 
         String url = BASE_URL + dbName + "/collections/" + collectionName +"?" + exists + "&"  + sort+ "&l=1&apiKey=" + apiKey;
 
