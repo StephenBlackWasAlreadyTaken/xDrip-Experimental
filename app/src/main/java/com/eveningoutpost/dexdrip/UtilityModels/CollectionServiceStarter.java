@@ -98,7 +98,7 @@ public class CollectionServiceStarter {
             String filePath = Environment.getExternalStorageDirectory() + "/xdriplogcat.txt";
             try {
                 String[] cmd = {"/system/bin/sh", "-c", "ps | grep logcat  || logcat -f " + filePath +
-                        " -v threadtime AlertPlayer:V com.eveningoutpost.dexdrip.Services.WixelReader:V *:E "};
+                        " -v threadtime AlertPlayer:V com.eveningoutpost.dexdrip.Services.WixelReader:V MongoLabRest:V *:E "};
                 Runtime.getRuntime().exec(cmd);
             } catch (IOException e2) {
                 Log.e(TAG, "running logcat failed, is the device rooted?", e2);

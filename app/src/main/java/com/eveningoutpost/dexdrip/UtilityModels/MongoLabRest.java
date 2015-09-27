@@ -171,7 +171,7 @@ public class MongoLabRest {
             post.setHeader("Content-type", "application/json");
             HttpResponse response = httpclient.execute(post);
             Log.d(TAG, "Send returned code is " + response.getStatusLine().getStatusCode());
-            if( response.getStatusLine().getStatusCode() == 200) {
+            if( response.getStatusLine().getStatusCode() == 200 || response.getStatusLine().getStatusCode() == 201) {
                 success  = true;
             }
         } catch (ClientProtocolException e) {
@@ -287,6 +287,7 @@ public class MongoLabRest {
     // after that replace 3d with "="
     
     public List<TransmitterRawData> readFromMongo(Context ctx, String collectionName) {
+        Log.e(TAG, "starting readFromMongo");
 
         List<TransmitterRawData> trdList = null;
 
@@ -296,8 +297,11 @@ public class MongoLabRest {
 
         String url = BASE_URL + dbName + "/collections/" + collectionName +"?" + exists + "&"  + sort+ "&l=1&apiKey=" + apiKey;
 
-
-        HttpClient httpClient = new DefaultHttpClient();
+        HttpParams params = new BasicHttpParams();
+        HttpConnectionParams.setSoTimeout(params, SOCKET_TIMEOUT);
+        HttpConnectionParams.setConnectionTimeout(params, CONNECTION_TIMEOUT);
+        
+        HttpClient httpClient = new DefaultHttpClient(params);
         try {
 
             HttpGet httpGetRequest = new HttpGet(url);
