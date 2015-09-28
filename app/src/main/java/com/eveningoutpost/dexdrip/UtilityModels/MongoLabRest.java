@@ -49,14 +49,7 @@ import java.util.TimeZone;
  */
 public class MongoLabRest {
 
-    //*********************************************************************
-    // FOR TESTING:
-    // Should be read from settings/preferences in final version
-    private static final String DATABASE = "mydb";
-    private static final String API_KEY = "D2a6iaurh-oihXrraOquZSySx9QnT_Gs";
     // How to get an API-Key: http://docs.mongolab.com/data-api/#authentication
-    // TODO: DELETE APIKEY! (provoke syntax error on purpose -> error while building if not set again)
-    //*********************************************************************
 
     public static final String BASE_URL = "https://api.mongolab.com/api/1/databases/";
     public static final String TAG = "MongoLabRest";
