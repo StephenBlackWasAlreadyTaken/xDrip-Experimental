@@ -78,7 +78,7 @@ public class MongoLabRest {
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(ctx);
         String dbName = prefs.getString("cloud_storage_mongodb_rest_database", "nightscout");
         String apiKey = prefs.getString("cloud_storage_mongodb_rest_key", "");
-        
+
         return new MongoLabRest(dbName, apiKey, ctx);
     }
 
@@ -129,7 +129,7 @@ public class MongoLabRest {
         if (!populateJasonMBG(json, cal)) {
             return false;
         }
-        
+
         String dsCollectionName = prefs.getString("cloud_storage_mongodb_collection", "entries");
         return sendToMongo(dsCollectionName, json);
     }
@@ -187,7 +187,7 @@ public class MongoLabRest {
             Log.e(TAG, "sendToMongo Exception: ", e);
             return false;
         }
-        
+
         return success;
     }
 
@@ -230,8 +230,11 @@ public class MongoLabRest {
 
 
     private boolean populateJasonDeviceStatus(JSONObject json, int batteryLevel) {
+        SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ");
+        format.setTimeZone(TimeZone.getDefault());
         try {
             json.put("uploaderBattery", batteryLevel);
+            json.put("created_at", format.format(System.currentTimeMillis()));
             return true;
         } catch (JSONException e) {
             return false;
@@ -261,31 +264,31 @@ public class MongoLabRest {
             return false;
         }
     }
-    
-    
-    
+
+
+
     public List<TransmitterRawData> fromJson(Context ctx, String data) {
-        
+
         Gson gson = new Gson();
         Type listType = new TypeToken<List<TransmitterRawData>>(){}.getType();
-        
-        List<TransmitterRawData> trdList = gson.fromJson(data, listType); 
-        
+
+        List<TransmitterRawData> trdList = gson.fromJson(data, listType);
+
         //Toast.makeText(ctx, "objects read " + asd.size(), Toast.LENGTH_LONG).show();
         Log.e(TAG,  "objects read " + trdList.size());
         return trdList;
-        
-        
+
+
     }
-    
-    
+
+
     // This function is based on    
     //http://www.javacodegeeks.com/2012/09/simple-rest-client-in-java.html
-    
+
     // To encode a query use:
     // web encoder: http://www.w3schools.com/jsref/tryit.asp?filename=tryjsref_encodeuricomponent 
     // after that replace 3d with "="
-    
+
     public List<TransmitterRawData> readFromMongo(Context ctx, String collectionName) {
         Log.e(TAG, "starting readFromMongo");
 
@@ -300,7 +303,7 @@ public class MongoLabRest {
         HttpParams params = new BasicHttpParams();
         HttpConnectionParams.setSoTimeout(params, SOCKET_TIMEOUT);
         HttpConnectionParams.setConnectionTimeout(params, CONNECTION_TIMEOUT);
-        
+
         HttpClient httpClient = new DefaultHttpClient(params);
         try {
 
