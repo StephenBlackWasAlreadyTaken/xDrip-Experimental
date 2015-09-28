@@ -130,7 +130,7 @@ public class MongoLabRest {
             return false;
         }
         
-        String dsCollectionName = prefs.getString("cloud_storage_mongodb_device_status_collection", "entries");
+        String dsCollectionName = prefs.getString("cloud_storage_mongodb_collection", "entries");
         return sendToMongo(dsCollectionName, json);
     }
 
@@ -139,7 +139,7 @@ public class MongoLabRest {
         if (!populateJasonCAL(json, cal)) {
             return false;
         }
-        String dsCollectionName = prefs.getString("cloud_storage_mongodb_device_status_collection", "entries");
+        String dsCollectionName = prefs.getString("cloud_storage_mongodb_collection", "entries");
         return sendToMongo(dsCollectionName, json);
     }
 
