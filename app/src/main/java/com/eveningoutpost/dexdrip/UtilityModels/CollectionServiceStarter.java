@@ -8,6 +8,7 @@ import android.preference.PreferenceManager;
 
 import com.eveningoutpost.dexdrip.Models.UserError.Log;
 import com.eveningoutpost.dexdrip.Services.DexCollectionService;
+import com.eveningoutpost.dexdrip.Services.DexOtgCollectionService;
 import com.eveningoutpost.dexdrip.Services.DexShareCollectionService;
 import com.eveningoutpost.dexdrip.Services.SyncService;
 import com.eveningoutpost.dexdrip.Services.WixelReader;
@@ -62,6 +63,17 @@ public class CollectionServiceStarter {
     }
     public static boolean isWifiWixel(String collection_method) { return collection_method.equals("WifiWixel"); }
 
+    public static boolean isOtgDexcom(Context context) {
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
+        String collection_method = prefs.getString("dex_collection_method", "BluetoothWixel");
+        if(collection_method.compareTo("OtgDexcom") == 0) {
+            return true;
+        }
+        return false;
+    }
+    public static boolean isOtgDexcom(String collection_method) { return collection_method.equals("OtgDexcom"); }
+
+
     public static void newStart(Context context) {
         CollectionServiceStarter collectionServiceStarter = new CollectionServiceStarter(context);
         collectionServiceStarter.start(context);
@@ -75,17 +87,26 @@ public class CollectionServiceStarter {
             Log.d("DexDrip", "Starting bt wixel collector");
             stopWifWixelThread();
             stopBtShareService();
+            stopOtgDexcomService();
             startBtWixelService();
         } else if(isWifiWixel(collection_method)){
             Log.d("DexDrip", "Starting wifi wixel collector");
             stopBtWixelService();
             stopBtShareService();
+            stopOtgDexcomService();
             startWifWixelThread();
         } else if(isBTShare(collection_method)) {
             Log.d("DexDrip", "Starting bt share collector");
             stopBtWixelService();
             stopWifWixelThread();
+            stopOtgDexcomService();
             startBtShareService();
+        } else if(isOtgDexcom(collection_method)) {
+            Log.d("DexDrip", "Starting otg dex collector");
+            stopBtWixelService();
+            stopWifWixelThread();
+            stopBtShareService();
+            startOtgDexcomService();
         }
         if(prefs.getBoolean("broadcast_to_pebble", false)){
             startPebbleSyncService();
@@ -122,6 +143,7 @@ public class CollectionServiceStarter {
         CollectionServiceStarter collectionServiceStarter = new CollectionServiceStarter(context);
         collectionServiceStarter.stopBtShareService();
         collectionServiceStarter.stopBtWixelService();
+        collectionServiceStarter.stopOtgDexcomService();
         collectionServiceStarter.stopWifWixelThread();
         collectionServiceStarter.start(context);
     }
@@ -130,6 +152,7 @@ public class CollectionServiceStarter {
         CollectionServiceStarter collectionServiceStarter = new CollectionServiceStarter(context);
         collectionServiceStarter.stopBtShareService();
         collectionServiceStarter.stopBtWixelService();
+        collectionServiceStarter.stopOtgDexcomService();
         collectionServiceStarter.stopWifWixelThread();
         collectionServiceStarter.start(context, collection_method);
     }
@@ -145,6 +168,14 @@ public class CollectionServiceStarter {
         mContext.stopService(new Intent(mContext, DexCollectionService.class));
     }
 
+    private void startOtgDexcomService() {
+        Log.d(TAG, "starting otg dexcom service");
+        mContext.startService(new Intent(mContext, DexOtgCollectionService.class));
+    }
+    private void stopOtgDexcomService() {
+        Log.d(TAG, "stopping otg dexcom service");
+        mContext.stopService(new Intent(mContext, DexOtgCollectionService.class));
+    }
     private void startBtShareService() {
         Log.d(TAG, "starting bt share service");
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.JELLY_BEAN_MR2) {

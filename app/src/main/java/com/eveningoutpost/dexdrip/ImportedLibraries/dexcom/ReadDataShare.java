@@ -1,28 +1,19 @@
 package com.eveningoutpost.dexdrip.ImportedLibraries.dexcom;
 
-import android.bluetooth.BluetoothGatt;
-import android.bluetooth.BluetoothGattCharacteristic;
-import android.bluetooth.BluetoothGattService;
-import android.hardware.usb.UsbDevice;
-import android.hardware.usb.UsbDeviceConnection;
-import com.eveningoutpost.dexdrip.Models.UserError.Log;
-
 import com.eveningoutpost.dexdrip.ImportedLibraries.dexcom.records.CalRecord;
 import com.eveningoutpost.dexdrip.ImportedLibraries.dexcom.records.EGVRecord;
 import com.eveningoutpost.dexdrip.ImportedLibraries.dexcom.records.GenericXMLRecord;
 import com.eveningoutpost.dexdrip.ImportedLibraries.dexcom.records.MeterRecord;
 import com.eveningoutpost.dexdrip.ImportedLibraries.dexcom.records.PageHeader;
 import com.eveningoutpost.dexdrip.ImportedLibraries.dexcom.records.SensorRecord;
-import com.eveningoutpost.dexdrip.ImportedLibraries.usbserial.driver.UsbSerialDriver;
-import com.eveningoutpost.dexdrip.Services.DexCollectionService;
+import com.eveningoutpost.dexdrip.Models.UserError.Log;
+import com.eveningoutpost.dexdrip.Services.DexOtgCollectionService;
 import com.eveningoutpost.dexdrip.Services.DexShareCollectionService;
 import com.eveningoutpost.dexdrip.ShareTest;
 
 import org.w3c.dom.Element;
 
 import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.math.BigDecimal;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.util.ArrayList;
@@ -41,12 +32,16 @@ public class ReadDataShare {
     byte[] accumulatedResponse;
     private ShareTest mShareTest;
     private DexShareCollectionService mCollectionService;
+    private DexOtgCollectionService mOtgCollectionService;
 
     public ReadDataShare(ShareTest aShareTest){
         mShareTest = aShareTest;
     }
     public ReadDataShare(DexShareCollectionService collectionService){
         mCollectionService = collectionService;
+    }
+    public ReadDataShare(DexOtgCollectionService collectionService){
+        mOtgCollectionService = collectionService;
     }
 
     public void getRecentEGVs(final Action1<EGVRecord[]> recordListener) {
@@ -212,7 +207,7 @@ public class ReadDataShare {
                         Log.d("ShareTest", "Combined Response length: " + accumulatedResponse.length);
                     } catch (Exception e) { e.printStackTrace(); }
                 }
-                if (temp.length < 20) { Observable.just(accumulatedResponse).subscribe(fullPageListener).unsubscribe(); }
+                if (temp.length != 20) { Observable.just(accumulatedResponse).subscribe(fullPageListener).unsubscribe(); }
             }
         };
         writeCommand(Constants.READ_DATABASE_PAGES, payload, databasePageReader);
@@ -220,15 +215,22 @@ public class ReadDataShare {
     }
 
     private void writeCommand(int command, ArrayList<Byte> payload, Action1<byte[]> responseListener) {
-        List<byte[]> packets = new PacketBuilder(command, payload).composeList();
+        List<byte[]> packets = new ArrayList<byte[]>();
+        if(mOtgCollectionService != null) {
+            packets.add(new PacketBuilder(command, payload).compose());
+        } else {
+            packets = new PacketBuilder(command, payload).composeList();
+        }
         if(mShareTest != null) { mShareTest.writeCommand(packets, 0, responseListener); }
         else if (mCollectionService != null) { mCollectionService.writeCommand(packets, 0, responseListener); }
+        else if (mOtgCollectionService != null) { mOtgCollectionService.writeCommand(packets, 0, responseListener); }
     }
 
     private void writeCommand(int command, Action1<byte[]> responseListener) {
         List<byte[]> packets = new PacketBuilder(command).composeList();
         if(mShareTest != null) { mShareTest.writeCommand(packets, 0, responseListener); }
         else if (mCollectionService != null) { mCollectionService.writeCommand(packets, 0, responseListener); }
+        else if (mOtgCollectionService != null) { mOtgCollectionService.writeCommand(packets, 0, responseListener); }
     }
 
     private ReadPacket read(int numOfBytes, byte[] readPacket) {

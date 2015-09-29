@@ -5,6 +5,7 @@
         <item>xBridge Wixel</item>
         <item>Wifi Wixel</item>
         <item>DexcomShare</item>
+        <item>Otg Dexcom</item>
     </string-array>
 
     <string-array name="DexCollectionMethodValues">
@@ -12,6 +13,7 @@
         <item>DexbridgeWixel</item>
         <item>WifiWixel</item>
         <item>DexcomShare</item>
+        <item>OtgDexcom</item>
     </string-array>
 
 
