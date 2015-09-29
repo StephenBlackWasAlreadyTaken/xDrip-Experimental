@@ -42,6 +42,8 @@ public class PebbleSync extends Service {
     public static final int TREND_DATA_KEY = 8;
     public static final int TREND_END_KEY = 9;
 
+    public static final int CHUNK_SIZE = 118;
+
 
     private Context mContext;
     private BgGraphBuilder bgGraphBuilder;
@@ -150,18 +152,20 @@ public class PebbleSync extends Service {
         PebbleKit.sendDataToPebble(mContext, PEBBLEAPP_UUID, dictionary);
         dictionary.remove(TREND_BEGIN_KEY);
         // send image chunks to Pebble.
-        while (current_size > image_size){
-            for(int i = 0; i < image_size; i=+1024) {
-                if((image_size-i)<0) {
-                    buff.get(chunk, i, image_size - 1024);
+            for(current_size = 0; current_size < image_size; current_size=+CHUNK_SIZE) {
+                Log.d(TAG, "sendTrendToPebble: current_size is " + current_size + ", image_size is " + image_size);
+                if((image_size<(current_size+CHUNK_SIZE))) {
+                    Log.d(TAG, "sendTrendToPebble: sending chunk of size " + (image_size - current_size));
+                    buff.get(chunk, current_size, image_size - current_size);
                 } else {
-                    buff.get(chunk, i, 1024);
+                    Log.d(TAG, "sendTrendToPebble: sending chunk of size " + CHUNK_SIZE);
+                    buff.get(chunk, current_size, CHUNK_SIZE);
                 }
+                Log.d(TAG, "sendTrendToPebble: Sending TREND_DATA_KEY to pebble, current_size is" + current_size);
                 dictionary.addBytes(TREND_DATA_KEY, chunk);
                 PebbleKit.sendDataToPebble(mContext, PEBBLEAPP_UUID, dictionary);
                 dictionary.remove(TREND_DATA_KEY);
             }
-        }
 
         // prepare the TREND_END_KEY dictionary and send it.
         dictionary.addUint8(TREND_END_KEY, (byte) 0);
