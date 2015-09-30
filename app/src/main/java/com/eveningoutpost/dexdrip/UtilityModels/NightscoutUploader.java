@@ -86,8 +86,19 @@ public class NightscoutUploader {
 
             if (enableMongoUpload) {
                 double start = new Date().getTime();
-                mongoStatus = doMongoUpload(prefs, glucoseDataSets, meterRecords, calRecords);
-                Log.i(TAG, String.format("Finished upload of %s record using a Mongo in %s ms", glucoseDataSets.size() + meterRecords.size(), System.currentTimeMillis() - start));
+
+                MongoLabRest mongoLabRest = MongoLabRest.testInstance(mContext);
+                mongoStatus =
+                        mongoLabRest.sendSGVToMongo(glucoseDataSets) &&
+                                mongoLabRest.sendMBGToMongo(meterRecords) &&
+                                mongoLabRest.sendCALToMongo(calRecords)&&
+                                mongoLabRest.sendDeviceStatusToMongo(getBatteryLevel());
+
+                if (mongoStatus){
+                    Log.i(TAG, String.format("Finished upload of %s record using a Mongo in %s ms", glucoseDataSets.size() + meterRecords.size(), System.currentTimeMillis() - start));
+                } else {
+                    Log.i(TAG, String.format("Upload to mongolab failed."));
+                }
             }
 
                 return apiStatus || mongoStatus;

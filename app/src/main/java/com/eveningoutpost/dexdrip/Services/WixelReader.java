@@ -14,14 +14,15 @@ import java.util.List;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
-import com.eveningoutpost.dexdrip.Models.UserError.Log;
 
+import com.eveningoutpost.dexdrip.Models.UserError.Log;
 import com.eveningoutpost.dexdrip.utils.BgToSpeech;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.eveningoutpost.dexdrip.Sensor;
 import com.eveningoutpost.dexdrip.Models.BgReading;
 import com.eveningoutpost.dexdrip.Models.TransmitterData;
+import com.eveningoutpost.dexdrip.UtilityModels.MongoLabRest;
 
 public class WixelReader  extends Thread {
 
@@ -209,7 +210,7 @@ public class WixelReader  extends Thread {
     }
 
     // format of string is ip1:port1,ip2:port2;
-    public static TransmitterRawData[] Read(String hostsNames, int numberOfRecords)
+    public static TransmitterRawData[] Read(Context ctx, String hostsNames, int numberOfRecords)
     {
         String []hosts = hostsNames.split(",");
         if(hosts.length == 0) {
@@ -224,7 +225,11 @@ public class WixelReader  extends Thread {
             List<TransmitterRawData> tmpList;
             if (host.startsWith("mongodb://")) {
             	tmpList = ReadFromMongo(host ,numberOfRecords);
-            } else {
+            } else if (host.startsWith("mongodb-rest")) {
+                MongoLabRest mongoLabRest = MongoLabRest.testInstance(ctx);
+                tmpList = mongoLabRest.readFromMongo(ctx, "SnirData");
+            }
+            else {
             	tmpList = ReadHost(host, numberOfRecords);
             }
             if(tmpList != null && tmpList.size() > 0) {
@@ -310,10 +315,10 @@ public class WixelReader  extends Thread {
             MySocket.close();
             return trd_list;
         }catch(SocketTimeoutException s) {
-            Log.e(TAG, "Socket timed out! ", s);
+            Log.e(TAG, "Socket timed out! "+ s.toString());
         }
         catch(IOException e) {
-            Log.e(TAG, "cought IOException! ", e);
+            Log.e(TAG, "cought IOException! "+ e.toString());
         }
         return trd_list;
     }
@@ -331,7 +336,7 @@ public class WixelReader  extends Thread {
                 if(WixelReader.IsConfigured(mContext)) {
                     SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(mContext);
                     String recieversIpAddresses = prefs.getString("wifi_recievers_addresses", "");
-	        		LastReadingArr = Read(recieversIpAddresses ,1);
+	        		LastReadingArr = Read(mContext, recieversIpAddresses ,1);
                 }
 	        	if (LastReadingArr != null  && LastReadingArr.length  > 0) {
 	        		// Last in the array is the most updated reading we have.
