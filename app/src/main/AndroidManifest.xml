@@ -147,17 +147,17 @@
             android:name=".CalibrationCheckInActivity"
             android:label="@string/title_activity_calibration_check_in" >
         </activity>
-        <activity
-            android:name=".UsbConnectedActivity"
-            android:label="@string/title_activity_usb_connected" >
-            <intent-filter>
-                <action android:name="android.hardware.usb.action.USB_DEVICE_ATTACHED" />
-            </intent-filter>
+        <!--<activity-->
+            <!--android:name=".UsbConnectedActivity"-->
+            <!--android:label="@string/title_activity_usb_connected" >-->
+            <!--<intent-filter>-->
+                <!--<action android:name="android.hardware.usb.action.USB_DEVICE_ATTACHED" />-->
+            <!--</intent-filter>-->
 
-            <meta-data
-                android:name="android.hardware.usb.action.USB_DEVICE_ATTACHED"
-                android:resource="@xml/device_filter" />
-        </activity>
+            <!--<meta-data-->
+                <!--android:name="android.hardware.usb.action.USB_DEVICE_ATTACHED"-->
+                <!--android:resource="@xml/device_filter" />-->
+        <!--</activity>-->
 
         <service
             android:name=".Services.DexShareCollectionService"
@@ -238,7 +238,14 @@
         <service
             android:name=".Services.DexOtgCollectionService"
             android:enabled="true"
-            android:exported="false" >
+            android:exported="true" >
+            <intent-filter>
+                <action android:name="android.hardware.usb.action.USB_DEVICE_ATTACHED" />
+            </intent-filter>
+
+            <meta-data
+                android:name="android.hardware.usb.action.USB_DEVICE_ATTACHED"
+                android:resource="@xml/device_filter" />
         </service>
     </application>
 

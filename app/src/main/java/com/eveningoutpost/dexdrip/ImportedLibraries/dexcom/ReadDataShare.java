@@ -110,7 +110,7 @@ public class ReadDataShare {
             @Override
             public void call(byte[] s) { Observable.just(read(0, s).getCommand() == Constants.ACK).subscribe(pingListener); }
         };
-        writeCommand(Constants.PING, pingReader);
+        writeCommand(Constants.PING, pingReader, false);
     }
 
     public void readBatteryLevel(final Action1<Integer> batteryLevelListener) {
@@ -118,7 +118,7 @@ public class ReadDataShare {
             @Override //TODO: find out if this should be wrapped in read(s).getData();
             public void call(byte[] s) { Observable.just(ByteBuffer.wrap(s).order(ByteOrder.LITTLE_ENDIAN).getInt()).subscribe(batteryLevelListener); }
         };
-        writeCommand(Constants.READ_BATTERY_LEVEL, batteryLevelReader);
+        writeCommand(Constants.READ_BATTERY_LEVEL, batteryLevelReader, false);
     }
 
     public void readSerialNumber(final Action1<String> serialNumberListener) {
@@ -156,7 +156,7 @@ public class ReadDataShare {
                 Observable.just(Utils.receiverTimeToDate(ByteBuffer.wrap(read(0,s).getData()).order(ByteOrder.LITTLE_ENDIAN).getInt()).getTime()).subscribe(systemTimeListener);
             }
         };
-        writeCommand(Constants.READ_SYSTEM_TIME, systemTimeReader);
+        writeCommand(Constants.READ_SYSTEM_TIME, systemTimeReader, false);
     }
 
     public void readDisplayTimeOffset(final Action1<Long> displayTimeOffsetListener) {
@@ -164,7 +164,7 @@ public class ReadDataShare {
             @Override
             public void call(byte[] s) { Observable.just((long) ByteBuffer.wrap(read(0,s).getData()).order(ByteOrder.LITTLE_ENDIAN).getInt()).subscribe(displayTimeOffsetListener); }
         };
-        writeCommand(Constants.READ_DISPLAY_TIME_OFFSET, displayTimeOffsetReader);
+        writeCommand(Constants.READ_DISPLAY_TIME_OFFSET, displayTimeOffsetReader, false);
     }
 
     private void readDataBasePageRange(int recordType, final Action1<Integer> databasePageRangeCaller) {
@@ -176,7 +176,7 @@ public class ReadDataShare {
                 Observable.just(ByteBuffer.wrap(new ReadPacket(s).getData()).order(ByteOrder.LITTLE_ENDIAN).getInt(4)).subscribe(databasePageRangeCaller);
             }
         };
-        writeCommand(Constants.READ_DATABASE_PAGE_RANGE, payload, databasePageRangeListener);
+        writeCommand(Constants.READ_DATABASE_PAGE_RANGE, payload, databasePageRangeListener, false);
     }
 
     private <T> T readDataBasePage(final int recordType, int page, final Action1<byte[]> fullPageListener) {
@@ -210,11 +210,11 @@ public class ReadDataShare {
                 if (temp.length != 20) { Observable.just(accumulatedResponse).subscribe(fullPageListener).unsubscribe(); }
             }
         };
-        writeCommand(Constants.READ_DATABASE_PAGES, payload, databasePageReader);
+        writeCommand(Constants.READ_DATABASE_PAGES, payload, databasePageReader, true);
         return null;
     }
 
-    private void writeCommand(int command, ArrayList<Byte> payload, Action1<byte[]> responseListener) {
+    private void writeCommand(int command, ArrayList<Byte> payload, Action1<byte[]> responseListener, boolean is_page) {
         List<byte[]> packets = new ArrayList<byte[]>();
         if(mOtgCollectionService != null) {
             packets.add(new PacketBuilder(command, payload).compose());
@@ -223,14 +223,14 @@ public class ReadDataShare {
         }
         if(mShareTest != null) { mShareTest.writeCommand(packets, 0, responseListener); }
         else if (mCollectionService != null) { mCollectionService.writeCommand(packets, 0, responseListener); }
-        else if (mOtgCollectionService != null) { mOtgCollectionService.writeCommand(packets, 0, responseListener); }
+        else if (mOtgCollectionService != null) { mOtgCollectionService.writeCommand(packets, 0, responseListener, is_page); }
     }
 
-    private void writeCommand(int command, Action1<byte[]> responseListener) {
+    private void writeCommand(int command, Action1<byte[]> responseListener, boolean is_page) {
         List<byte[]> packets = new PacketBuilder(command).composeList();
         if(mShareTest != null) { mShareTest.writeCommand(packets, 0, responseListener); }
         else if (mCollectionService != null) { mCollectionService.writeCommand(packets, 0, responseListener); }
-        else if (mOtgCollectionService != null) { mOtgCollectionService.writeCommand(packets, 0, responseListener); }
+        else if (mOtgCollectionService != null) { mOtgCollectionService.writeCommand(packets, 0, responseListener, is_page); }
     }
 
     private ReadPacket read(int numOfBytes, byte[] readPacket) {

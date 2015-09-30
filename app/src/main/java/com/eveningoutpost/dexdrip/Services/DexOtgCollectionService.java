@@ -30,12 +30,14 @@ import com.eveningoutpost.dexdrip.UtilityModels.CollectionServiceStarter;
 import com.eveningoutpost.dexdrip.UtilityModels.ForegroundServiceStarter;
 import com.eveningoutpost.dexdrip.utils.BgToSpeech;
 
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 
+import rx.Observable;
 import rx.functions.Action1;
 
 public class DexOtgCollectionService extends Service {
@@ -58,6 +60,7 @@ public class DexOtgCollectionService extends Service {
     public int successfulWrites;
     private BgToSpeech bgToSpeech;
     public boolean shouldDisconnect = false;
+    public boolean is_page = false;
 
     //Gatt Tasks
     public final int GATT_NOTHING = 0;
@@ -241,7 +244,7 @@ public class DexOtgCollectionService extends Service {
     }
 
     private boolean acquireSerialDevice() {
-        if(mUsbManager != null && mSerialDevice != null && mConnection != null) {
+        if(mUsbManager != null && mSerialDevice != null && mConnection != null && dexcom != null) {
             return true;
         }
        findDexcom();
@@ -249,7 +252,10 @@ public class DexOtgCollectionService extends Service {
             UserError.Log.w(TAG, "USB manager is null");
             return false;
         }
-
+        if(dexcom == null) {
+            UserError.Log.d(TAG, "Dexcom not dound null");
+            return false;
+        }
         if( mUsbManager.hasPermission(dexcom)) {                                           // the system is allowing us to poke around this device
 
             ProbeTable customTable = new ProbeTable();                                           // From the USB library...
@@ -304,7 +310,8 @@ public class DexOtgCollectionService extends Service {
         return null;
     }
 
-    public void writeCommand(List<byte[]> packets, int aRecordType, Action1<byte[]> dataResponseListener) {
+    public void writeCommand(List<byte[]> packets, int aRecordType, Action1<byte[]> dataResponseListener, boolean page) {
+        is_page = page;
         mDataResponseListener = dataResponseListener;
         successfulWrites = 0;
         writePackets = packets;
@@ -322,6 +329,7 @@ public class DexOtgCollectionService extends Service {
             try {
                 if(mSerialDevice != null && writePackets != null) {
                     mSerialDevice.getPorts().get(0).write(writePackets.get(index), IO_TIMEOUT);
+                    gatReadingStep();
                 }
             } catch (Exception e) {
                 UserError.Log.e(TAG, "Unable to write to serial device.", e);
@@ -334,5 +342,25 @@ public class DexOtgCollectionService extends Service {
     public void clearGattTask() {
         currentGattTask = GATT_NOTHING;
         step = 0;
+    }
+
+    private void gatReadingStep() {
+        int size = (is_page ? 2122 : 256);
+        byte[] readData = new byte[size];
+        int len = 0;
+        try {
+            len = mSerialDevice.getPorts().get(0).read(readData, IO_TIMEOUT);
+            Thread.sleep(100);
+            String bytes = "";
+            int readAmount = len;
+            for (int i = 0; i < readAmount; i++) bytes += String.format("%02x", readData[i]) + " ";
+            UserError.Log.d(TAG, "Read data: " + bytes);
+            ////////////////////////////////////////////////////////////////////////////////////////
+
+        } catch (Exception e) {
+            UserError.Log.e(TAG, "Unable to read from serial device.", e);
+        }
+        byte[] data = Arrays.copyOfRange(readData, 0, len);
+        Observable.just(data).subscribe(mDataResponseListener);
     }
 }
