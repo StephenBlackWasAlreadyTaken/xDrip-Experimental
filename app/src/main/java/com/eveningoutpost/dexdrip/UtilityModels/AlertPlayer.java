@@ -52,7 +52,7 @@ public class AlertPlayer {
     }
 
     public synchronized  void startAlert(Context ctx, boolean trendingToAlertEnd, AlertType newAlert, String bgValue )  {
-        Log.d(TAG, "startAlert called, Threadid " + Thread.currentThread().getId());
+        Log.d(TAG, "startAlert called, Threadid " + Thread.currentThread().id);
         if (trendingToAlertEnd) {
             Log.d(TAG,"startAlert: This alert is trending to it's end will not do anything");
             return;
@@ -67,7 +67,7 @@ public class AlertPlayer {
 
     public synchronized void stopAlert(Context ctx, boolean ClearData, boolean clearIfSnoozeFinished) {
 
-        Log.d(TAG, "stopAlert: stop called ClearData " + ClearData + "  ThreadID " + Thread.currentThread().getId());
+        Log.d(TAG, "stopAlert: stop called ClearData " + ClearData + "  ThreadID " + Thread.currentThread().id);
         if (ClearData) {
             ActiveBgAlert.ClearData();
         }

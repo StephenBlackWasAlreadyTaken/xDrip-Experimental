@@ -2,10 +2,10 @@ package com.eveningoutpost.dexdrip.UtilityModels;
 
 import android.provider.BaseColumns;
 
-import com.activeandroid.Model;
-import com.activeandroid.annotation.Column;
-import com.activeandroid.annotation.Table;
-import com.activeandroid.query.Select;
+import ollie.Model;
+import ollie.annotation.Column;
+import ollie.annotation.Table;
+import ollie.query.Select;
 import com.eveningoutpost.dexdrip.Sensor;
 
 import java.util.List;
@@ -13,28 +13,28 @@ import java.util.List;
 /**
  * Created by stephenblack on 11/7/14.
  */
-@Table(name = "SensorSendQueue", id = BaseColumns._ID)
+@Table("SensorSendQueue")
 public class SensorSendQueue extends Model {
 
-    @Column(name = "Sensor", index = true)
+    @Column("Sensor")
     public Sensor sensor;
 
-    @Column(name = "success", index = true)
+    @Column("success")
     public boolean success;
 
 
     public static SensorSendQueue nextSensorJob() {
-        SensorSendQueue job = new Select()
+        SensorSendQueue job = Select
                 .from(SensorSendQueue.class)
                 .where("success =", false)
                 .orderBy("_ID desc")
                 .limit(1)
-                .executeSingle();
+                .fetchSingle();
         return job;
     }
 
     public static List<SensorSendQueue> queue() {
-        return new Select()
+        return Select
                 .from(SensorSendQueue.class)
                 .where("success = ?", false)
                 .orderBy("_ID desc")

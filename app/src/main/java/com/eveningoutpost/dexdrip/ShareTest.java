@@ -29,7 +29,7 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.activeandroid.query.Select;
+import ollie.query.Select;
 import com.eveningoutpost.dexdrip.ImportedLibraries.dexcom.PacketBuilder;
 import com.eveningoutpost.dexdrip.ImportedLibraries.dexcom.ReadData;
 import com.eveningoutpost.dexdrip.ImportedLibraries.dexcom.ReadDataShare;
@@ -271,9 +271,9 @@ public class ShareTest extends Activity {
         Log.i(TAG, "Connection state: " + mConnectionState);
         details.append("\nConnection state: " + mConnectionState);
         if (mConnectionState == STATE_DISCONNECTED || mConnectionState == STATE_DISCONNECTING) {
-            ActiveBluetoothDevice btDevice = new Select().from(ActiveBluetoothDevice.class)
+            ActiveBluetoothDevice btDevice = Select.from(ActiveBluetoothDevice.class)
                     .orderBy("_ID desc")
-                    .executeSingle();
+                    .fetchSingle();
             if (btDevice != null) {
                 details.append("\nBT Device: " + btDevice.name);
                 mDeviceName = btDevice.name;

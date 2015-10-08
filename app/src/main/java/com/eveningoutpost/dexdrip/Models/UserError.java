@@ -3,10 +3,10 @@ package com.eveningoutpost.dexdrip.Models;
 import android.os.AsyncTask;
 import android.provider.BaseColumns;
 
-import com.activeandroid.Model;
-import com.activeandroid.annotation.Column;
-import com.activeandroid.annotation.Table;
-import com.activeandroid.query.Select;
+import ollie.Model;
+import ollie.annotation.Column;
+import ollie.annotation.Table;
+import ollie.query.Select;
 
 import java.util.Date;
 import java.util.List;
@@ -15,19 +15,19 @@ import java.util.List;
  * Created by stephenblack on 8/3/15.
  */
 
-@Table(name = "UserErrors", id = BaseColumns._ID)
+@Table("UserErrors")
 public class UserError extends Model {
 
-    @Column(name = "shortError")
+    @Column("shortError")
     public String shortError; // Short error message to be displayed on table
 
-    @Column(name = "message")
+    @Column("message")
     public String message; // Additional text when error is expanded
 
-    @Column(name = "severity", index = true)
+    @Column("severity", true)
     public int severity; // int between 1 and 3, 3 being most severe
 
-    @Column(name = "timestamp", index = true)
+    @Column("timestamp")
     public double timestamp; // Time the error was raised
 
     //todo: rather than include multiples of the same error, should we have a "Count" and just increase that on duplicates?
@@ -62,20 +62,20 @@ public class UserError extends Model {
     }
 
     public static List<UserError> all() {
-        return new Select()
+        return Select
                 .from(UserError.class)
                 .orderBy("timestamp desc")
                 .execute();
     }
 
     public static List<UserError> deletable() {
-        List<UserError> userErrors = new Select()
+        List<UserError> userErrors = Select
                 .from(UserError.class)
                 .where("severity < ?", 3)
                 .where("timestamp < ?", (new Date().getTime() - 1000 * 60 * 60 * 24))
                 .orderBy("timestamp desc")
                 .execute();
-        List<UserError> highErrors = new Select()
+        List<UserError> highErrors = Select
                 .from(UserError.class)
                 .where("severity = ?", 3)
                 .where("timestamp < ?", (new Date().getTime() - 1000*60*60*24*3))
@@ -91,7 +91,7 @@ public class UserError extends Model {
             levelsString += level + ",";
         }
         Log.d("TEST", "severity in ("+levelsString.substring(0,levelsString.length() - 1)+")");
-        return new Select()
+        return Select
                 .from(UserError.class)
                 .where("severity in ("+levelsString.substring(0,levelsString.length() - 1)+")")
                 .orderBy("timestamp desc")

@@ -3,10 +3,10 @@ package com.eveningoutpost.dexdrip.Models;
 import android.provider.BaseColumns;
 import com.eveningoutpost.dexdrip.Models.UserError.Log;
 
-import com.activeandroid.Model;
-import com.activeandroid.annotation.Column;
-import com.activeandroid.annotation.Table;
-import com.activeandroid.query.Select;
+import ollie.Model;
+import ollie.annotation.Column;
+import ollie.annotation.Table;
+import ollie.query.Select;
 import com.eveningoutpost.dexdrip.Interfaces.UserInterface;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -25,7 +25,7 @@ import retrofit.converter.GsonConverter;
 /**
  * Created by stephenblack on 11/7/14.
  */
-@Table(name = "User", id = BaseColumns._ID)
+@Table("User")
 public class User extends Model {
     private static final String baseUrl = "http://10.0.2.2:3000";
 
@@ -35,32 +35,32 @@ public class User extends Model {
             .create();
 
     @Expose
-    @Column(name = "email")
+    @Column("email")
     public String email;
 
     @Expose
-    @Column(name = "password")
+    @Column("password")
     public String password;
 
     @Expose
-    @Column(name = "token")
+    @Column("token")
     public String token;
 
     @Expose
-    @Column(name = "token_expiration")
+    @Column("token_expiration")
     public double token_expiration;
 
     @Expose
-    @Column(name = "uuid", index = true)
+    @Column("uuid")
     public String uuid;
 
 
     public static User currentUser() {
-        User user = new Select()
+        User user = Select
                 .from(User.class)
                 .orderBy("_ID desc")
                 .limit(1)
-                .executeSingle();
+                .fetchSingle();
         return user;
     }
 

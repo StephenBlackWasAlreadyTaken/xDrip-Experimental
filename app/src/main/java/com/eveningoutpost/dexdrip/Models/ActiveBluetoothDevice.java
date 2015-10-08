@@ -1,31 +1,29 @@
 package com.eveningoutpost.dexdrip.Models;
 
-import android.provider.BaseColumns;
-
-import com.activeandroid.Model;
-import com.activeandroid.annotation.Column;
-import com.activeandroid.annotation.Table;
-import com.activeandroid.query.Select;
+import ollie.Model;
+import ollie.annotation.Column;
+import ollie.annotation.Table;
+import ollie.query.Select;
 
 /**
  * Created by stephenblack on 11/3/14.
  */
-@Table(name = "ActiveBluetoothDevice", id = BaseColumns._ID)
+@Table("ActiveBluetoothDevice")
 public class ActiveBluetoothDevice extends Model {
-    @Column(name = "name")
+    @Column("name")
     public String name;
 
-    @Column(name = "address")
+    @Column("address")
     public String address;
 
-    @Column(name = "connected")
+    @Column("connected")
     public boolean connected;
 
     public static ActiveBluetoothDevice first() {
-        return new Select()
+        return Select
                 .from(ActiveBluetoothDevice.class)
                 .orderBy("_ID asc")
-                .executeSingle();
+                .fetchSingle();
     }
 
     public static void forget() {

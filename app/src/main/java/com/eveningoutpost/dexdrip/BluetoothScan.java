@@ -30,7 +30,6 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.activeandroid.query.Select;
 import com.eveningoutpost.dexdrip.Models.ActiveBluetoothDevice;
 import com.eveningoutpost.dexdrip.Models.UserError.Log;
 import com.eveningoutpost.dexdrip.UtilityModels.CollectionServiceStarter;
@@ -43,6 +42,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import lecho.lib.hellocharts.util.ChartUtils;
+import ollie.query.Select;
 
 @TargetApi(android.os.Build.VERSION_CODES.JELLY_BEAN_MR2)
 public class BluetoothScan extends ListActivityWithMenu {
@@ -270,9 +270,9 @@ public class BluetoothScan extends ListActivityWithMenu {
         if (device == null || device.getName() == null) return;
         Toast.makeText(this, R.string.connecting_to_device, Toast.LENGTH_LONG).show();
 
-        ActiveBluetoothDevice btDevice = new Select().from(ActiveBluetoothDevice.class)
+        ActiveBluetoothDevice btDevice = Select.from(ActiveBluetoothDevice.class)
                 .orderBy("_ID desc")
-                .executeSingle();
+                .fetchSingle();
 
         final SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
         prefs.edit().putString("last_connected_device_address", device.getAddress()).apply();

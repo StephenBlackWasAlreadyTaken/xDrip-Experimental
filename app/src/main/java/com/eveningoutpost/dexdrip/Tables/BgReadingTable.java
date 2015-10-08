@@ -107,7 +107,7 @@ public class BgReadingTable extends ListActivity implements NavigationDrawerFrag
 
         @Override
         public long getItemId(int position) {
-            return getItem(position).getId();
+            return getItem(position).id;
         }
 
         @Override

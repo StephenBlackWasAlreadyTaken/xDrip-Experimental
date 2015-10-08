@@ -107,7 +107,7 @@ public class CalibrationDataTable extends ListActivity implements NavigationDraw
 
         @Override
         public long getItemId(int position) {
-            return getItem(position).getId();
+            return getItem(position).id;
         }
 
         @Override

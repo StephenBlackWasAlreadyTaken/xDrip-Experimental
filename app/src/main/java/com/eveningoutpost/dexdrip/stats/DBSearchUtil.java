@@ -8,7 +8,7 @@ import android.preference.PreferenceManager;
 import com.eveningoutpost.dexdrip.Models.UserError.Log;
 
 import com.activeandroid.Cache;
-import com.activeandroid.query.Select;
+import ollie.query.Select;
 import com.eveningoutpost.dexdrip.Models.BgReading;
 import com.eveningoutpost.dexdrip.UtilityModels.Constants;
 
@@ -36,7 +36,7 @@ public class DBSearchUtil {
             high *= Constants.MMOLL_TO_MGDL;
         }
 
-        int count = new Select()
+        int count = Select
                 .from(BgReading.class)
                 .where("timestamp >= " + bounds.start)
                 .where("timestamp <= " + bounds.stop)
@@ -82,7 +82,7 @@ public class DBSearchUtil {
             low *= Constants.MMOLL_TO_MGDL;
 
         }
-        int count = new Select()
+        int count = Select
                 .from(BgReading.class)
                 .where("timestamp >= " + bounds.start)
                 .where("timestamp <= " + bounds.stop)
@@ -106,7 +106,7 @@ public class DBSearchUtil {
             low *= Constants.MMOLL_TO_MGDL;
 
         }
-        int count = new Select()
+        int count = Select
                 .from(BgReading.class)
                 .where("timestamp >= " + bounds.start)
                 .where("timestamp <= " + bounds.stop)

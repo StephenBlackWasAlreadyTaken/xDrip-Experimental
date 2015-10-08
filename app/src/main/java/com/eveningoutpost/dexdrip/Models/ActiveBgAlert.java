@@ -1,40 +1,39 @@
 package com.eveningoutpost.dexdrip.Models;
 
-import android.provider.BaseColumns;
 import com.eveningoutpost.dexdrip.Models.UserError.Log;
-
-import com.activeandroid.Model;
-import com.activeandroid.annotation.Column;
-import com.activeandroid.annotation.Table;
-import com.activeandroid.query.Select;
 import com.eveningoutpost.dexdrip.UtilityModels.AlertPlayer;
 
 import java.text.DateFormat;
 import java.util.Date;
 
+import ollie.Model;
+import ollie.annotation.Column;
+import ollie.annotation.Table;
+import ollie.query.Select;
+
 /**
  * Created by stephenblack on 1/14/15.
  */
-@Table(name = "ActiveBgAlert", id = BaseColumns._ID)
+@Table("ActiveBgAlert")
 public class ActiveBgAlert extends Model {
 
     private final static String TAG = AlertPlayer.class.getSimpleName();
 
-    @Column(name = "alert_uuid")
+    @Column("alert_uuid")
     public String alert_uuid;
 
-    @Column(name = "is_snoozed")
+    @Column("is_snoozed")
     public boolean is_snoozed;
 
-    @Column(name = "last_alerted_at") // Do we need this
+    @Column("last_alerted_at") // Do we need this
     public Long last_alerted_at;
 
-    @Column(name = "next_alert_at")
+    @Column("next_alert_at")
     public Long next_alert_at;
 
     // This is needed in order to have ascending alerts
     // we set the real value of it when is_snoozed is being turned to false
-    @Column(name = "alert_started_at")
+    @Column("alert_started_at")
     public Long alert_started_at;
 
 
@@ -82,10 +81,9 @@ public class ActiveBgAlert extends Model {
     // so we have the following static functions: getOnly, saveData, ClearData
 
     public static ActiveBgAlert getOnly() {
-        ActiveBgAlert aba = new Select()
-                .from(ActiveBgAlert.class)
+        ActiveBgAlert aba = Select.from(ActiveBgAlert.class)
                 .orderBy("_ID asc")
-                .executeSingle();
+                .fetchSingle();
 
         if (aba != null) {
             Log.v(TAG, "ActiveBgAlert getOnly aba = " + aba.toString());

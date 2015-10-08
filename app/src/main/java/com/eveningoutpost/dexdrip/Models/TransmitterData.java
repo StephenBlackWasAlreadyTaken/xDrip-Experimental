@@ -3,10 +3,10 @@ package com.eveningoutpost.dexdrip.Models;
 import android.provider.BaseColumns;
 import com.eveningoutpost.dexdrip.Models.UserError.Log;
 
-import com.activeandroid.Model;
-import com.activeandroid.annotation.Column;
-import com.activeandroid.annotation.Table;
-import com.activeandroid.query.Select;
+import ollie.Model;
+import ollie.annotation.Column;
+import ollie.annotation.Table;
+import ollie.query.Select;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
@@ -17,23 +17,23 @@ import java.util.UUID;
  * Created by stephenblack on 11/6/14.
  */
 
-@Table(name = "TransmitterData", id = BaseColumns._ID)
+@Table("TransmitterData")
 public class TransmitterData extends Model {
     private final static String TAG = TransmitterData.class.getSimpleName();
 
-    @Column(name = "timestamp", index = true)
+    @Column("timestamp")
     public long timestamp;
 
-    @Column(name = "raw_data")
+    @Column("raw_data")
     public double raw_data;
 
-    @Column(name = "filtered_data")
+    @Column("filtered_data")
     public double filtered_data;
 
-    @Column(name = "sensor_battery_level")
+    @Column("sensor_battery_level")
     public int sensor_battery_level;
 
-    @Column(name = "uuid", index = true)
+    @Column("uuid")
     public String uuid;
 
     public static TransmitterData create(byte[] buffer, int len, Long timestamp) {
@@ -88,10 +88,10 @@ public class TransmitterData extends Model {
     }
 
     public static TransmitterData last() {
-        return new Select()
+        return Select
                 .from(TransmitterData.class)
                 .orderBy("_ID desc")
-                .executeSingle();
+                .fetchSingle();
     }
 
     public static void randomDelay(float min, float max){

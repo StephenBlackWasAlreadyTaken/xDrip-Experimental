@@ -115,6 +115,7 @@ dependencies {
     compile 'net.tribe7.seeds:seeds-functional:16.0.1'
     compile 'net.tribe7.seeds:seeds-primitives:16.0.1'
     compile 'org.slf4j:slf4j-api:1.7.7'
+    compile 'com.michaelpardo:ollie:0.3.1'
     /* end relevant android-uploader dependencies */
 
     compile('com.crashlytics.sdk.android:crashlytics:2.5.0@aar') {

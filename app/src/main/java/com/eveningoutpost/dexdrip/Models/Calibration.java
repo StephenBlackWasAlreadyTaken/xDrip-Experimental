@@ -7,10 +7,10 @@ import android.preference.PreferenceManager;
 import android.provider.BaseColumns;
 import com.eveningoutpost.dexdrip.Models.UserError.Log;
 
-import com.activeandroid.Model;
-import com.activeandroid.annotation.Column;
-import com.activeandroid.annotation.Table;
-import com.activeandroid.query.Select;
+import ollie.Model;
+import ollie.annotation.Column;
+import ollie.annotation.Table;
+import ollie.query.Select;
 import com.eveningoutpost.dexdrip.ImportedLibraries.dexcom.records.CalRecord;
 import com.eveningoutpost.dexdrip.ImportedLibraries.dexcom.records.CalSubrecord;
 import com.eveningoutpost.dexdrip.Sensor;
@@ -32,115 +32,115 @@ import java.util.UUID;
 /**
  * Created by stephenblack on 10/29/14.
  */
-@Table(name = "Calibration", id = BaseColumns._ID)
+@Table("Calibration")
 public class Calibration extends Model {
     private final static String TAG = Calibration.class.getSimpleName();
 
     @Expose
-    @Column(name = "timestamp", index = true)
+    @Column("timestamp")
     public double timestamp;
 
     @Expose
-    @Column(name = "sensor_age_at_time_of_estimation")
+    @Column("sensor_age_at_time_of_estimation")
     public double sensor_age_at_time_of_estimation;
 
-    @Column(name = "sensor", index = true)
+    @Column("sensor")
     public Sensor sensor;
 
     @Expose
-    @Column(name = "bg")
+    @Column("bg")
     public double bg;
 
     @Expose
-    @Column(name = "raw_value")
+    @Column("raw_value")
     public double raw_value;
 //
 //    @Expose
-//    @Column(name = "filtered_value")
+//    @Column("filtered_value")
 //    public double filtered_value;
 
     @Expose
-    @Column(name = "adjusted_raw_value")
+    @Column("adjusted_raw_value")
     public double adjusted_raw_value;
 
     @Expose
-    @Column(name = "sensor_confidence")
+    @Column("sensor_confidence")
     public double sensor_confidence;
 
     @Expose
-    @Column(name = "slope_confidence")
+    @Column("slope_confidence")
     public double slope_confidence;
 
     @Expose
-    @Column(name = "raw_timestamp")
+    @Column("raw_timestamp")
     public double raw_timestamp;
 
     @Expose
-    @Column(name = "slope")
+    @Column("slope")
     public double slope;
 
     @Expose
-    @Column(name = "intercept")
+    @Column("intercept")
     public double intercept;
 
     @Expose
-    @Column(name = "distance_from_estimate")
+    @Column("distance_from_estimate")
     public double distance_from_estimate;
 
     @Expose
-    @Column(name = "estimate_raw_at_time_of_calibration")
+    @Column("estimate_raw_at_time_of_calibration")
     public double estimate_raw_at_time_of_calibration;
 
     @Expose
-    @Column(name = "estimate_bg_at_time_of_calibration")
+    @Column("estimate_bg_at_time_of_calibration")
     public double estimate_bg_at_time_of_calibration;
 
     @Expose
-    @Column(name = "uuid", index = true)
+    @Column("uuid")
     public String uuid;
 
     @Expose
-    @Column(name = "sensor_uuid", index = true)
+    @Column("sensor_uuid")
     public String sensor_uuid;
 
     @Expose
-    @Column(name = "possible_bad")
+    @Column("possible_bad")
     public Boolean possible_bad;
 
     @Expose
-    @Column(name = "check_in")
+    @Column("check_in")
     public boolean check_in;
 
     @Expose
-    @Column(name = "first_decay")
+    @Column("first_decay")
     public double first_decay;
 
     @Expose
-    @Column(name = "second_decay")
+    @Column("second_decay")
     public double second_decay;
 
     @Expose
-    @Column(name = "first_slope")
+    @Column("first_slope")
     public double first_slope;
 
     @Expose
-    @Column(name = "second_slope")
+    @Column("second_slope")
     public double second_slope;
 
     @Expose
-    @Column(name = "first_intercept")
+    @Column("first_intercept")
     public double first_intercept;
 
     @Expose
-    @Column(name = "second_intercept")
+    @Column("second_intercept")
     public double second_intercept;
 
     @Expose
-    @Column(name = "first_scale")
+    @Column("first_scale")
     public double first_scale;
 
     @Expose
-    @Column(name = "second_scale")
+    @Column("second_scale")
     public double second_scale;
 
     public static void initialCalibration(double bg1, double bg2, Context context) {
@@ -300,12 +300,12 @@ public class Calibration extends Model {
 
     public static boolean is_new(CalSubrecord calSubrecord, long addativeOffset) {
         Sensor sensor = Sensor.currentSensor();
-        Calibration calibration = new Select()
+        Calibration calibration = Select
                 .from(Calibration.class)
-                .where("Sensor = ? ", sensor.getId())
+                .where("Sensor = ? ", sensor.id)
                 .where("timestamp <= ?", calSubrecord.getDateEntered().getTime() + addativeOffset + (1000 * 60 * 2))
                 .orderBy("timestamp desc")
-                .executeSingle();
+                .fetchSingle();
         if(calibration != null && Math.abs(calibration.timestamp - (calSubrecord.getDateEntered().getTime() + addativeOffset)) < (4*60*1000)) {
             Log.d("CAL CHECK IN ", "Already have that calibration!");
             return false;
@@ -316,14 +316,14 @@ public class Calibration extends Model {
     }
     public static Calibration getForTimestamp(double timestamp) {
         Sensor sensor = Sensor.currentSensor();
-        return new Select()
+        return Select
                 .from(Calibration.class)
-                .where("Sensor = ? ", sensor.getId())
+                .where("Sensor = ? ", sensor.id)
                 .where("slope_confidence != 0")
                 .where("sensor_confidence != 0")
                 .where("timestamp < ?", timestamp)
                 .orderBy("timestamp desc")
-                .executeSingle();
+                .fetchSingle();
     }
 
     public static Calibration create(double bg, Context context) {
@@ -383,9 +383,9 @@ public class Calibration extends Model {
     public static List<Calibration> allForSensorInLastFiveDays() {
         Sensor sensor = Sensor.currentSensor();
         if (sensor == null) { return null; }
-        return new Select()
+        return Select
                 .from(Calibration.class)
-                .where("Sensor = ? ", sensor.getId())
+                .where("Sensor = ? ", sensor.id)
                 .where("slope_confidence != 0")
                 .where("sensor_confidence != 0")
                 .where("timestamp > ?", (new Date().getTime() - (60000 * 60 * 24 * 5)))
@@ -480,9 +480,9 @@ public class Calibration extends Model {
     }
 
     private static List<Calibration> calibrations_for_sensor(Sensor sensor) {
-        return new Select()
+        return Select
                 .from(Calibration.class)
-                .where("Sensor = ?", sensor.getId())
+                .where("Sensor = ?", sensor.id)
                 .where("slope_confidence != 0")
                 .where("sensor_confidence != 0")
                 .orderBy("timestamp desc")
@@ -570,33 +570,33 @@ public class Calibration extends Model {
     //COMMON SCOPES!
     public static Calibration last() {
         Sensor sensor = Sensor.currentSensor();
-        return new Select()
+        return Select
                 .from(Calibration.class)
-                .where("Sensor = ? ", sensor.getId())
+                .where("Sensor = ? ", sensor.id)
                 .orderBy("timestamp desc")
-                .executeSingle();
+                .fetchSingle();
     }
 
     public static Calibration first() {
         Sensor sensor = Sensor.currentSensor();
-        return new Select()
+        return Select
                 .from(Calibration.class)
-                .where("Sensor = ? ", sensor.getId())
+                .where("Sensor = ? ", sensor.id)
                 .where("slope_confidence != 0")
                 .where("sensor_confidence != 0")
                 .orderBy("timestamp asc")
-                .executeSingle();
+                .fetchSingle();
     }
     public static double max_recent() {
         Sensor sensor = Sensor.currentSensor();
-        Calibration calibration = new Select()
+        Calibration calibration = Select
                 .from(Calibration.class)
-                .where("Sensor = ? ", sensor.getId())
+                .where("Sensor = ? ", sensor.id)
                 .where("slope_confidence != 0")
                 .where("sensor_confidence != 0")
                 .where("timestamp > ?", (new Date().getTime() - (60000 * 60 * 24 * 4)))
                 .orderBy("bg desc")
-                .executeSingle();
+                .fetchSingle();
         if(calibration != null) {
             return calibration.bg;
         } else {
@@ -606,14 +606,14 @@ public class Calibration extends Model {
 
     public static double min_recent() {
         Sensor sensor = Sensor.currentSensor();
-        Calibration calibration = new Select()
+        Calibration calibration = Select
                 .from(Calibration.class)
-                .where("Sensor = ? ", sensor.getId())
+                .where("Sensor = ? ", sensor.id)
                 .where("slope_confidence != 0")
                 .where("sensor_confidence != 0")
                 .where("timestamp > ?", (new Date().getTime() - (60000 * 60 * 24 * 4)))
                 .orderBy("bg asc")
-                .executeSingle();
+                .fetchSingle();
         if(calibration != null) {
             return calibration.bg;
         } else {
@@ -624,9 +624,9 @@ public class Calibration extends Model {
     public static List<Calibration> latest(int number) {
         Sensor sensor = Sensor.currentSensor();
         if (sensor == null) { return null; }
-        return new Select()
+        return Select
                 .from(Calibration.class)
-                .where("Sensor = ? ", sensor.getId())
+                .where("Sensor = ? ", sensor.id)
                 .orderBy("timestamp desc")
                 .limit(number)
                 .execute();
@@ -635,7 +635,7 @@ public class Calibration extends Model {
     public static List<Calibration> latestForGraph(int number, double startTime) {
         DecimalFormat df = new DecimalFormat("#");
         df.setMaximumFractionDigits(1);
-        return new Select()
+        return Select
                 .from(Calibration.class)
                 .where("timestamp >= " + df.format(startTime))
                 .orderBy("timestamp desc")
@@ -646,9 +646,9 @@ public class Calibration extends Model {
     public static List<Calibration> allForSensor() {
         Sensor sensor = Sensor.currentSensor();
         if (sensor == null) { return null; }
-        return new Select()
+        return Select
                 .from(Calibration.class)
-                .where("Sensor = ? ", sensor.getId())
+                .where("Sensor = ? ", sensor.id)
                 .where("slope_confidence != 0")
                 .where("sensor_confidence != 0")
                 .orderBy("timestamp desc")
@@ -658,9 +658,9 @@ public class Calibration extends Model {
     public static List<Calibration> allForSensorInLastFourDays() {
         Sensor sensor = Sensor.currentSensor();
         if (sensor == null) { return null; }
-        return new Select()
+        return Select
                 .from(Calibration.class)
-                .where("Sensor = ? ", sensor.getId())
+                .where("Sensor = ? ", sensor.id)
                 .where("slope_confidence != 0")
                 .where("sensor_confidence != 0")
                 .where("timestamp > ?", (new Date().getTime() - (60000 * 60 * 24 * 4)))
@@ -670,7 +670,7 @@ public class Calibration extends Model {
 
     public static List<Calibration> futureCalibrations() {
         double timestamp = new Date().getTime();
-        return new Select()
+        return Select
                 .from(Calibration.class)
                 .where("timestamp > " + timestamp)
                 .orderBy("timestamp desc")

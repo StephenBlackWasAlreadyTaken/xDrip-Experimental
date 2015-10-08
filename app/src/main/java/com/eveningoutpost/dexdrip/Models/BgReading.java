@@ -7,10 +7,10 @@ import android.preference.PreferenceManager;
 import android.provider.BaseColumns;
 import com.eveningoutpost.dexdrip.Models.UserError.Log;
 
-import com.activeandroid.Model;
-import com.activeandroid.annotation.Column;
-import com.activeandroid.annotation.Table;
-import com.activeandroid.query.Select;
+import ollie.Model;
+import ollie.annotation.Column;
+import ollie.annotation.Table;
+import ollie.query.Select;
 import com.eveningoutpost.dexdrip.ImportedLibraries.dexcom.records.EGVRecord;
 import com.eveningoutpost.dexdrip.ImportedLibraries.dexcom.records.SensorRecord;
 import com.eveningoutpost.dexdrip.Sensor;
@@ -30,7 +30,7 @@ import java.util.List;
 import java.util.Random;
 import java.util.UUID;
 
-@Table(name = "BgReadings", id = BaseColumns._ID)
+@Table("BgReadings")
 public class BgReading extends Model implements ShareUploadableBg{
     private static boolean predictBG;
     private final static String TAG = BgReading.class.getSimpleName();
@@ -38,89 +38,89 @@ public class BgReading extends Model implements ShareUploadableBg{
     //TODO: Have these as adjustable settings!!
     public final static double BESTOFFSET = (60000 * 0); // Assume readings are about x minutes off from actual!
 
-    @Column(name = "sensor", index = true)
+    @Column("sensor")
     public Sensor sensor;
 
-    @Column(name = "calibration", index = true)
+    @Column("calibration")
     public Calibration calibration;
 
     @Expose
-    @Column(name = "timestamp", index = true)
+    @Column("timestamp")
     public long timestamp;
 
     @Expose
-    @Column(name = "time_since_sensor_started")
+    @Column("time_since_sensor_started")
     public double time_since_sensor_started;
 
     @Expose
-    @Column(name = "raw_data")
+    @Column("raw_data")
     public double raw_data;
 
     @Expose
-    @Column(name = "filtered_data")
+    @Column("filtered_data")
     public double filtered_data;
 
     @Expose
-    @Column(name = "age_adjusted_raw_value")
+    @Column("age_adjusted_raw_value")
     public double age_adjusted_raw_value;
 
     @Expose
-    @Column(name = "calibration_flag")
+    @Column("calibration_flag")
     public boolean calibration_flag;
 
     @Expose
-    @Column(name = "calculated_value")
+    @Column("calculated_value")
     public double calculated_value;
 
     @Expose
-    @Column(name = "calculated_value_slope")
+    @Column("calculated_value_slope")
     public double calculated_value_slope;
 
     @Expose
-    @Column(name = "a")
+    @Column("a")
     public double a;
 
     @Expose
-    @Column(name = "b")
+    @Column("b")
     public double b;
 
     @Expose
-    @Column(name = "c")
+    @Column("c")
     public double c;
 
     @Expose
-    @Column(name = "ra")
+    @Column("ra")
     public double ra;
 
     @Expose
-    @Column(name = "rb")
+    @Column("rb")
     public double rb;
 
     @Expose
-    @Column(name = "rc")
+    @Column("rc")
     public double rc;
     @Expose
-    @Column(name = "uuid", index = true)
+    @Column("uuid")
     public String uuid;
 
     @Expose
-    @Column(name = "calibration_uuid")
+    @Column("calibration_uuid")
     public String calibration_uuid;
 
     @Expose
-    @Column(name = "sensor_uuid", index = true)
+    @Column("sensor_uuid")
     public String sensor_uuid;
 
-    @Column(name = "snyced")
+    @Column("snyced")
     public boolean synced;
 
-    @Column(name = "raw_calculated")
+    @Column("raw_calculated")
     public double raw_calculated;
 
-    @Column(name = "hide_slope")
+    @Column("hide_slope")
     public boolean hide_slope;
 
-    @Column(name = "noise")
+    @Column("noise")
     public String noise;
 
     public double calculated_value_mmol() {
@@ -260,14 +260,14 @@ public class BgReading extends Model implements ShareUploadableBg{
     public static BgReading getForTimestamp(double timestamp) {
         Sensor sensor = Sensor.currentSensor();
         if(sensor != null) {
-            BgReading bgReading = new Select()
+            BgReading bgReading = Select
                     .from(BgReading.class)
-                    .where("Sensor = ? ", sensor.getId())
+                    .where("Sensor = ? ", sensor.id)
                     .where("timestamp <= ?", (timestamp + (60 * 1000))) // 1 minute padding (should never be that far off, but why not)
                     .where("calculated_value = 0")
                     .where("raw_calculated = 0")
                     .orderBy("timestamp desc")
-                    .executeSingle();
+                    .fetchSingle();
             if(bgReading != null && Math.abs(bgReading.timestamp - timestamp) < (3*60*1000)) { //cool, so was it actually within 4 minutes of that bg reading?
                 Log.i(TAG, "getForTimestamp: Found a BG timestamp match");
                 return bgReading;
@@ -281,12 +281,12 @@ public class BgReading extends Model implements ShareUploadableBg{
         double timestamp = sensorRecord.getSystemTime().getTime() + addativeOffset;
         Sensor sensor = Sensor.currentSensor();
         if(sensor != null) {
-            BgReading bgReading = new Select()
+            BgReading bgReading = Select
                     .from(BgReading.class)
-                    .where("Sensor = ? ", sensor.getId())
+                    .where("Sensor = ? ", sensor.id)
                     .where("timestamp <= ?",  (timestamp + (60*1000))) // 1 minute padding (should never be that far off, but why not)
                     .orderBy("timestamp desc")
-                    .executeSingle();
+                    .fetchSingle();
             if(bgReading != null && Math.abs(bgReading.timestamp - timestamp) < (3*60*1000)) { //cool, so was it actually within 4 minutes of that bg reading?
                 Log.i(TAG, "isNew; Old Reading");
                 return false;
@@ -451,21 +451,21 @@ public class BgReading extends Model implements ShareUploadableBg{
     public static BgReading last() {
         Sensor sensor = Sensor.currentSensor();
         if (sensor != null) {
-            return new Select()
+            return Select
                     .from(BgReading.class)
-                    .where("Sensor = ? ", sensor.getId())
+                    .where("Sensor = ? ", sensor.id)
                     .where("calculated_value != 0")
                     .where("raw_data != 0")
                     .orderBy("timestamp desc")
-                    .executeSingle();
+                    .fetchSingle();
         }
         return null;
     }
     public static List<BgReading> latest_by_size(int number) {
         Sensor sensor = Sensor.currentSensor();
-        return new Select()
+        return Select
                 .from(BgReading.class)
-                .where("Sensor = ? ", sensor.getId())
+                .where("Sensor = ? ", sensor.id)
                 .where("raw_data != 0")
                 .orderBy("timestamp desc")
                 .limit(number)
@@ -473,20 +473,20 @@ public class BgReading extends Model implements ShareUploadableBg{
     }
 
     public static BgReading lastNoSenssor() {
-        return new Select()
+        return Select
                 .from(BgReading.class)
                 .where("calculated_value != 0")
                 .where("raw_data != 0")
                 .orderBy("timestamp desc")
-                .executeSingle();
+                .fetchSingle();
     }
 
     public static List<BgReading> latest(int number) {
         Sensor sensor = Sensor.currentSensor();
         if (sensor == null) { return null; }
-        return new Select()
+        return Select
                 .from(BgReading.class)
-                .where("Sensor = ? ", sensor.getId())
+                .where("Sensor = ? ", sensor.id)
                 .where("calculated_value != 0")
                 .where("raw_data != 0")
                 .orderBy("timestamp desc")
@@ -497,9 +497,9 @@ public class BgReading extends Model implements ShareUploadableBg{
     public static List<BgReading> latestUnCalculated(int number) {
         Sensor sensor = Sensor.currentSensor();
         if (sensor == null) { return null; }
-        return new Select()
+        return Select
                 .from(BgReading.class)
-                .where("Sensor = ? ", sensor.getId())
+                .where("Sensor = ? ", sensor.id)
                 .where("raw_data != 0")
                 .orderBy("timestamp desc")
                 .limit(number)
@@ -509,7 +509,7 @@ public class BgReading extends Model implements ShareUploadableBg{
     public static List<BgReading> latestForGraph(int number, double startTime) {
         DecimalFormat df = new DecimalFormat("#");
         df.setMaximumFractionDigits(1);
-        return new Select()
+        return Select
                 .from(BgReading.class)
                 .where("timestamp >= " + df.format(startTime))
                 .where("calculated_value != 0")
@@ -521,7 +521,7 @@ public class BgReading extends Model implements ShareUploadableBg{
 
     public static List<BgReading> last30Minutes() {
         double timestamp = (new Date().getTime()) - (60000 * 30);
-        return new Select()
+        return Select
                 .from(BgReading.class)
                 .where("timestamp >= " + timestamp)
                 .where("calculated_value != 0")
@@ -532,7 +532,7 @@ public class BgReading extends Model implements ShareUploadableBg{
 
     public static List<BgReading> futureReadings() {
         double timestamp = new Date().getTime();
-        return new Select()
+        return Select
                 .from(BgReading.class)
                 .where("timestamp > " + timestamp)
                 .orderBy("timestamp desc")
@@ -540,10 +540,10 @@ public class BgReading extends Model implements ShareUploadableBg{
     }
 
     public static BgReading findByUuid(String uuid) {
-        return new Select()
+        return Select
                 .from(BgReading.class)
                 .where("uuid = ?", uuid)
-                .executeSingle();
+                .fetchSingle();
     }
 
     public static double estimated_bg(double timestamp) {

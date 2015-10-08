@@ -7,10 +7,10 @@ import android.preference.PreferenceManager;
 import android.provider.BaseColumns;
 import com.eveningoutpost.dexdrip.Models.UserError.Log;
 
-import com.activeandroid.Model;
-import com.activeandroid.annotation.Column;
-import com.activeandroid.annotation.Table;
-import com.activeandroid.query.Select;
+import ollie.Model;
+import ollie.annotation.Column;
+import ollie.annotation.Table;
+import ollie.query.Select;
 import com.eveningoutpost.dexdrip.Services.MissedReadingService;
 import com.eveningoutpost.dexdrip.UtilityModels.AlertPlayer;
 import com.eveningoutpost.dexdrip.UtilityModels.Notifications;
@@ -23,63 +23,63 @@ import java.util.UUID;
 /**
  * Created by stephenblack on 1/14/15.
  */
-@Table(name = "AlertType", id = BaseColumns._ID)
+@Table("AlertType")
 public class AlertType extends Model {
 
-    @Column(name = "name")
+    @Column("name")
     public String name;
 
-    @Column(name = "active")
+    @Column("active")
     public boolean active;
 
-    @Column(name = "volume")
+    @Column("volume")
     public int volume;
 
-    @Column(name = "vibrate")
+    @Column("vibrate")
     public boolean vibrate;
 
-    @Column(name = "light")
+    @Column("light")
     public boolean light;
 
-    @Column(name = "override_silent_mode")
+    @Column("override_silent_mode")
     public boolean override_silent_mode;
 
-    @Column(name = "predictive")
+    @Column("predictive")
     public boolean predictive;
 
-    @Column(name = "time_until_threshold_crossed")
+    @Column("time_until_threshold_crossed")
     public double time_until_threshold_crossed;
 
     // If it is not above, then it must be below.
-    @Column(name = "above")
+    @Column("above")
     public boolean above;
 
-    @Column(name = "threshold")
+    @Column("threshold")
     public double threshold;
 
-    @Column(name = "all_day")
+    @Column("all_day")
     public boolean all_day;
 
-    @Column(name = "start_time_minutes")
+    @Column("start_time_minutes")
     public int start_time_minutes;  // This have probable be in minutes from start of day. this is not time...
 
-    @Column(name = "end_time_minutes")
+    @Column("end_time_minutes")
     public int end_time_minutes;
 
-    @Column(name = "minutes_between") //??? what is the difference between minutes_between and default_snooze ???
+    @Column("minutes_between") //??? what is the difference between minutes_between and default_snooze ???
     public int minutes_between; // The idea here was if ignored it will go off again each x minutes, snooze would be if it was aknowledged and dismissed it will go off again in y minutes
     // that said, Im okay with doing away with the minutes between and just doing it at a set 5 mins like dex
 
-    @Column(name = "default_snooze")
+    @Column("default_snooze")
     public int default_snooze;
 
-    @Column(name = "text") // ??? what's that? is it different from name?
+    @Column("text") // ??? what's that? is it different from name?
     public String text; // I figured if we wanted some special text, Its
 
-    @Column(name = "mp3_file")
+    @Column("mp3_file")
     public String mp3_file;
 
-    @Column(name = "uuid", index = true)
+    @Column("uuid")
     public String uuid;
 
     public final static String LOW_ALERT_55 = "c5f1999c-4ec5-449e-adad-3980b172b920";
@@ -88,10 +88,10 @@ public class AlertType extends Model {
 
     public static AlertType get_alert(String uuid) {
 
-        return new Select()
+        return Select
         .from(AlertType.class)
         .where("uuid = ? ", uuid)
-        .executeSingle();
+        .fetchSingle();
     }
 
     /*
@@ -145,12 +145,12 @@ public class AlertType extends Model {
     private static AlertType get_highest_active_alert_helper(double bg) {
         // Chcek the low alerts
 
-        List<AlertType> lowAlerts  = new Select()
-            .from(AlertType.class)
-            .where("threshold >= ?", bg)
+        List<AlertType> lowAlerts  = Select
+            .from(AlertType.class).
+            .where("threshold >= "+bg).
             .where("above = ?", false)
-            .orderBy("threshold asc")
-            .execute();
+//            .orderBy("threshold asc")
+//            .fetch();
 
         for (AlertType lowAlert : lowAlerts) {
             if(lowAlert.should_alarm(bg)) {
@@ -159,8 +159,7 @@ public class AlertType extends Model {
         }
 
         // If no low alert found, check higher alert.
-        List<AlertType> HighAlerts  = new Select()
-            .from(AlertType.class)
+        List<AlertType> HighAlerts  = Select.from(AlertType.class)
             .where("threshold <= ?", bg)
             .where("above = ?", true)
             .orderBy("threshold desc")
@@ -212,7 +211,7 @@ public class AlertType extends Model {
     }
 
     public static void remove_all() {
-        List<AlertType> Alerts  = new Select()
+        List<AlertType> Alerts  = Select
         .from(AlertType.class)
         .execute();
 
@@ -312,7 +311,7 @@ public class AlertType extends Model {
     }
 
     public static void print_all() {
-        List<AlertType> Alerts  = new Select()
+        List<AlertType> Alerts  = Select
             .from(AlertType.class)
             .execute();
 
@@ -329,7 +328,7 @@ public class AlertType extends Model {
         } else {
             order = "threshold desc";
         }
-        List<AlertType> alerts  = new Select()
+        List<AlertType> alerts  = Select
             .from(AlertType.class)
             .where("above = ?", above)
             .orderBy(order)

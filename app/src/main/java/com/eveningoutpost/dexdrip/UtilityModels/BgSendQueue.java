@@ -13,10 +13,10 @@ import android.preference.PreferenceManager;
 import android.provider.BaseColumns;
 import com.eveningoutpost.dexdrip.Models.UserError.Log;
 
-import com.activeandroid.Model;
-import com.activeandroid.annotation.Column;
-import com.activeandroid.annotation.Table;
-import com.activeandroid.query.Select;
+import ollie.Model;
+import ollie.annotation.Column;
+import ollie.annotation.Table;
+import ollie.query.Select;
 import com.eveningoutpost.dexdrip.Models.BgReading;
 import com.eveningoutpost.dexdrip.Services.SyncService;
 import com.eveningoutpost.dexdrip.ShareModels.ShareRest;
@@ -30,32 +30,32 @@ import java.util.List;
 /**
  * Created by stephenblack on 11/7/14.
  */
-@Table(name = "BgSendQueue", id = BaseColumns._ID)
+@Table("BgSendQueue")
 public class BgSendQueue extends Model {
 
-    @Column(name = "bgReading", index = true)
+    @Column("bgReading")
     public BgReading bgReading;
 
-    @Column(name = "success", index = true)
+    @Column("success")
     public boolean success;
 
-    @Column(name = "mongo_success", index = true)
+    @Column("mongo_success")
     public boolean mongo_success;
 
-    @Column(name = "operation_type")
+    @Column("operation_type")
     public String operation_type;
 
     public static BgSendQueue nextBgJob() {
-        return new Select()
+        return Select
                 .from(BgSendQueue.class)
                 .where("success = ?", false)
                 .orderBy("_ID desc")
                 .limit(1)
-                .executeSingle();
+                .fetchSingle();
     }
 
     public static List<BgSendQueue> queue() {
-        return new Select()
+        return Select
                 .from(BgSendQueue.class)
                 .where("success = ?", false)
                 .orderBy("_ID asc")
@@ -63,7 +63,7 @@ public class BgSendQueue extends Model {
                 .execute();
     }
     public static List<BgSendQueue> mongoQueue() {
-        return new Select()
+        return Select
                 .from(BgSendQueue.class)
                 .where("mongo_success = ?", false)
                 .where("operation_type = ?", "create")

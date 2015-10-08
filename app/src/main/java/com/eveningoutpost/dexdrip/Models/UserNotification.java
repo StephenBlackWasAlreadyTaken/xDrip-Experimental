@@ -2,10 +2,10 @@ package com.eveningoutpost.dexdrip.Models;
 
 import android.provider.BaseColumns;
 
-import com.activeandroid.Model;
-import com.activeandroid.annotation.Column;
-import com.activeandroid.annotation.Table;
-import com.activeandroid.query.Select;
+import ollie.Model;
+import ollie.annotation.Column;
+import ollie.annotation.Table;
+import ollie.query.Select;
 
 import java.util.Date;
 
@@ -13,85 +13,85 @@ import java.util.Date;
  * Created by stephenblack on 11/29/14.
  */
 
-@Table(name = "Notifications", id = BaseColumns._ID)
+@Table("Notifications")
 public class UserNotification extends Model {
 
-    @Column(name = "timestamp", index = true)
+    @Column("timestamp")
     public double timestamp;
 
-    @Column(name = "message")
+    @Column("message")
     public String message;
 
-    @Column(name = "bg_alert")
+    @Column("bg_alert")
     public boolean bg_alert;
 
-    @Column(name = "calibration_alert")
+    @Column("calibration_alert")
     public boolean calibration_alert;
 
-    @Column(name = "double_calibration_alert")
+    @Column("double_calibration_alert")
     public boolean double_calibration_alert;
 
-    @Column(name = "extra_calibration_alert")
+    @Column("extra_calibration_alert")
     public boolean extra_calibration_alert;
 
-    @Column(name = "bg_unclear_readings_alert")
+    @Column("bg_unclear_readings_alert")
     public boolean bg_unclear_readings_alert;
 
-    @Column(name = "bg_missed_alerts")
+    @Column("bg_missed_alerts")
     public boolean bg_missed_alerts;
 
-    @Column(name = "bg_rise_alert")
+    @Column("bg_rise_alert")
     public boolean bg_rise_alert;
 
-    @Column(name = "bg_fall_alert")
+    @Column("bg_fall_alert")
     public boolean bg_fall_alert;
 
     public static UserNotification lastBgAlert() {
-        return new Select()
+        return Select
                 .from(UserNotification.class)
                 .where("bg_alert = ?", true)
                 .orderBy("_ID desc")
-                .executeSingle();
+                .fetchSingle();
     }
     public static UserNotification lastCalibrationAlert() {
-        return new Select()
+        return Select
                 .from(UserNotification.class)
                 .where("calibration_alert = ?", true)
                 .orderBy("_ID desc")
-                .executeSingle();
+                .fetchSingle();
     }
     public static UserNotification lastDoubleCalibrationAlert() {
-        return new Select()
+        return Select
                 .from(UserNotification.class)
                 .where("double_calibration_alert = ?", true)
                 .orderBy("_ID desc")
-                .executeSingle();
+                .fetchSingle();
     }
     public static UserNotification lastExtraCalibrationAlert() {
-        return new Select()
+        return Select
                 .from(UserNotification.class)
                 .where("extra_calibration_alert = ?", true)
                 .orderBy("_ID desc")
-                .executeSingle();
+                .fetchSingle();
     }
 
-    
+
     public static UserNotification GetNotificationByType(String type) {
         type = type + " = ?";
-        return new Select()
+        return Select
         .from(UserNotification.class)
         .where(type, true)
         .orderBy("_ID desc")
-        .executeSingle();
+        .fetchSingle();
     }
-    
+
     public static void DeleteNotificationByType(String type) {
         UserNotification userNotification = UserNotification.GetNotificationByType(type);
         if (userNotification != null) {
             userNotification.delete();
         }
     }
-    
+
     public static UserNotification create(String message, String type) {
         UserNotification userNotification = new UserNotification();
         userNotification.timestamp = new Date().getTime();

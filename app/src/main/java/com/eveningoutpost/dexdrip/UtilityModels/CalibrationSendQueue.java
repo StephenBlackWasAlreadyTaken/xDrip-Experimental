@@ -5,10 +5,10 @@ import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
 import android.provider.BaseColumns;
 
-import com.activeandroid.Model;
-import com.activeandroid.annotation.Column;
-import com.activeandroid.annotation.Table;
-import com.activeandroid.query.Select;
+import ollie.Model;
+import ollie.annotation.Column;
+import ollie.annotation.Table;
+import ollie.query.Select;
 import com.eveningoutpost.dexdrip.Models.Calibration;
 
 import java.util.List;
@@ -16,37 +16,37 @@ import java.util.List;
 /**
  * Created by stephenblack on 11/7/14.
  */
-@Table(name = "CalibrationSendQueue", id = BaseColumns._ID)
+@Table("CalibrationSendQueue")
 public class CalibrationSendQueue extends Model {
 
-    @Column(name = "calibration", index = true)
+    @Column("calibration")
     public Calibration calibration;
 
-    @Column(name = "success", index = true)
+    @Column("success")
     public boolean success;
 
-    @Column(name = "mongo_success", index = true)
+    @Column("mongo_success")
     public boolean mongo_success;
 
     public static CalibrationSendQueue nextCalibrationJob() {
-        CalibrationSendQueue job = new Select()
+        CalibrationSendQueue job = Select
                 .from(CalibrationSendQueue.class)
                 .where("success = ?", false)
                 .orderBy("_ID desc")
                 .limit(1)
-                .executeSingle();
+                .fetchSingle();
         return job;
     }
 
     public static List<CalibrationSendQueue> queue() {
-        return new Select()
+        return Select
                 .from(CalibrationSendQueue.class)
                 .where("success = ?", false)
                 .orderBy("_ID asc")
                 .execute();
     }
     public static List<CalibrationSendQueue> mongoQueue() {
-        return new Select()
+        return Select
                 .from(CalibrationSendQueue.class)
                 .where("mongo_success = ?", false)
                 .orderBy("_ID desc")

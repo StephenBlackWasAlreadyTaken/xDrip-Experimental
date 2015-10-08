@@ -39,7 +39,7 @@ public class ErrorListAdapter  extends BaseAdapter {
 
     @Override
     public long getItemId(int pos) {
-        return list.get(pos).getId();
+        return list.get(pos).id;
     }
 
     @Override

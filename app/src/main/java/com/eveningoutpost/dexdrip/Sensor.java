@@ -4,10 +4,10 @@ import android.provider.BaseColumns;
 import com.eveningoutpost.dexdrip.Models.UserError.Log;
 import android.preference.ListPreference;
 
-import com.activeandroid.Model;
-import com.activeandroid.annotation.Column;
-import com.activeandroid.annotation.Table;
-import com.activeandroid.query.Select;
+import ollie.Model;
+import ollie.annotation.Column;
+import ollie.annotation.Table;
+import ollie.query.Select;
 import com.eveningoutpost.dexdrip.UtilityModels.SensorSendQueue;
 
 import java.util.UUID;
@@ -16,28 +16,28 @@ import java.util.UUID;
  * Created by stephenblack on 10/29/14.
  */
 
-@Table(name = "Sensors", id = BaseColumns._ID)
+@Table("Sensors")
 public class Sensor extends Model {
 
 //    @Expose
-    @Column(name = "started_at", index = true)
+    @Column("started_at")
     public long started_at;
 
 //    @Expose
-    @Column(name = "stopped_at")
+    @Column("stopped_at")
     public long stopped_at;
 
 //    @Expose
     //latest minimal battery level
-    @Column(name = "latest_battery_level")
+    @Column("latest_battery_level")
     public int latest_battery_level;
 
 //    @Expose
-    @Column(name = "uuid", index = true)
+    @Column("uuid")
     public String uuid;
-    
+
 //  @Expose
-  @Column(name = "sensor_location")
+  @Column("sensor_location")
   public String sensor_location;
 
     public static Sensor create(long started_at) {
@@ -52,31 +52,31 @@ public class Sensor extends Model {
     }
 
     public static Sensor currentSensor() {
-        Sensor sensor = new Select()
+        Sensor sensor = Select
                 .from(Sensor.class)
                 .where("started_at != 0")
                 .where("stopped_at = 0")
                 .orderBy("_ID desc")
                 .limit(1)
-                .executeSingle();
+                .fetchSingle();
         return sensor;
     }
 
     public static boolean isActive() {
-        Sensor sensor = new Select()
+        Sensor sensor = Select
                 .from(Sensor.class)
                 .where("started_at != 0")
                 .where("stopped_at = 0")
                 .orderBy("_ID desc")
                 .limit(1)
-                .executeSingle();
+                .fetchSingle();
         if(sensor == null) {
             return false;
         } else {
             return true;
         }
     }
-    
+
     public static void updateSensorLocation(String sensor_location) {
         Sensor sensor = currentSensor();
         if (sensor == null) {

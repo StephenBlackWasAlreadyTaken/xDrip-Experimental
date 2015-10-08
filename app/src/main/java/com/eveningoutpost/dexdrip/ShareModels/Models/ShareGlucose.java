@@ -7,35 +7,35 @@ import android.os.BatteryManager;
 import android.provider.BaseColumns;
 import com.eveningoutpost.dexdrip.Models.UserError.Log;
 
-import com.activeandroid.Model;
-import com.activeandroid.annotation.Column;
-import com.activeandroid.annotation.Table;
+import ollie.Model;
+import ollie.annotation.Column;
+import ollie.annotation.Table;
 import com.google.gson.annotations.Expose;
 
 /**
  * Created by stephenblack on 3/16/15.
  */
-@Table(name = "ShareGlucose", id = BaseColumns._ID)
+@Table("ShareGlucose")
 public class ShareGlucose extends Model {
     public Context mContext;
     @Expose
-    @Column(name = "DT")
+    @Column("DT")
     public String DT;
 
     @Expose
-    @Column(name = "ST")
+    @Column("ST")
     public String ST;
 
     @Expose
-    @Column(name = "Trend")
+    @Column("Trend")
     public double Trend;
 
     @Expose
-    @Column(name = "Value")
+    @Column("Value")
     public double Value;
 
     @Expose
-    @Column(name = "WT")
+    @Column("WT")
     public String WT;
 
     public void processShareData(Context context) {
