@@ -42,14 +42,27 @@ public class PebbleSync extends Service {
     public static final int TREND_DATA_KEY = 8;
     public static final int TREND_END_KEY = 9;
 
-    public static final int CHUNK_SIZE = 118;
+    public static final int CHUNK_SIZE = 1000;
 
 
     private Context mContext;
     private BgGraphBuilder bgGraphBuilder;
     private BgReading mBgReading;
     private static int lastTransactionId;
-    BroadcastReceiver newSavedBgReceiver;
+    private static int currentTransactionId;
+    private static boolean messageInTransit = false;
+    private static boolean transactionFailed = false;
+    private static boolean transactionOk = false;
+    private static boolean done = false;
+    private static int current_size = 0;
+    private static int image_size =0;
+    private static byte [] chunk = new byte[CHUNK_SIZE];
+    private static ByteBuffer buff = null;
+    private static ByteArrayOutputStream stream = null;
+    public static int retries = 0;
+
+    private static short sendStep = 5;
+    private PebbleDictionary dictionary = new PebbleDictionary();
 
     @Override
     public void onCreate() {
@@ -66,17 +79,15 @@ public class PebbleSync extends Service {
             stopSelf();
             return START_NOT_STICKY;
         }
-        Log.i(TAG, "STARTING SERVICE");
-        sendData();
+
+        Log.i(TAG, "onStartCommand called.  Sending Data");
+        if(!messageInTransit) sendData();
         return START_STICKY;
     }
     @Override
     public void onDestroy() {
         Log.d(TAG, "onDestroy called");
         super.onDestroy();
-        if(newSavedBgReceiver != null) {
-            unregisterReceiver(newSavedBgReceiver);
-        }
     }
     @Override
     public IBinder onBind(Intent intent) {
@@ -97,19 +108,56 @@ public class PebbleSync extends Service {
                     PebbleKit.sendAckToPebble(context, transactionId);
                     sendData();
                 } else {
-                    Log.d(TAG, "receiveData: lastTransactionId is "+ String.valueOf(lastTransactionId)+ ", sending NACK");
-                    PebbleKit.sendNackToPebble(context,transactionId);
+                    Log.d(TAG, "receiveData: lastTransactionId is " + String.valueOf(lastTransactionId) + ", sending NACK");
+                    PebbleKit.sendNackToPebble(context, transactionId);
+                    transactionFailed = true;
+                }
+            }
+        });
+
+        PebbleKit.registerReceivedAckHandler(mContext, new PebbleKit.PebbleAckReceiver(PEBBLEAPP_UUID) {
+            @Override
+            public void receiveAck(Context context, int transactionId) {
+                Log.i(TAG, "receiveAck: Got an Ack for transactionId " + transactionId);
+                currentTransactionId++;
+                messageInTransit = false;
+                transactionOk = true;
+                transactionFailed = false;
+                retries = 0;
+                if (!done) sendData();
+            }
+        });
+        PebbleKit.registerReceivedNackHandler(mContext, new PebbleKit.PebbleNackReceiver(PEBBLEAPP_UUID) {
+            @Override
+            public void receiveNack(Context context, int transactionId) {
+                Log.i(TAG, "receiveNack: Got an Nack for transactionId " + transactionId + ". Waiting and retrying.");
+                transactionFailed = true;
+                transactionOk = false;
+                if( retries < 3) {
+                    retries++;
+                    sendData();
+                } else {
+                    Log.i(TAG, "recieveNAck: exceeded retries.  Giving Up");
+                    transactionFailed = false;
+                    //dictionary = null;
+                    messageInTransit = false;
+                    sendStep = 5;
+                    retries = 0;
+                    done = true;
                 }
             }
         });
     }
 
-    public PebbleDictionary buildDictionary() {
-        PebbleDictionary dictionary = new PebbleDictionary();
+    public void buildDictionary() {
+        //PebbleDictionary dictionary = new PebbleDictionary();
         TimeZone tz = TimeZone.getDefault();
         Date now = new Date();
         int offsetFromUTC = tz.getOffset(now.getTime());
-        Log.v(TAG, "buildDictionary: slopeOrdinal-" + slopeOrdinal() + " bgReading-" + bgReading() + " now-"+ (int) now.getTime()/1000 + " bgTime-" + (int) (mBgReading.timestamp / 1000) + " phoneTime-" + (int) (new Date().getTime() / 1000) + " bgDelta-" + bgDelta());
+        Log.v(TAG, "buildDictionary: slopeOrdinal-" + slopeOrdinal() + " bgReading-" + bgReading() + " now-" + (int) now.getTime() / 1000 + " bgTime-" + (int) (mBgReading.timestamp / 1000) + " phoneTime-" + (int) (new Date().getTime() / 1000) + " bgDelta-" + bgDelta());
+        if(dictionary == null){
+            dictionary = new PebbleDictionary();
+        }
         dictionary.addString(ICON_KEY, slopeOrdinal());
         dictionary.addString(BG_KEY, bgReading());
         dictionary.addUint32(RECORD_TIME_KEY, (int) (((mBgReading.timestamp + offsetFromUTC) / 1000)));
@@ -122,56 +170,112 @@ public class PebbleSync extends Service {
             dictionary.addString(UPLOADER_BATTERY_KEY, phoneBattery());
             dictionary.addString(NAME_KEY, "Phone");
         }
-        return dictionary;
+        //return dictionary;
     }
     public void sendTrendToPebble () {
-        int current_size = 0;
-        int image_size =0;
-        byte [] chunk = new byte[1024];
-        if (!PebbleKit.isWatchConnected(mContext)){
+/*        if (!PebbleKit.isWatchConnected(mContext)){
             return;
-        }
-        PebbleDictionary dictionary = new PebbleDictionary();
+        } */
+        //PebbleDictionary dictionary = new PebbleDictionary();
         //create a sparkline bitmap to send to the pebble
-        Bitmap bgTrend = new BgSparklineBuilder(mContext)
-                .setHeightPx(84)
-                .setWidthPx(144)
-                .setStart(System.currentTimeMillis() - 60000 * 60 * 3)
-                .setBgGraphBuilder(bgGraphBuilder)
-                .build();
-        //create a ByteArrayOutputStream
-        ByteArrayOutputStream stream = new ByteArrayOutputStream();
+        if(!done && (sendStep == 1 && ((!messageInTransit && !transactionOk && !transactionFailed) || (messageInTransit && !transactionOk && transactionFailed)))) {
+            if(!messageInTransit && !transactionOk && !transactionFailed) {
+                Bitmap bgTrend = new BgSparklineBuilder(mContext)
+                        .setHeightPx(84)
+                        .setWidthPx(144)
+                        .setStart(System.currentTimeMillis() - 60000 * 60 * 3)
+                        .setBgGraphBuilder(bgGraphBuilder)
+                        .build();
+                //create a ByteArrayOutputStream
+                stream = new ByteArrayOutputStream();
 
-        //compress the bitmap into a PNG.  This makes the transfer smaller
-        bgTrend.compress(Bitmap.CompressFormat.PNG, 100, stream);
-        image_size = stream.size();
-        ByteBuffer buff=ByteBuffer.wrap(stream.toByteArray());
-        //Prepare the TREND_BEGIN_KEY dictionary.  We expect the length of the image to always be less than 65535 bytes.
-        dictionary.addInt16(TREND_BEGIN_KEY, (short) image_size);
-        Log.d(TAG, "sendTrendToPebble: Sending TREND_BEGIN_KEY to pebble, image size is " + bgTrend.getByteCount());
-        PebbleKit.sendDataToPebble(mContext, PEBBLEAPP_UUID, dictionary);
-        dictionary.remove(TREND_BEGIN_KEY);
-        // send image chunks to Pebble.
-            for(current_size = 0; current_size < image_size; current_size=+CHUNK_SIZE) {
-                Log.d(TAG, "sendTrendToPebble: current_size is " + current_size + ", image_size is " + image_size);
-                if((image_size<(current_size+CHUNK_SIZE))) {
-                    Log.d(TAG, "sendTrendToPebble: sending chunk of size " + (image_size - current_size));
-                    buff.get(chunk, current_size, image_size - current_size);
+                //compress the bitmap into a PNG.  This makes the transfer smaller
+                bgTrend.compress(Bitmap.CompressFormat.PNG, 100, stream);
+                image_size = stream.size();
+                buff = ByteBuffer.wrap(stream.toByteArray());
+                //Prepare the TREND_BEGIN_KEY dictionary.  We expect the length of the image to always be less than 65535 bytes.
+                if(buff != null) {
+                    if (dictionary == null) {
+                        dictionary = new PebbleDictionary();
+                    }
+                    dictionary.addInt16(TREND_BEGIN_KEY, (short) image_size);
+                    Log.d(TAG, "sendTrendToPebble: Sending TREND_BEGIN_KEY to pebble, image size is " + image_size);
                 } else {
-                    Log.d(TAG, "sendTrendToPebble: sending chunk of size " + CHUNK_SIZE);
-                    buff.get(chunk, current_size, CHUNK_SIZE);
+                    Log.d(TAG, "sendTrendToPebble: Error converting stream to ByteBuffer, buff is null.");
+                    sendStep = 4;
+                    return;
                 }
-                Log.d(TAG, "sendTrendToPebble: Sending TREND_DATA_KEY to pebble, current_size is" + current_size);
-                dictionary.addBytes(TREND_DATA_KEY, chunk);
-                PebbleKit.sendDataToPebble(mContext, PEBBLEAPP_UUID, dictionary);
-                dictionary.remove(TREND_DATA_KEY);
             }
-
-        // prepare the TREND_END_KEY dictionary and send it.
-        dictionary.addUint8(TREND_END_KEY, (byte) 0);
-        Log.d(TAG, "sendTrendToPebble: Sending TREND_END_KEY to pebble.");
-        PebbleKit.sendDataToPebble(mContext, PEBBLEAPP_UUID, dictionary);
-        dictionary.remove(TREND_END_KEY);
+            //PebbleKit.sendDataToPebble(mContext, PEBBLEAPP_UUID, dictionary);
+            transactionFailed = false;
+            transactionOk=false;
+            messageInTransit = true;
+            PebbleKit.sendDataToPebbleWithTransactionId(mContext, PEBBLEAPP_UUID, dictionary, currentTransactionId);
+        }
+        if(sendStep == 1 && !done && !messageInTransit && transactionOk && !transactionFailed){
+            Log.i(TAG, "sendTrendToPebble: sendStep "+ sendStep + " complete.");
+            dictionary.remove(TREND_BEGIN_KEY);
+            current_size = 0;
+            sendStep = 2;
+            transactionOk = false;
+        }
+        if(!done && ((sendStep ==  2 && !messageInTransit ) || sendStep ==3 && transactionFailed)){
+            if( !transactionFailed && !messageInTransit){
+                // send image chunks to Pebble.
+                Log.d(TAG, "sendTrendToPebble: current_size is " + current_size + ", image_size is " + image_size);
+                if(current_size < image_size) {
+                    dictionary.remove(TREND_DATA_KEY);
+                    if (transactionOk) {
+                        if ((image_size <= (current_size + CHUNK_SIZE))) {
+                            Log.d(TAG, "sendTrendToPebble: sending chunk of size " + (image_size - current_size));
+                            buff.get(chunk, 0, image_size - current_size);
+                            sendStep = 3;
+                        } else {
+                            Log.d(TAG, "sendTrendToPebble: sending chunk of size " + CHUNK_SIZE);
+                            buff.get(chunk, 0, CHUNK_SIZE);
+                            current_size =+ CHUNK_SIZE;
+                        }
+                        dictionary.addBytes(TREND_DATA_KEY, chunk);
+                    }
+                }
+            }
+            Log.d(TAG, "sendTrendToPebble: Sending TREND_DATA_KEY to pebble, current_size is " + current_size);
+            //PebbleKit.sendDataToPebble(mContext, PEBBLEAPP_UUID, dictionary);
+            transactionFailed = false;
+            transactionOk = true;
+            messageInTransit = true;
+            PebbleKit.sendDataToPebbleWithTransactionId(mContext, PEBBLEAPP_UUID, dictionary, currentTransactionId);
+        }
+        if(sendStep == 3 && !done && !messageInTransit && transactionOk && !transactionFailed){
+            Log.i(TAG, "sendTrendToPebble: sendStep "+ sendStep + " complete.");
+            dictionary.remove(TREND_DATA_KEY);
+            sendStep = 3;
+            transactionOk = false;
+            buff = null;
+            stream = null;
+        }
+        if(!done && (sendStep == 3  && ((!messageInTransit && !transactionOk && !transactionFailed) || (messageInTransit && !transactionOk && transactionFailed)))) {
+            if(!transactionFailed) {
+                // prepare the TREND_END_KEY dictionary and send it.
+                dictionary.addUint8(TREND_END_KEY, (byte) 0);
+                Log.d(TAG, "sendTrendToPebble: Sending TREND_END_KEY to pebble.");
+                //PebbleKit.sendDataToPebble(mContext, PEBBLEAPP_UUID, dictionary);
+            }
+            transactionFailed = false;
+            transactionOk = false;
+            messageInTransit = true;
+            PebbleKit.sendDataToPebbleWithTransactionId(mContext, PEBBLEAPP_UUID, dictionary, currentTransactionId);
+        }
+        if(sendStep == 3 && !done && transactionOk && !messageInTransit && !transactionFailed){
+            Log.i(TAG, "sendTrendToPebble: sendStep "+ sendStep + " complete.");
+            dictionary.remove(TREND_END_KEY);
+            sendStep = 4;
+            transactionFailed = false;
+            transactionOk = false;
+            done=true;
+            current_size = 0;
+            buff = null;
+        }
     }
 
     public String bridgeBatteryString() {
@@ -179,12 +283,44 @@ public class PebbleSync extends Service {
     }
 
     public void sendData(){
-        mBgReading = BgReading.last();
-        if(mBgReading != null && PebbleKit.isWatchConnected(mContext)) {
-            sendDownload(buildDictionary());
+//        if(mBgReading != null && PebbleKit.isWatchConnected(mContext)) {
+         if (PebbleKit.isWatchConnected(mContext)) {
+             if(sendStep == 5) {
+                 sendStep = 0;
+                 done=false;
+             }
+             Log.i(TAG, "sendData: messageInTransit= " + messageInTransit + ", transactionFailed= " + transactionFailed + ", sendStep= " + sendStep);
+             if (sendStep == 0 && !messageInTransit && !transactionOk && !transactionFailed) {
+                 mBgReading = BgReading.last();
+                 buildDictionary();
+                 sendDownload();
+                 //done = true;
+                 //transactionOk = false;
+                 //transactionFailed = false;
+                 //messageInTransit = false;
+             }
+             if (sendStep == 0 && !messageInTransit && transactionOk && !transactionFailed) {
+                 sendStep = 1;
+                 transactionOk = false;
+             }
+             /*if (sendStep > 0 && sendStep != 4) {
+                    sendTrendToPebble();
+             }
+             if(sendStep == 4) {
+             //*/if(sendStep == 1) {
+                 sendStep = 5;
+                 Log.i(TAG, "sendData: finished sending.  sendStep = " +sendStep);
+                 transactionFailed = false;
+                 transactionOk = false;
+                 messageInTransit = false;
+                 done = true;
+             }
+         }
+            /*if(sendStep == 0 && messageInTransit == false && transactionFailed == false){
+                done=true;
+            }*/
         }
-        sendTrendToPebble();
-    }
+        //sendTrendToPebble();
 
     public String bgReading() {
         return bgGraphBuilder.unitized_string(mBgReading.calculated_value);
@@ -202,11 +338,15 @@ public class PebbleSync extends Service {
         return bgGraphBuilder.unit();
     }
 
-    public void sendDownload(PebbleDictionary dictionary) {
+    //public void sendDownload(PebbleDictionary dictionary) {
+    public void sendDownload() {
         if (PebbleKit.isWatchConnected(mContext)) {
             if (dictionary != null && mContext != null) {
                 Log.d(TAG, "sendDownload: Sending data to pebble");
-                PebbleKit.sendDataToPebble(mContext, PEBBLEAPP_UUID, dictionary);
+                messageInTransit = true;
+                transactionFailed = false;
+                transactionOk = false;
+                PebbleKit.sendDataToPebbleWithTransactionId(mContext, PEBBLEAPP_UUID, dictionary, currentTransactionId);
             }
         }
     }
