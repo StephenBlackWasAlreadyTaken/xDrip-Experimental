@@ -109,14 +109,14 @@ public class PebbleSync extends Service {
             @Override
             public void receiveData(final Context context, final int transactionId, final PebbleDictionary data) {
                 Log.d(TAG, "receiveData: transactionId is " + String.valueOf(transactionId));
-                if ( (lastTransactionId == 0 || transactionId != lastTransactionId) && !sendingData) {
+                PebbleKit.sendAckToPebble(context, transactionId);
+                if ((lastTransactionId == 0 || transactionId != lastTransactionId) && !sendingData) {
                     lastTransactionId = transactionId;
                     Log.d(TAG, "Received Query. data: " + data.size() + ". sending ACK and data");
-                    PebbleKit.sendAckToPebble(context, transactionId);
                     sendData();
                 } else {
                     Log.d(TAG, "receiveData: lastTransactionId is " + String.valueOf(lastTransactionId) + ", sending NACK");
-                    PebbleKit.sendNackToPebble(context, transactionId);
+//                    PebbleKit.sendNackToPebble(context, transactionId);
                 }
                 transactionFailed = false;
                 transactionOk = false;
@@ -202,8 +202,8 @@ public class PebbleSync extends Service {
         if(!done && (sendStep == 1 && ((!messageInTransit && !transactionOk && !transactionFailed) || (messageInTransit && !transactionOk && transactionFailed)))) {
             if(!messageInTransit && !transactionOk && !transactionFailed) {
                 Bitmap bgTrend = new BgSparklineBuilder(mContext)
-                        .setHeightPx(84)
-                        .setWidthPx(144)
+                        .setHeightPx(82)
+                        .setWidthPx(142)
                         .setStart(System.currentTimeMillis() - 60000 * 60 * 3)
                         .setBgGraphBuilder(bgGraphBuilder)
                         .build();
@@ -347,7 +347,7 @@ public class PebbleSync extends Service {
                  dictionary.remove(UPLOADER_BATTERY_KEY);
                  transactionOk = false;
              }
-             /*if (sendStep > 0 && sendStep != 4) {
+             /*if (sendStep > 0 && sendStep < 5) {
                     sendTrendToPebble();
              }
              if(sendStep == 5) {
