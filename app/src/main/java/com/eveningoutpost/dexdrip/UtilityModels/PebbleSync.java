@@ -57,7 +57,7 @@ public class PebbleSync extends Service {
     private static boolean sendingData = false;
     private static int current_size = 0;
     private static int image_size =0;
-    private static byte [] chunk = new byte[CHUNK_SIZE];
+    private static byte [] chunk;
     private static ByteBuffer buff = null;
     private static ByteArrayOutputStream stream = null;
     public static int retries = 0;
@@ -113,16 +113,17 @@ public class PebbleSync extends Service {
                 if ((lastTransactionId == 0 || transactionId != lastTransactionId) && !sendingData) {
                     lastTransactionId = transactionId;
                     Log.d(TAG, "Received Query. data: " + data.size() + ". sending ACK and data");
+                    transactionFailed = false;
+                    transactionOk = false;
+                    messageInTransit = false;
+                    sendingData = false;
+                    sendStep = 5;
                     sendData();
                 } else {
                     Log.d(TAG, "receiveData: lastTransactionId is " + String.valueOf(lastTransactionId) + ", sending NACK");
 //                    PebbleKit.sendNackToPebble(context, transactionId);
                 }
-                transactionFailed = false;
-                transactionOk = false;
-                messageInTransit = false;
-                sendingData = false;
-                sendStep = 4;
+                //sendStep = 5;
             }
         });
 
@@ -211,7 +212,11 @@ public class PebbleSync extends Service {
                 stream = new ByteArrayOutputStream();
 
                 //compress the bitmap into a PNG.  This makes the transfer smaller
-                bgTrend.compress(Bitmap.CompressFormat.PNG, 100, stream);
+                if(bgTrend.compress(Bitmap.CompressFormat.PNG, 100, stream)) {
+                    Log.i(TAG,"sendTrendToPebble: bitmap compressed to PNG successfully");
+                } else {
+                    Log.i(TAG,"sendTrendToPebble: bitmap not compressed to PNG");
+                }
                 image_size = stream.size();
                 buff = ByteBuffer.wrap(stream.toByteArray());
                 //Prepare the TREND_BEGIN_KEY dictionary.  We expect the length of the image to always be less than 65535 bytes.
@@ -247,10 +252,12 @@ public class PebbleSync extends Service {
                 if(current_size < image_size) {
                     dictionary.remove(TREND_DATA_KEY);
                     if ((image_size <= (current_size + CHUNK_SIZE))) {
+                        chunk = new byte[image_size - current_size];
                         Log.d(TAG, "sendTrendToPebble: sending chunk of size " + (image_size - current_size));
                         buff.get(chunk, 0, image_size - current_size);
                         sendStep = 3;
                     } else {
+                        chunk = new byte[CHUNK_SIZE];
                         Log.d(TAG, "sendTrendToPebble: sending chunk of size " + CHUNK_SIZE);
                         buff.get(chunk, 0, CHUNK_SIZE);
                         current_size += CHUNK_SIZE;
@@ -347,7 +354,7 @@ public class PebbleSync extends Service {
                  dictionary.remove(UPLOADER_BATTERY_KEY);
                  transactionOk = false;
              }
-             /*if (sendStep > 0 && sendStep < 5) {
+             if (sendStep > 0 && sendStep < 5) {
                     sendTrendToPebble();
              }
              if(sendStep == 5) {
