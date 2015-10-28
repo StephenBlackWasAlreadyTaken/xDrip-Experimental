@@ -6,6 +6,10 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.graphics.Bitmap;
+import android.graphics.Canvas;
+import android.graphics.ColorMatrix;
+import android.graphics.ColorMatrixColorFilter;
+import android.graphics.Paint;
 import android.os.BatteryManager;
 import android.os.IBinder;
 import android.preference.PreferenceManager;
@@ -208,17 +212,31 @@ public class PebbleSync extends Service {
                         .setStart(System.currentTimeMillis() - 60000 * 60 * 3)
                         .setBgGraphBuilder(bgGraphBuilder)
                         .build();
+                //bgTrend.setConfig(Bitmap.Config.ALPHA_8);
                 //create a ByteArrayOutputStream
-                stream = new ByteArrayOutputStream();
-
+                /*stream = new ByteArrayOutputStream();
+                Bitmap bmpGrayscale = Bitmap.createBitmap(142, 82, Bitmap.Config.ALPHA_8);
+                Canvas c = new Canvas(bmpGrayscale);
+                Paint paint = new Paint();
+                ColorMatrix cm = new ColorMatrix();
+                cm.setSaturation(0);
+                ColorMatrixColorFilter f = new ColorMatrixColorFilter(cm);
+                paint.setColorFilter(f);
+                c.drawBitmap(bgTrend, 0, 0, paint);
                 //compress the bitmap into a PNG.  This makes the transfer smaller
-                if(bgTrend.compress(Bitmap.CompressFormat.PNG, 100, stream)) {
+                //if(bgTrend.compress(Bitmap.CompressFormat.PNG, 100, stream)) {
+                if(bmpGrayscale.compress(Bitmap.CompressFormat.PNG, 100, stream)) {
                     Log.i(TAG,"sendTrendToPebble: bitmap compressed to PNG successfully");
                 } else {
                     Log.i(TAG,"sendTrendToPebble: bitmap not compressed to PNG");
-                }
-                image_size = stream.size();
-                buff = ByteBuffer.wrap(stream.toByteArray());
+                    sendStep = 5;
+                    return;
+                }*/
+                //image_size = stream.size();
+                //buff = ByteBuffer.wrap(stream.toByteArray());
+                byte [] img = SimpleImageEncoder.encodeBitmapAsPNG(bgTrend,true);
+                image_size = img.length;
+                buff = ByteBuffer.wrap(img);
                 //Prepare the TREND_BEGIN_KEY dictionary.  We expect the length of the image to always be less than 65535 bytes.
                 if(buff != null) {
                     if (dictionary == null) {
