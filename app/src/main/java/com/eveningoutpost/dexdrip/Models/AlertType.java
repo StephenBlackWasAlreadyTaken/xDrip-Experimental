@@ -82,7 +82,6 @@ public class AlertType extends Model {
     @Column(name = "uuid", index = true)
     public String uuid;
 
-    public final static String LOW_ALERT_55 = "c5f1999c-4ec5-449e-adad-3980b172b920";
     private final static String TAG = Notifications.class.getSimpleName();
     private final static String TAG_ALERT = "AlertBg";
 
@@ -266,11 +265,6 @@ public class AlertType extends Model {
             int snooze,
             boolean vibrate) {
 
-        if(uuid.equals(LOW_ALERT_55)) {
-            // This alert can not be removed/updated
-            return;
-        }
-
         AlertType at = get_alert(uuid);
         at.name = name;
         at.above = above;
@@ -288,10 +282,6 @@ public class AlertType extends Model {
         at.save();
     }
     public static void remove_alert(String uuid) {
-        if(uuid.equals(LOW_ALERT_55)) {
-            // This alert can not be removed/updated
-            return;
-        }
         AlertType alert = get_alert(uuid);
 		if(alert != null) {
 	        alert.delete();
@@ -338,15 +328,6 @@ public class AlertType extends Model {
         return alerts;
     }
 
-
-
-    // This function is used to make sure that we always have a static alert on 55 low.
-    // This alert will not be editable/removable.
-    public static void CreateStaticAlerts() {
-        if(get_alert(LOW_ALERT_55) == null) {
-            add_alert(LOW_ALERT_55, "low alert (unchangable)", false, 55, true, 1, null, 0, 0, true, 20, true);
-        }
-    }
 
 
     public static void testAll(Context context) {
