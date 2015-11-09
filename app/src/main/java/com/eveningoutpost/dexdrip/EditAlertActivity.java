@@ -238,17 +238,6 @@ public class EditAlertActivity extends ActivityWithMenu {
             endHour = AlertType.time2Hours(at.end_time_minutes);
             endMinute = AlertType.time2Minutes(at.end_time_minutes);
             alertReraise = at.minutes_between;
-
-            if(uuid.equals(AlertType.LOW_ALERT_55)) {
-                // This is the 55 alert, can not be edited
-                alertText.setKeyListener(null);
-                alertThreshold.setKeyListener(null);
-                buttonalertMp3.setEnabled(false);
-                checkboxAllDay.setEnabled(false);
-                checkboxVibrate.setEnabled(false);
-                checkboxAlertOverride.setEnabled(false);
-                reraise.setEnabled(false);
-            }
         }
         reraise.setText(String.valueOf(alertReraise));
         alertMp3File.setKeyListener(null);

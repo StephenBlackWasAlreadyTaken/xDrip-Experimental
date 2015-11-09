@@ -214,12 +214,6 @@ public class AlertPlayer {
         Log.d(TAG, "Vibrate called timeFromStartPlaying = " + timeFromStartPlaying);
         Log.d("ALARM", "setting vibrate alarm");
         int profile = getAlertProfile(ctx);
-        if(alert.uuid.equals(AlertType.LOW_ALERT_55)) {
-            // boost alerts...
-            if(profile == ALERT_PROFILE_VIBRATE_ONLY) {
-                profile = ALERT_PROFILE_ASCENDING;
-            }
-        }
 
         // We use timeFromStartPlaying as a way to force vibrating/ non vibrating...
         if (profile != ALERT_PROFILE_ASCENDING) {
