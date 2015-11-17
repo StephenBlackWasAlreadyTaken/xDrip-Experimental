@@ -7,10 +7,12 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
+import android.graphics.Color;
 import android.graphics.ColorMatrix;
 import android.graphics.ColorMatrixColorFilter;
 import android.graphics.Paint;
 import android.os.BatteryManager;
+import android.os.Environment;
 import android.os.IBinder;
 import android.preference.PreferenceManager;
 import com.eveningoutpost.dexdrip.Models.UserError.Log;
@@ -18,9 +20,11 @@ import com.eveningoutpost.dexdrip.Models.BgReading;
 import com.getpebble.android.kit.PebbleKit;
 import com.getpebble.android.kit.util.PebbleDictionary;
 
-import org.bson.ByteBuf;
+//import org.bson.ByteBuf;
 
 import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileOutputStream;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -114,7 +118,8 @@ public class PebbleSync extends Service {
             public void receiveData(final Context context, final int transactionId, final PebbleDictionary data) {
                 Log.d(TAG, "receiveData: transactionId is " + String.valueOf(transactionId));
                 PebbleKit.sendAckToPebble(context, transactionId);
-                if ((lastTransactionId == 0 || transactionId != lastTransactionId) && !sendingData) {
+                //if ((lastTransactionId == 0 || transactionId != lastTransactionId) && !sendingData) {
+                //if(!sendingData || (sendingData && sendStep == 0)){
                     lastTransactionId = transactionId;
                     Log.d(TAG, "Received Query. data: " + data.size() + ". sending ACK and data");
                     transactionFailed = false;
@@ -123,10 +128,10 @@ public class PebbleSync extends Service {
                     sendingData = false;
                     sendStep = 5;
                     sendData();
-                } else {
+                /*} else {
                     Log.d(TAG, "receiveData: lastTransactionId is " + String.valueOf(lastTransactionId) + ", sending NACK");
-//                    PebbleKit.sendNackToPebble(context, transactionId);
-                }
+                    PebbleKit.sendNackToPebble(context, transactionId);
+                }*/
                 //sendStep = 5;
             }
         });
@@ -150,7 +155,9 @@ public class PebbleSync extends Service {
 
                 if( retries < 3) {
                     transactionFailed = true;
-                    transactionOk = false;                    retries++;
+                    transactionOk = false;
+                    messageInTransit = false;
+                    retries++;
                     sendData();
                 } else {
                     Log.i(TAG, "recieveNAck: exceeded retries.  Giving Up");
@@ -179,13 +186,14 @@ public class PebbleSync extends Service {
             dictionary.addString(ICON_KEY, slopeOrdinal());
             dictionary.addString(BG_KEY, bgReading());
             dictionary.addUint32(RECORD_TIME_KEY, (int) (((mBgReading.timestamp + offsetFromUTC) / 1000)));
+            dictionary.addString(BG_DELTA_KEY, bgDelta());
         } else {
             Log.v(TAG, "buildDictionary: latest mBgReading is null, so sending default values");
             dictionary.addString(ICON_KEY, slopeOrdinal());
             dictionary.addString(BG_KEY, "?SN");
             dictionary.addUint32(RECORD_TIME_KEY, (int) ((new Date().getTime() + offsetFromUTC / 1000)));
+            dictionary.addString(BG_DELTA_KEY, "No Sensor");
         }
-        dictionary.addString(BG_DELTA_KEY, bgDelta());
         dictionary.addUint32(PHONE_TIME_KEY, (int) ((new Date().getTime() + offsetFromUTC) / 1000));
         if(PreferenceManager.getDefaultSharedPreferences(mContext).getString("dex_collection_method", "DexbridgeWixel").compareTo("DexbridgeWixel")==0) {
             dictionary.addString(UPLOADER_BATTERY_KEY, bridgeBatteryString());
@@ -207,34 +215,35 @@ public class PebbleSync extends Service {
         if(!done && (sendStep == 1 && ((!messageInTransit && !transactionOk && !transactionFailed) || (messageInTransit && !transactionOk && transactionFailed)))) {
             if(!messageInTransit && !transactionOk && !transactionFailed) {
                 Bitmap bgTrend = new BgSparklineBuilder(mContext)
-                        .setHeightPx(82)
-                        .setWidthPx(142)
-                        .setStart(System.currentTimeMillis() - 60000 * 60 * 3)
                         .setBgGraphBuilder(bgGraphBuilder)
+                        .setStart(System.currentTimeMillis() - 60000 * 60 * 3)
+                        .setHeightPx(84)
+                        .setWidthPx(144)
+                        .setTinyDots(true)
                         .build();
-                //bgTrend.setConfig(Bitmap.Config.ALPHA_8);
-                //create a ByteArrayOutputStream
-                /*stream = new ByteArrayOutputStream();
-                Bitmap bmpGrayscale = Bitmap.createBitmap(142, 82, Bitmap.Config.ALPHA_8);
-                Canvas c = new Canvas(bmpGrayscale);
-                Paint paint = new Paint();
-                ColorMatrix cm = new ColorMatrix();
-                cm.setSaturation(0);
-                ColorMatrixColorFilter f = new ColorMatrixColorFilter(cm);
-                paint.setColorFilter(f);
-                c.drawBitmap(bgTrend, 0, 0, paint);
-                //compress the bitmap into a PNG.  This makes the transfer smaller
-                //if(bgTrend.compress(Bitmap.CompressFormat.PNG, 100, stream)) {
-                if(bmpGrayscale.compress(Bitmap.CompressFormat.PNG, 100, stream)) {
-                    Log.i(TAG,"sendTrendToPebble: bitmap compressed to PNG successfully");
-                } else {
-                    Log.i(TAG,"sendTrendToPebble: bitmap not compressed to PNG");
-                    sendStep = 5;
-                    return;
-                }*/
-                //image_size = stream.size();
-                //buff = ByteBuffer.wrap(stream.toByteArray());
-                byte [] img = SimpleImageEncoder.encodeBitmapAsPNG(bgTrend,true);
+                //encode the trend bitmap as a PNG
+                byte [] img = SimpleImageEncoder.encodeBitmapAsPNG(bgTrend,true,16,true);
+                String filename = "bgtrend_transparent.png";
+                FileOutputStream outputStream;
+
+                try {
+                    outputStream = openFileOutput(filename,Context.MODE_PRIVATE);
+                    outputStream.write(img);
+                    outputStream.close();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+                byte [] img_opaque = SimpleImageEncoder.encodeBitmapAsPNG(bgTrend,true,16,false);
+                filename = "bgtrend_opaque.png";
+
+                try {
+                    outputStream = openFileOutput(filename, Context.MODE_PRIVATE);
+                    outputStream.write(img_opaque);
+                    outputStream.close();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+                Log.d(TAG,"sendTrendToPebble: img size is "+ img.length + ", img_opaque size is " + img_opaque.length);
                 image_size = img.length;
                 buff = ByteBuffer.wrap(img);
                 //Prepare the TREND_BEGIN_KEY dictionary.  We expect the length of the image to always be less than 65535 bytes.
@@ -361,7 +370,6 @@ public class PebbleSync extends Service {
                  sendDownload();
              }
              if (sendStep == 0 && !messageInTransit && transactionOk && !transactionFailed) {
-                 sendStep = 1;
                  Log.i(TAG, "sendData: sendStep 0 complete, clearing dictionary");
                  dictionary.remove(ICON_KEY);
                  dictionary.remove(BG_KEY);
@@ -371,6 +379,9 @@ public class PebbleSync extends Service {
                  dictionary.remove(RECORD_TIME_KEY);
                  dictionary.remove(UPLOADER_BATTERY_KEY);
                  transactionOk = false;
+                 // if mBgReading is NOT null, we can send the trend.  Otherwise we don't send the trend.
+                 if(mBgReading != null) sendStep = 1;
+                 else sendStep = 5;
              }
              if (sendStep > 0 && sendStep < 5) {
                     sendTrendToPebble();
@@ -393,6 +404,7 @@ public class PebbleSync extends Service {
         //sendTrendToPebble();
 
     public String bgReading() {
+        if((new Date().getTime()) - (60000 * 11) - mBgReading.timestamp >0) return "----";
         return bgGraphBuilder.unitized_string(mBgReading.calculated_value);
     }
 
@@ -443,5 +455,26 @@ public class PebbleSync extends Service {
         if(arrow_name.compareTo("9")==0) return arrow_name;
         return "0";
     }
+    /*
+    public byte colorToByte(int input) {
+        // Get channels
+        int r = Color.red(input);
+        int g = Color.green(input);
+        int b = Color.blue(input);
+
+        // Convert palette
+        r >>= 6;
+        g >>= 6;
+        b >>= 6;
+
+        // Combine into byte
+        byte result = (byte)0;
+        result |= 3 << 6;   //Aplha
+        result |= r << 4;
+        result |= g << 2;
+        result |= b;
+
+        return result;
+    }*/
 }
 
