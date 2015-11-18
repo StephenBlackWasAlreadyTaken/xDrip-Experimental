@@ -120,11 +120,10 @@ public class AlertPlayer {
             return;
         }
         if(activeBgAlert.ready_to_alarm()) {
-            stopAlert(ctx, false, false);
-
             int timeFromStartPlaying = activeBgAlert.getUpdatePlayTime();
             AlertType alertType = AlertType.get_alert(activeBgAlert.alert_uuid);
             if (alertType == null) {
+                stopAlert(ctx, false, false);
                 Log.d(TAG, "ClockTick: The alert was already deleted... will not play");
                 ActiveBgAlert.ClearData();
                 return;
@@ -138,6 +137,7 @@ public class AlertPlayer {
                 // just alert, if the reraise time has passed (or half a minute earlier to not miss one by a few milliseconds)
                 activeBgAlert.last_alerted_at = System.currentTimeMillis();
                 activeBgAlert.save();
+                stopAlert(ctx, false, false);
                 Vibrate(ctx, alertType, bgValue, alertType.override_silent_mode, timeFromStartPlaying);
             } else {
                 Log.d(TAG, "Still in reraise period." );
