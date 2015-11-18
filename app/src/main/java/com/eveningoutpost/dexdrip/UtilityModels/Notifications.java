@@ -292,7 +292,7 @@ public class Notifications extends IntentService {
             AlertType alert = AlertType.get_alert(activeBgAlert.alert_uuid);
             if (alert != null) {
                 int time = alert.minutes_between;
-                if (time < 1) {
+                if (time < 1 || AlertPlayer.isAscendingMode(mContext)) {
                     time = 1;
                 }
                 Calendar calendar = Calendar.getInstance();

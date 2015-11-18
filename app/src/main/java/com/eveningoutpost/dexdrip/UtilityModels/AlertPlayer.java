@@ -98,7 +98,7 @@ public class AlertPlayer {
     public synchronized  void PreSnooze(Context ctx, String uuid, int repeatTime) {
         Log.i(TAG, "PreSnooze called repeatTime = "+ repeatTime);
         stopAlert(ctx, true, false);
-        ActiveBgAlert.Create(uuid, true, new Date().getTime() + repeatTime * 60000 );
+        ActiveBgAlert.Create(uuid, true, new Date().getTime() + repeatTime * 60000);
         ActiveBgAlert activeBgAlert = ActiveBgAlert.getOnly();
         if (activeBgAlert  == null) {
             Log.wtf(TAG, "Just created the alert, where did it go...");
@@ -130,7 +130,7 @@ public class AlertPlayer {
             }
             Log.d(TAG, "ClockTick: Playing the alert again");
             int time = alertType.minutes_between;
-            if (time < 1) {
+            if (time < 1 || AlertPlayer.isAscendingMode(context)) {
                 time = 1;
             }
             if(System.currentTimeMillis() >=  activeBgAlert.last_alerted_at + time*60000 - 30000){
@@ -195,9 +195,13 @@ public class AlertPlayer {
         return PendingIntent.getService(ctx, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
     }
 
+    public static boolean isAscendingMode(Context ctx){
+        return getAlertProfile(ctx) == ALERT_PROFILE_ASCENDING;
+    }
+
     static private int getAlertProfile(Context ctx){
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(ctx);
-        String profile = prefs.getString("bg_alert_profile", "ascending");
+        String profile = prefs.getString("bg_alert_profile", "High");
         if(profile.equals("High")) {
             Log.i(TAG, "getAlertProfile returning ALERT_PROFILE_HIGH");
             return ALERT_PROFILE_HIGH;

@@ -156,7 +156,7 @@ public class ActiveBgAlert extends Model {
     // If we were snoozed, we update the snooze to false, and update the start time.
     // return the time in minutes from the time playing the alert has started
     public int getUpdatePlayTime() {
-        //This method should get only calle if the snooze time is over.
+        //This method should get only calle if the snooze time is over. (or initial rerise period is over if never snoozed)
         if(is_snoozed) {
             is_snoozed = false;
             last_alerted_at = alert_started_at; // after the snooze period reset last_started_at to resolve problems with last of multiple rerise intervals overlapping the snooze interval
