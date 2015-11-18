@@ -117,7 +117,7 @@ public class ActiveBgAlert extends Model {
         return alert;
     }
 
-    public static void Create(String alert_uuid, boolean is_snoozed, Long next_alert_at) {
+    public static ActiveBgAlert Create(String alert_uuid, boolean is_snoozed, Long next_alert_at) {
         Log.d(TAG, "ActiveBgAlert Create called");
         ActiveBgAlert aba = getOnly();
         if (aba == null) {
@@ -129,6 +129,7 @@ public class ActiveBgAlert extends Model {
         aba.next_alert_at = next_alert_at;
         aba.alert_started_at = new Date().getTime();
         aba.save();
+        return aba;
     }
 
     public static void ClearData() {
