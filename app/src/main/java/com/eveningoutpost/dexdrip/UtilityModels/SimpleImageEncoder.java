@@ -1,7 +1,7 @@
 package com.eveningoutpost.dexdrip.UtilityModels;
+
 import android.graphics.Bitmap;
 import android.graphics.Color;
-import android.util.Log;
 
 import java.io.ByteArrayOutputStream;
 import java.util.TreeMap;
@@ -12,8 +12,6 @@ import ar.com.hjg.pngj.PngWriter;
 import ar.com.hjg.pngj.chunks.PngChunkPLTE;
 import ar.com.hjg.pngj.chunks.PngChunkTRNS;
 
-
-
 /**
  * Simple PNG encoder for Pebble and Pebble Time
  *
@@ -22,7 +20,7 @@ import ar.com.hjg.pngj.chunks.PngChunkTRNS;
  * TODO: threshold detection
  */
 public class SimpleImageEncoder {
-    private final static String TAG = SimpleImageEncoder.class.getSimpleName();
+    //private final static String TAG = SimpleImageEncoder.class.getSimpleName();
     int [] palette = getDefaultPalette();
 
     // Pebble 64-color palette
@@ -60,51 +58,38 @@ public class SimpleImageEncoder {
         int [] counts = new int[palette.length];
         boolean hasTransparent = false;
 
-        for(int i = 0; i < data.length; i++) {
-            int p = data[i];
-
+        for (int p : data) {
             if (Color.alpha(p) == 0 && allowTransparent) {
-                //Log.d(TAG, "optimizePalette:  Got transparent at " + i + " of "+data.length);
                 hasTransparent = true;
             }
 
             int index = ((Color.red(p) / 85) << 4)
                     | ((Color.green(p) / 85) << 2)
-                    | (Color.blue(p) / 85);
+                    | ((Color.blue(p) / 85));
             counts[index]++;
         }
 
-        Log.d(TAG, "optimisePalette:  hasTransparent is " + hasTransparent);
         // Quick and dirty histogram
         TreeMap<Integer, Integer> map;
         map = new TreeMap<>();
         for (int i = 0; i < counts.length; i++) {
             map.put(counts[i], palette[i]);
         }
-        Log.d(TAG, "optimisePalette:  Creating Palette Array");
-
 
         int colorCount = 0;
         int [] colors = new int[maxColors];
 
-        Log.d(TAG, "optimizePalette:  Creating Palette");
+        if (hasTransparent) {
+            colors[0] = Color.argb(0, 255, 255, 255);
+            colorCount++;
+        }
+
         // Pick out the top colors
         for (int color : map.descendingMap().values()) {
             colors[colorCount++] = color;
 
-            if (colorCount >= maxColors) {
-                Log.d(TAG,"optimisePalette: Too many colors, hasTransparent is "+ hasTransparent);
-                break;
-            }
+            if (colorCount >= maxColors) break;
         }
-        //if we have transparency, set the first color appropriately
-        if (hasTransparent) {
-            Log.d(TAG,"optimizePalette: Setting Transparent Layer at Palett 0");
-            colors[0] = Color.argb(0, 255, 255, 255);
-            //colors[0] = 0;
-            //colorCount++;
-        }
-        Log.d(TAG,"optimisePalette: colorCount is "+ colorCount+", hasTransparent is "+ hasTransparent);
 
         palette = colors;
     }
@@ -123,9 +108,7 @@ public class SimpleImageEncoder {
 
         // If the palette contains a transparent pixel in the first slot,
         // use this for fully transparent pixels
-//        Log.d(TAG, "geNearestColorIndex: color alpha " +Color.alpha(color) +", palette[0] alpha "+Color.alpha(palette[0]));
         if (Color.alpha(color) == 0 && Color.alpha(palette[0]) == 0) {
-//            Log.d(TAG,"getNearestColorIndex: Returning transparent palette index");
             return 0;
         }
 
@@ -135,9 +118,7 @@ public class SimpleImageEncoder {
 
             if (color == pColor) return (byte) i;
 
-//            double distance = getColorDistance(pColor, color);
-            double distance = getColorDistance(color, pColor);
-//            Log.d(TAG, "getNearestColorIndex: color distance from palette["+ i + "] is "+ distance);
+            double distance = getColorDistance(pColor, color);
             if (distance <= bestDistance) {
                 bestIndex = i;
                 bestDistance = distance;
@@ -182,20 +163,20 @@ public class SimpleImageEncoder {
      * Encode an Android bitmap as an indexed PNG using Pebble Time colors.
      * Uses 16 colors for the best balance of quality and size.
      *
-     * param0: bitmap
+     * param: bitmap
      * return: array of bytes in PNG format
      */
-    public static byte [] encodeBitmapAsPNG (Bitmap bitmap, boolean color) {
+/*    public static byte [] encodeBitmapAsPNG (Bitmap bitmap, boolean color) {
         return encodeBitmapAsPNG(bitmap, color, color ? 16 : 2, false);
     }
-
+*/
     /**
      * Encode an Android bitmap as an indexed PNG using Pebble Time colors.
-     * param0: bitmap
-     * param1: color Whether the image is color (true) or black-and-white
-     * param2: numColors  Should be 2, 4, 16, or 64. Using 16 colors is
-     *                   typically the best trade off. Must be 2 if B&W.
-     * param3: allowTransparent Allow fully transparent pixels
+     * param: bitmap
+     * param: color Whether the image is color (true) or black-and-white
+     * param: numColors  Should be 2, 4, 16, or 64. Using 16 colors is
+     *                   typically the best tradeoff. Must be 2 if B&W.
+     * param: allowTransparent Allow fully transparent pixels
      * return: Array of bytes in PNG format
      */
     public static byte [] encodeBitmapAsPNG (Bitmap bitmap, boolean color, int numColors, boolean allowTransparent) {
@@ -224,11 +205,12 @@ public class SimpleImageEncoder {
 
         int [] palette = getPalette();
 
-        boolean grayscale = !color;
-        //boolean indexed = color;
         boolean alpha = Color.alpha(palette[0]) == 0;
+        boolean grayscale = !color;
+        //Log.d(TAG, "encodeIndexedPNG: color = "+color +", alpha ="+alpha+", grayscale = "+grayscale);
 
-        ImageInfo imageInfo = new ImageInfo(width, height, bits, alpha, grayscale, color);
+        //ImageInfo imageInfo = new ImageInfo(width, height, bits, alpha, grayscale, color);
+        ImageInfo imageInfo = new ImageInfo(width, height, bits, false, grayscale, color);
         PngWriter writer = new PngWriter(bos, imageInfo);
         writer.getPixelsWriter().setDeflaterCompLevel(9);
 
@@ -250,9 +232,9 @@ public class SimpleImageEncoder {
                 trnsChunk.setGray(1);
             }
         }
-
-        quantize(pixels, imageInfo.cols);
-
+        else {
+            quantize(pixels, imageInfo.cols);
+        }
         ImageLineInt line = new ImageLineInt(imageInfo);
         for (int y = 0; y < imageInfo.rows; y++) {
             int [] lineData = line.getScanline();

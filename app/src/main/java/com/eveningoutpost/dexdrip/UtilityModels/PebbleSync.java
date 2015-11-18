@@ -88,6 +88,7 @@ public class PebbleSync extends Service {
             stopSelf();
             return START_NOT_STICKY;
         }
+        bgGraphBuilder = new BgGraphBuilder(mContext);
 
         Log.i(TAG, "onStartCommand called.  Sending Data");
         transactionFailed = false;
@@ -217,13 +218,16 @@ public class PebbleSync extends Service {
                 Bitmap bgTrend = new BgSparklineBuilder(mContext)
                         .setBgGraphBuilder(bgGraphBuilder)
                         .setStart(System.currentTimeMillis() - 60000 * 60 * 3)
+                        .setEnd(System.currentTimeMillis())
                         .setHeightPx(84)
                         .setWidthPx(144)
-                        .setTinyDots(true)
+                        .showHighLine()
+                        .showLowLine()
+                        .setTinyDots()
                         .build();
                 //encode the trend bitmap as a PNG
                 byte [] img = SimpleImageEncoder.encodeBitmapAsPNG(bgTrend,true,16,true);
-                String filename = "bgtrend_transparent.png";
+/*                String filename = "bgtrend_transparent.png";
                 FileOutputStream outputStream;
 
                 try {
@@ -243,9 +247,12 @@ public class PebbleSync extends Service {
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
+
                 Log.d(TAG,"sendTrendToPebble: img size is "+ img.length + ", img_opaque size is " + img_opaque.length);
+*/
                 image_size = img.length;
                 buff = ByteBuffer.wrap(img);
+                bgTrend.recycle();
                 //Prepare the TREND_BEGIN_KEY dictionary.  We expect the length of the image to always be less than 65535 bytes.
                 if(buff != null) {
                     if (dictionary == null) {
