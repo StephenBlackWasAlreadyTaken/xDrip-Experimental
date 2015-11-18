@@ -60,7 +60,7 @@ public class AlertPlayer {
 
         stopAlert(ctx, true, false);
         int alertIn = newAlert.minutes_between;
-        if(alertIn < 1) { alertIn = 1; }
+        if(alertIn < 1 || AlertPlayer.isAscendingMode(ctx)) { alertIn = 1; }
         ActiveBgAlert aba = ActiveBgAlert.Create(newAlert.uuid, false, new Date().getTime() + alertIn * 60000);
         aba.last_alerted_at = System.currentTimeMillis();
         aba.save();
@@ -196,6 +196,7 @@ public class AlertPlayer {
     }
 
     public static boolean isAscendingMode(Context ctx){
+        Log.d("Adrian", "(getAlertProfile(ctx) == ALERT_PROFILE_ASCENDING): " + (getAlertProfile(ctx) == ALERT_PROFILE_ASCENDING));
         return getAlertProfile(ctx) == ALERT_PROFILE_ASCENDING;
     }
 
