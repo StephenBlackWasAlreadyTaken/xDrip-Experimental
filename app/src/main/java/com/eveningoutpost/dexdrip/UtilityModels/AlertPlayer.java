@@ -130,11 +130,17 @@ public class AlertPlayer {
                 return;
             }
             Log.d(TAG, "ClockTick: Playing the alert again");
-            if(System.currentTimeMillis() >=  activeBgAlert.last_alerted_at + alertType.minutes_between*60000 - 30000){
+            int time = alertType.minutes_between;
+            if (time < 1) {
+                time = 1;
+            }
+            if(System.currentTimeMillis() >=  activeBgAlert.last_alerted_at + time*60000 - 30000){
                 // just alert, if the reraise time has passed (or half a minute earlier to not miss one by a few milliseconds)
                 activeBgAlert.last_alerted_at = System.currentTimeMillis();
                 activeBgAlert.save();
                 Vibrate(ctx, alertType, bgValue, alertType.override_silent_mode, timeFromStartPlaying);
+            } else {
+                Log.d(TAG, "Still in reraise period." );
             }
         }
 

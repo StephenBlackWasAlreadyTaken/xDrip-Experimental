@@ -58,7 +58,7 @@ public class ActiveBgAlert extends Model {
     public void snooze(int minutes) {
         next_alert_at = new Date().getTime() + minutes * 60000;
         is_snoozed = true;
-        last_alerted_at = 0L;
+        last_alerted_at = alert_started_at;
         save();
     }
 
