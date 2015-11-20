@@ -29,7 +29,6 @@ public class AlertPlayer {
     private MediaPlayer mediaPlayer;
     int volumeBeforeAlert;
     int volumeForThisAlert;
-    Context context;
 
     final static int ALERT_PROFILE_HIGH = 1;
     final static int ALERT_PROFILE_ASCENDING = 2;
@@ -130,7 +129,7 @@ public class AlertPlayer {
             }
             Log.d(TAG, "ClockTick: Playing the alert again");
             int time = alertType.minutes_between;
-            if (time < 1 || AlertPlayer.isAscendingMode(context)) {
+            if (time < 1 || AlertPlayer.isAscendingMode(ctx)) {
                 time = 1;
             }
             if(System.currentTimeMillis() >=  activeBgAlert.last_alerted_at + time*60000 - 30000){
@@ -146,7 +145,7 @@ public class AlertPlayer {
 
     }
 
-    private void PlayFile(Context ctx, String FileName, float VolumeFrac) {
+    private void PlayFile(final Context ctx, String FileName, float VolumeFrac) {
         Log.i(TAG, "PlayFile: called FileName = " + FileName);
         if(mediaPlayer != null) {
             Log.i(TAG, "ERROR, PlayFile:going to leak a mediaplayer !!!");
@@ -164,13 +163,12 @@ public class AlertPlayer {
             volumeBeforeAlert = manager.getStreamVolume(AudioManager.STREAM_MUSIC);
             volumeForThisAlert = (int)(maxVolume * VolumeFrac);
             manager.setStreamVolume(AudioManager.STREAM_MUSIC, volumeForThisAlert, 0);
-            context = ctx;
 
             mediaPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
                 @Override
                 public void onCompletion(MediaPlayer mp) {
                     Log.i(TAG, "PlayFile: onCompletion called (finished playing) ");
-                    AudioManager manager = (AudioManager) context.getSystemService(Context.AUDIO_SERVICE);
+                    AudioManager manager = (AudioManager) ctx.getSystemService(Context.AUDIO_SERVICE);
                     int currentVolume = manager.getStreamVolume(AudioManager.STREAM_MUSIC);
                     if(volumeForThisAlert == currentVolume) {
                         // If the user has changed the volume, don't change it again.
