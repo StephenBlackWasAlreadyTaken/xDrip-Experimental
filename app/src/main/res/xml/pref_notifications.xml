@@ -19,19 +19,19 @@
                     android:title="BG alerts profile"
                     android:entries="@array/BgAlertProfileEntries"
                     android:entryValues="@array/BgAlertProfileValues"
-                    android:defaultValue="ascending"/>
+                    android:defaultValue="High"/>
             
             <CheckBoxPreference
                 android:key="smart_snoozing"
                 android:title="Smart snoozing"
                 android:summary="Keep snoozing if bg is heading in the right direction"
-                android:defaultValue="true" />
+                android:defaultValue="false" />
 
             <CheckBoxPreference
                 android:key="smart_alerting"
                 android:title="Smart alerting"
                 android:summary="Don't alert if bg is heading in the right direction"
-                android:defaultValue="true" />
+                android:defaultValue="false" />
 
             <CheckBoxPreference
                 android:key="bg_alerts_from_main_menu"

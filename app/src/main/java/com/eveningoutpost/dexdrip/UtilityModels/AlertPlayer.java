@@ -29,7 +29,6 @@ public class AlertPlayer {
     private MediaPlayer mediaPlayer;
     int volumeBeforeAlert;
     int volumeForThisAlert;
-    Context context;
 
     final static int ALERT_PROFILE_HIGH = 1;
     final static int ALERT_PROFILE_ASCENDING = 2;
@@ -60,8 +59,10 @@ public class AlertPlayer {
 
         stopAlert(ctx, true, false);
         int alertIn = newAlert.minutes_between;
-        if(alertIn < 1) { alertIn = 1; }
-        ActiveBgAlert.Create(newAlert.uuid, false, new Date().getTime() + alertIn * 60000 );
+        if(alertIn < 1 || AlertPlayer.isAscendingMode(ctx)) { alertIn = 1; }
+        ActiveBgAlert aba = ActiveBgAlert.Create(newAlert.uuid, false, new Date().getTime() + alertIn * 60000);
+        aba.last_alerted_at = System.currentTimeMillis();
+        aba.save();
         Vibrate(ctx, newAlert, bgValue, newAlert.override_silent_mode, 0);
     }
 
@@ -96,7 +97,7 @@ public class AlertPlayer {
     public synchronized  void PreSnooze(Context ctx, String uuid, int repeatTime) {
         Log.i(TAG, "PreSnooze called repeatTime = "+ repeatTime);
         stopAlert(ctx, true, false);
-        ActiveBgAlert.Create(uuid, true, new Date().getTime() + repeatTime * 60000 );
+        ActiveBgAlert.Create(uuid, true, new Date().getTime() + repeatTime * 60000);
         ActiveBgAlert activeBgAlert = ActiveBgAlert.getOnly();
         if (activeBgAlert  == null) {
             Log.wtf(TAG, "Just created the alert, where did it go...");
@@ -118,22 +119,33 @@ public class AlertPlayer {
             return;
         }
         if(activeBgAlert.ready_to_alarm()) {
-            stopAlert(ctx, false, false);
-
             int timeFromStartPlaying = activeBgAlert.getUpdatePlayTime();
-            AlertType alert = AlertType.get_alert(activeBgAlert.alert_uuid);
-            if (alert == null) {
+            AlertType alertType = AlertType.get_alert(activeBgAlert.alert_uuid);
+            if (alertType == null) {
+                stopAlert(ctx, false, false);
                 Log.d(TAG, "ClockTick: The alert was already deleted... will not play");
                 ActiveBgAlert.ClearData();
                 return;
             }
-            Log.d(TAG,"ClockTick: Playing the alert again");
-            Vibrate(ctx, alert, bgValue, alert.override_silent_mode, timeFromStartPlaying);
+            Log.d(TAG, "ClockTick: Playing the alert again");
+            int time = alertType.minutes_between;
+            if (time < 1 || AlertPlayer.isAscendingMode(ctx)) {
+                time = 1;
+            }
+            if(System.currentTimeMillis() >=  activeBgAlert.last_alerted_at + time*60000 - 30000){
+                // just alert, if the reraise time has passed (or half a minute earlier to not miss one by a few milliseconds)
+                activeBgAlert.last_alerted_at = System.currentTimeMillis();
+                activeBgAlert.save();
+                stopAlert(ctx, false, false);
+                Vibrate(ctx, alertType, bgValue, alertType.override_silent_mode, timeFromStartPlaying);
+            } else {
+                Log.d(TAG, "Still in reraise period." );
+            }
         }
 
     }
 
-    private void PlayFile(Context ctx, String FileName, float VolumeFrac) {
+    private void PlayFile(final Context ctx, String FileName, float VolumeFrac) {
         Log.i(TAG, "PlayFile: called FileName = " + FileName);
         if(mediaPlayer != null) {
             Log.i(TAG, "ERROR, PlayFile:going to leak a mediaplayer !!!");
@@ -151,13 +163,12 @@ public class AlertPlayer {
             volumeBeforeAlert = manager.getStreamVolume(AudioManager.STREAM_MUSIC);
             volumeForThisAlert = (int)(maxVolume * VolumeFrac);
             manager.setStreamVolume(AudioManager.STREAM_MUSIC, volumeForThisAlert, 0);
-            context = ctx;
 
             mediaPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
                 @Override
                 public void onCompletion(MediaPlayer mp) {
                     Log.i(TAG, "PlayFile: onCompletion called (finished playing) ");
-                    AudioManager manager = (AudioManager) context.getSystemService(Context.AUDIO_SERVICE);
+                    AudioManager manager = (AudioManager) ctx.getSystemService(Context.AUDIO_SERVICE);
                     int currentVolume = manager.getStreamVolume(AudioManager.STREAM_MUSIC);
                     if(volumeForThisAlert == currentVolume) {
                         // If the user has changed the volume, don't change it again.
@@ -182,9 +193,14 @@ public class AlertPlayer {
         return PendingIntent.getService(ctx, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
     }
 
+    public static boolean isAscendingMode(Context ctx){
+        Log.d("Adrian", "(getAlertProfile(ctx) == ALERT_PROFILE_ASCENDING): " + (getAlertProfile(ctx) == ALERT_PROFILE_ASCENDING));
+        return getAlertProfile(ctx) == ALERT_PROFILE_ASCENDING;
+    }
+
     static private int getAlertProfile(Context ctx){
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(ctx);
-        String profile = prefs.getString("bg_alert_profile", "ascending");
+        String profile = prefs.getString("bg_alert_profile", "High");
         if(profile.equals("High")) {
             Log.i(TAG, "getAlertProfile returning ALERT_PROFILE_HIGH");
             return ALERT_PROFILE_HIGH;

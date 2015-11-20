@@ -58,6 +58,7 @@ public class ActiveBgAlert extends Model {
     public void snooze(int minutes) {
         next_alert_at = new Date().getTime() + minutes * 60000;
         is_snoozed = true;
+        last_alerted_at = alert_started_at;
         save();
     }
 
@@ -117,7 +118,7 @@ public class ActiveBgAlert extends Model {
         return alert;
     }
 
-    public static void Create(String alert_uuid, boolean is_snoozed, Long next_alert_at) {
+    public static ActiveBgAlert Create(String alert_uuid, boolean is_snoozed, Long next_alert_at) {
         Log.d(TAG, "ActiveBgAlert Create called");
         ActiveBgAlert aba = getOnly();
         if (aba == null) {
@@ -129,6 +130,7 @@ public class ActiveBgAlert extends Model {
         aba.next_alert_at = next_alert_at;
         aba.alert_started_at = new Date().getTime();
         aba.save();
+        return aba;
     }
 
     public static void ClearData() {
@@ -154,8 +156,10 @@ public class ActiveBgAlert extends Model {
     // If we were snoozed, we update the snooze to false, and update the start time.
     // return the time in minutes from the time playing the alert has started
     public int getUpdatePlayTime() {
+        //This method should get only calle if the snooze time is over. (or initial rerise period is over if never snoozed)
         if(is_snoozed) {
             is_snoozed = false;
+            last_alerted_at = alert_started_at; // after the snooze period reset last_started_at to resolve problems with last of multiple rerise intervals overlapping the snooze interval
             alert_started_at = new Date().getTime();
             save();
         }

@@ -292,15 +292,15 @@ public class Notifications extends IntentService {
             AlertType alert = AlertType.get_alert(activeBgAlert.alert_uuid);
             if (alert != null) {
                 int time = alert.minutes_between;
-                if (time < 1) {
+                if (time < 1 || AlertPlayer.isAscendingMode(mContext)) {
                     time = 1;
                 }
                 Calendar calendar = Calendar.getInstance();
                 AlarmManager alarm = (AlarmManager) getSystemService(ALARM_SERVICE);
                 // sleep longer if the alert is snoozed.
                 long wakeTime = activeBgAlert.is_snoozed ? activeBgAlert.next_alert_at :
-                        calendar.getTimeInMillis() + (time * 60000);
-                Log.d(TAG , "ArmTimer waking at: "+ wakeTime);
+                        activeBgAlert.last_alerted_at + (time * 60000);
+                Log.d(TAG , "ArmTimer waking at: "+ new Date(wakeTime) +" in minutes: " +  (wakeTime - calendar.getTimeInMillis())/60000d);
                 if (wakeIntent != null)
                     alarm.cancel(wakeIntent);
                 wakeIntent = PendingIntent.getService(this, 0, new Intent(this, this.getClass()), 0);
