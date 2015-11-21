@@ -305,6 +305,8 @@ public class NightscoutUploader {
                             testData.put("unfiltered", record.usedRaw() * 1000);
                             testData.put("rssi", 100);
                             testData.put("noise", record.noiseValue());
+                            testData.put("dex_raw", record.raw_data);
+                            testData.put("dex_filtered", record.filtered_data);
                             dexcomData.insert(testData, WriteConcern.UNACKNOWLEDGED);
                         }
 
