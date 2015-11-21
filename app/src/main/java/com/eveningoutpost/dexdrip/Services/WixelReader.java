@@ -22,9 +22,19 @@ import java.io.PrintWriter;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.SocketTimeoutException;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
+
+import retrofit.http.GET;
+import retrofit.http.Query;
+import retrofit.RestAdapter;
+import retrofit.http.Headers;
+import retrofit.http.Header;
+import retrofit.RetrofitError;
+
+
 
 
 // Important note, this class is based on the fact that android will always run it one thread, which means it does not
@@ -347,7 +357,7 @@ public class WixelReader extends AsyncTask<String, Void, Void > {
     }
     
     
-    public void readData()
+    public void readData1()
     {
         Long LastReportedTime = 0L;
     	TransmitterData lastTransmitterData = TransmitterData.last();
@@ -440,4 +450,84 @@ public class WixelReader extends AsyncTask<String, Void, Void > {
         setSerialDataToTransmitterRawData(fakedRaw, fakedRaw ,215, new Date().getTime());
         Log.d(TAG, "returned from setSerialDataToTransmitterRawData " + fakedRaw);
     }
+    
+    
+    
+    class Curator {
+        public String device;
+        Long date;
+    }
+    
+    public interface IApiMethods {
+        
+
+        // gets all entries, this worked brings all data
+        @GET("/api/v1/entries?count=1000")  
+        List<Curator> getCurators1(
+                //@Header("Accept") String authorization
+                @Header("Accept") String authorization
+        );
+        
+        
+        @GET("/api/v1/entries.json?find[type][$eq]=cal&find[date][$gte]=1448085290400&count=1000")
+        List<Curator> getCurators(
+                //@Header("Authorization") String authorization
+                @Header("Accept") String Accept
+        );
+        
+        // gets all sgvs
+        @GET("/api/v1/entries.json?find[type][$eq]=sgv&find[date][$gte]=1448085290400&count=1000")
+        List<Curator> getSgv(
+                @Header("Accept") String Accept
+                //@Header("Accept") String authorization
+        );
+    }
+    
+    public void readData() {
+        Log.e(TAG,"Starting 2 to read from retrofit");
+        
+        RestAdapter restAdapter;
+        
+        //final String API_URL = "http://freemusicarchive.org/api";
+        final String API_URL = "https://snirdar.azurewebsites.net";
+        
+        final String API_KEY = "application/json api-secret: 6aaafe81264eb79d079caa91bbf25dba379ff6e2"; // probably we can do without the josn. if url contains it
+         
+        restAdapter = new RestAdapter.Builder()
+        .setEndpoint(API_URL)
+        .setLogLevel(RestAdapter.LogLevel.FULL).build();
+        
+        
+        IApiMethods methods = restAdapter.create(IApiMethods.class);
+        List<Curator> curators = new ArrayList<Curator>(1);
+        try {
+        
+           curators = methods.getSgv(API_KEY);
+        } catch (RetrofitError error) {
+            Log.e(TAG,"RetrofitError exception was cought", error);
+        }
+
+        Log.e(TAG,"retrofit before print");
+        
+        long last_print = 5448140601613l;
+        for (Curator dataset : curators) {
+            Log.e(TAG, dataset.device + " date = " + dataset.date);
+            if(last_print <= dataset.date) {
+                Log.e(TAG, "hiiiiiiiiiiiiiiiiiii received outof order packets");
+                last_print = dataset.date;
+            }
+        }
+        Log.e(TAG,"retrofit aftert print");
+        
+    }
+    
+/*
+ * curl examples
+ * curl -X GET --header "Accept: application/json api-secret: 6aaafe81264eb79d079caa91bbf25dba379ff6e2" "https://snirdar.azurewebsites.net/api/v1/entries/cal?count=122" -k
+ * curl -X GET --header "Accept: application/json api-secret: 6aaafe81264eb79d079caa91bbf25dba379ff6e2" "https://snirdar.azurewebsites.net/api/v1/entries.json?find%5Btype%5D%5B%24eq%5D=cal&count=1" -k 
+ * 
+ * 
+ *
+ */
+    
 }
