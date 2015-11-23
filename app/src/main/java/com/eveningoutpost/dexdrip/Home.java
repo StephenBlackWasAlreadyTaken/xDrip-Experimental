@@ -385,12 +385,8 @@ public class Home extends ActivityWithMenu {
         boolean isDexbridge = CollectionServiceStarter.isDexbridgeWixel(getApplicationContext());
         int bridgeBattery = prefs.getInt("bridge_battery", 0);
 
-        if (isDexbridge) {
-            if (bridgeBattery == 0) {
-                dexbridgeBattery.setText("Waiting for packet");
-            } else {
-                dexbridgeBattery.setText("Bridge Battery: " + bridgeBattery + "%");
-            }
+        if (isDexbridge && bridgeBattery > 0) {//if bridgeBattery == 0 then possibly an xdrip without the resistor to measure the battery voltage  but with xBridge software installed - no need to display anything at all
+            dexbridgeBattery.setText("Bridge Battery: " + bridgeBattery + "%");
             if (bridgeBattery < 50) dexbridgeBattery.setTextColor(Color.YELLOW);
             if (bridgeBattery < 25) dexbridgeBattery.setTextColor(Color.RED);
             else dexbridgeBattery.setTextColor(Color.GREEN);
