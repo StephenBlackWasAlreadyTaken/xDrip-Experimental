@@ -139,10 +139,17 @@ public class Notifications extends IntentService {
             AlertPlayer.getPlayer().stopAlert(context, true, false);
             return;
         }
+        //disable alert on stale data
+        if(prefs.getBoolean("disable_alerts_stale_data", false)) {
+            int minutes = Integer.parseInt(prefs.getString("disable_alerts_stale_data_minutes", "15")) + 2;
+            if ((new Date().getTime()) - (60000 * minutes) - bgReading.timestamp > 0) {
+                Log.d(TAG, "FileBasedNotifications last recieved packet is " +  ((new Date().getTime()) - bgReading.timestamp ) / 60000 + " minutes old, alerts are disabled" );
+                return;
+            }
+        }
 
         Log.d(TAG, "FileBasedNotifications called bgReading.calculated_value = " + bgReading.calculated_value);
 
-        // TODO: tzachi what is the time of this last bgReading
         // If the last reading does not have a sensor, or that sensor was stopped.
         // or the sensor was started, but the 2 hours did not still pass? or there is no calibrations.
         // In all this cases, bgReading.calculated_value should be 0.
@@ -168,15 +175,6 @@ public class Notifications extends IntentService {
 
             if (activeBgAlert.uuid.equals(newAlert.uuid)) {
                 // This is the same alert. Might need to play again...
-
-                //disable alert on stale data
-                if(prefs.getBoolean("disable_alerts_stale_data", false)) {
-                    int minutes = Integer.parseInt(prefs.getString("disable_alerts_stale_data_minutes", "15")) + 2;
-                    if ((new Date().getTime()) - (60000 * minutes) - BgReading.lastNoSenssor().timestamp > 0) {
-                        Log.d(TAG, "FileBasedNotifications : active alert found but not replaying it because more than three readings missed :  " + newAlert.name);
-                        return;
-                    }
-                }
 
                 Log.d(TAG, "FileBasedNotifications we have found an active alert, checking if we need to play it " + newAlert.name);
                 boolean trendingToAlertEnd = trendingToAlertEnd(context, false, newAlert);
