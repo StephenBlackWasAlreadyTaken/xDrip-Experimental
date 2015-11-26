@@ -2,6 +2,7 @@ package com.eveningoutpost.dexdrip.UtilityModels;
 
 import android.graphics.Bitmap;
 import android.graphics.Color;
+import android.util.Log;
 
 import java.io.ByteArrayOutputStream;
 import java.util.TreeMap;
@@ -20,7 +21,7 @@ import ar.com.hjg.pngj.chunks.PngChunkTRNS;
  * TODO: threshold detection
  */
 public class SimpleImageEncoder {
-    //private final static String TAG = SimpleImageEncoder.class.getSimpleName();
+    private final static String TAG = SimpleImageEncoder.class.getSimpleName();
     int [] palette = getDefaultPalette();
 
     // Pebble 64-color palette
@@ -31,7 +32,7 @@ public class SimpleImageEncoder {
             palette[i] = Color.rgb(
                     ((i >> 4) & 0x3) * 85,
                     ((i >> 2) & 0x3) * 85,
-                    (i & 0x3) * 85
+                    ((i >> 0) & 0x3) * 85
             );
         }
 
@@ -58,35 +59,37 @@ public class SimpleImageEncoder {
         int [] counts = new int[palette.length];
         boolean hasTransparent = false;
 
-        for (int p : data) {
+        for (int i = 0; i < data.length; i++) {
+            int p = data[i];
+
             if (Color.alpha(p) == 0 && allowTransparent) {
                 hasTransparent = true;
             }
 
             int index = ((Color.red(p) / 85) << 4)
                     | ((Color.green(p) / 85) << 2)
-                    | ((Color.blue(p) / 85));
+                    | ((Color.blue(p) / 85) << 0);
             counts[index]++;
         }
-
         // Quick and dirty histogram
-        TreeMap<Integer, Integer> map;
-        map = new TreeMap<>();
+        TreeMap<Integer, Integer> map = new TreeMap<Integer, Integer>();
         for (int i = 0; i < counts.length; i++) {
             map.put(counts[i], palette[i]);
         }
-
+        Log.d(TAG, "optimizePalette: map.size() is " + map.size() + ", map.descendingMap().size() is" + map.descendingMap().size());
         int colorCount = 0;
         int [] colors = new int[maxColors];
 
         if (hasTransparent) {
-            colors[0] = Color.argb(0, 255, 255, 255);
+            colors[colorCount] = Color.argb(0, 255, 255, 255);
             colorCount++;
         }
 
         // Pick out the top colors
         for (int color : map.descendingMap().values()) {
-            colors[colorCount++] = color;
+            colors[colorCount] = color;
+            colorCount++;
+            Log.d(TAG, "optimizePalette: palette index " + (map.size()-colorCount+1) + " of " + (map.size()-1) +" has r:" + Color.red(color) + ", g:" + Color.green(color) + ", b:" + Color.blue(color));
 
             if (colorCount >= maxColors) break;
         }
@@ -94,12 +97,15 @@ public class SimpleImageEncoder {
         palette = colors;
     }
 
+
     public static double getColorDistance (int color, int pColor) {
         float rd = Color.red(pColor) - Color.red(color);
         float gd = Color.green(pColor) - Color.green(color);
         float bd = Color.blue(pColor) - Color.blue(color);
 
         return Math.sqrt(0.2126*rd*rd + 0.7152*gd*gd + 0.0722*bd*bd);
+        //return Math.sqrt(0.299*rd*rd + 0.587*gd*gd + 0.144*bd*bd);
+        //return Math.sqrt(rd*rd + gd*gd + bd*bd);
     }
 
     public byte getNearestColorIndex (int color) {
@@ -119,11 +125,13 @@ public class SimpleImageEncoder {
             if (color == pColor) return (byte) i;
 
             double distance = getColorDistance(pColor, color);
+            //double distance = getColorDistance(color, pColor);
             if (distance <= bestDistance) {
                 bestIndex = i;
                 bestDistance = distance;
             }
         }
+        //Log.d(TAG, "getNearestColorIndex: selecting index " + bestIndex + " of " + palette.length + ", a distance of " + bestDistance +" for r:" + Color.red(color) + ", g:" + Color.green(color) + ", b:" + Color.blue(color));
 
         return (byte) bestIndex;
     }

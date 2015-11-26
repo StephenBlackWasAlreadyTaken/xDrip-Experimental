@@ -1,18 +1,11 @@
 package com.eveningoutpost.dexdrip.UtilityModels;
 
 import android.app.Service;
-import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.graphics.Bitmap;
-import android.graphics.Canvas;
-import android.graphics.Color;
-import android.graphics.ColorMatrix;
-import android.graphics.ColorMatrixColorFilter;
-import android.graphics.Paint;
 import android.os.BatteryManager;
-import android.os.Environment;
 import android.os.IBinder;
 import android.preference.PreferenceManager;
 import com.eveningoutpost.dexdrip.Models.UserError.Log;
@@ -20,16 +13,9 @@ import com.eveningoutpost.dexdrip.Models.BgReading;
 import com.getpebble.android.kit.PebbleKit;
 import com.getpebble.android.kit.util.PebbleDictionary;
 
-//import org.bson.ByteBuf;
-
 import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.FileOutputStream;
 import java.nio.ByteBuffer;
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Date;
-import java.util.List;
 import java.util.TimeZone;
 import java.util.UUID;
 
@@ -49,6 +35,8 @@ public class PebbleSync extends Service {
     public static final int TREND_BEGIN_KEY = 7;
     public static final int TREND_DATA_KEY = 8;
     public static final int TREND_END_KEY = 9;
+    public static final int MESSAGE_KEY = 10;
+    public static final int VIBE_KEY = 11;
 
     public static final int CHUNK_SIZE = 100;
 
@@ -121,14 +109,14 @@ public class PebbleSync extends Service {
                 PebbleKit.sendAckToPebble(context, transactionId);
                 //if ((lastTransactionId == 0 || transactionId != lastTransactionId) && !sendingData) {
                 //if(!sendingData || (sendingData && sendStep == 0)){
-                    lastTransactionId = transactionId;
-                    Log.d(TAG, "Received Query. data: " + data.size() + ". sending ACK and data");
-                    transactionFailed = false;
-                    transactionOk = false;
-                    messageInTransit = false;
-                    sendingData = false;
-                    sendStep = 5;
-                    sendData();
+                lastTransactionId = transactionId;
+                Log.d(TAG, "Received Query. data: " + data.size() + ". sending ACK and data");
+                transactionFailed = false;
+                transactionOk = false;
+                messageInTransit = false;
+                sendingData = false;
+                sendStep = 5;
+                sendData();
                 /*} else {
                     Log.d(TAG, "receiveData: lastTransactionId is " + String.valueOf(lastTransactionId) + ", sending NACK");
                     PebbleKit.sendNackToPebble(context, transactionId);
@@ -196,12 +184,19 @@ public class PebbleSync extends Service {
             dictionary.addString(BG_DELTA_KEY, "No Sensor");
         }
         dictionary.addUint32(PHONE_TIME_KEY, (int) ((new Date().getTime() + offsetFromUTC) / 1000));
-        if(PreferenceManager.getDefaultSharedPreferences(mContext).getString("dex_collection_method", "DexbridgeWixel").compareTo("DexbridgeWixel")==0) {
+        if(PreferenceManager.getDefaultSharedPreferences(mContext).getString("dex_collection_method", "DexbridgeWixel").compareTo("DexbridgeWixel")==0 &&
+                PreferenceManager.getDefaultSharedPreferences(mContext).getBoolean("display_bridge_battery",true)) {
             dictionary.addString(UPLOADER_BATTERY_KEY, bridgeBatteryString());
             dictionary.addString(NAME_KEY, "Bridge");
         } else {
             dictionary.addString(UPLOADER_BATTERY_KEY, phoneBattery());
             dictionary.addString(NAME_KEY, "Phone");
+        }
+        String msg = PreferenceManager.getDefaultSharedPreferences(mContext).getString("pebble_special_value","");
+        if(bgReading().compareTo(msg)==0) {
+            dictionary.addString(MESSAGE_KEY, msg);
+        }else {
+            dictionary.addString(MESSAGE_KEY, "");
         }
         //return dictionary;
     }
@@ -215,15 +210,31 @@ public class PebbleSync extends Service {
         Log.i(TAG, "sendTrendToPebble called: sendStep= " + sendStep + ", messageInTransit= " + messageInTransit + ", transactionFailed= " + transactionFailed + ", sendStep= " + sendStep);
         if(!done && (sendStep == 1 && ((!messageInTransit && !transactionOk && !transactionFailed) || (messageInTransit && !transactionOk && transactionFailed)))) {
             if(!messageInTransit && !transactionOk && !transactionFailed) {
+                if(!PreferenceManager.getDefaultSharedPreferences(mContext).getBoolean("pebble_display_trend",false)){
+                    sendStep = 5;
+                    transactionFailed = false;
+                    transactionOk = false;
+                    done=true;
+                    current_size = 0;
+                    buff = null;
+
+                }
+                boolean highLine = PreferenceManager.getDefaultSharedPreferences(mContext).getBoolean("pebble_high_line", false);
+                boolean lowLine = PreferenceManager.getDefaultSharedPreferences(mContext).getBoolean("pebble_low_line", false);
+                String trendPeriodString = PreferenceManager.getDefaultSharedPreferences(mContext).getString("pebble_trend_period", "3");
+                Integer trendPeriod = Integer.parseInt(trendPeriodString);
+                Log.d(TAG,"sendTrendToPebble: highLine is " + highLine + ", lowLine is "+ lowLine +",trendPeriod is "+ trendPeriod);
                 Bitmap bgTrend = new BgSparklineBuilder(mContext)
                         .setBgGraphBuilder(bgGraphBuilder)
-                        .setStart(System.currentTimeMillis() - 60000 * 60 * 3)
+                        .setStart(System.currentTimeMillis() - 60000 * 60 * trendPeriod)
+                        //.setStart(System.currentTimeMillis() - 60000 * 60 * 3)
                         .setEnd(System.currentTimeMillis())
                         .setHeightPx(84)
                         .setWidthPx(144)
-                        .showHighLine()
-                        .showLowLine()
+                        .showHighLine(highLine)
+                        .showLowLine(lowLine)
                         .setTinyDots()
+                        .setSmallDots()
                         .build();
                 //encode the trend bitmap as a PNG
                 byte [] img = SimpleImageEncoder.encodeBitmapAsPNG(bgTrend,true,16,true);
@@ -368,6 +379,13 @@ public class PebbleSync extends Service {
              if(sendStep == 5) {
                  sendStep = 0;
                  done=false;
+                 dictionary.remove(ICON_KEY);
+                 dictionary.remove(BG_KEY);
+                 dictionary.remove(NAME_KEY);
+                 dictionary.remove(BG_DELTA_KEY);
+                 dictionary.remove(PHONE_TIME_KEY);
+                 dictionary.remove(RECORD_TIME_KEY);
+                 dictionary.remove(UPLOADER_BATTERY_KEY);
              }
              Log.i(TAG, "sendData: messageInTransit= " + messageInTransit + ", transactionFailed= " + transactionFailed + ", sendStep= " + sendStep);
              if (sendStep == 0 && !messageInTransit && !transactionOk && !transactionFailed) {
