@@ -17,6 +17,16 @@
             android:key="share_key"
             android:shouldDisableView="true"
             android:defaultValue="SM00000000"/>
+        <EditTextPreference
+            android:key="dex_txid"
+            android:title="Dexcom Transmitter ID"
+            android:summary="ID of your Dexcom Transmitter, eg 12AB3"
+            android:defaultValue="00000" />
+        <CheckBoxPreference
+            android:key="display_bridge_battery"
+            android:title="Display Bridge Battery"
+            android:summary="Choose to display the bridge battery level"
+            android:defaultValue="true" />
         <PreferenceScreen
             android:title="@string/scan_share2_barcode"
             android:key="scan_share2_barcode"

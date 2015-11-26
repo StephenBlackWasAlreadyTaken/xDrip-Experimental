@@ -115,6 +115,13 @@
     <string name="title_activity_share_test">ShareTest</string>
     <string name="title_activity_system_status">SystemStatus</string>
 
+    <!-- pebble settings -->
+    <string name="pref_pebble_display_trend">Display Trend</string>
+    <string name="pref_summary_display_trend">Show the BG trend on the xDrip Pebble watch face.</string>
+    <string name="pref_pebble_display_high_line">Display High Line</string>
+    <string name="pref_pebble_display_low_line">Display Low Line</string>
+
+
     <string name="toast_crash">Something went wrong :( a report has been sent to help fix the issue.</string>
     <string name="appwidget_text">EXAMPLE</string>
     <string name="add_widget">Add widget</string>
