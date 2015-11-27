@@ -371,6 +371,65 @@ public class BgReading extends Model implements ShareUploadableBg{
 
         return bgReading;
     }
+    
+    public static void create(Context context, double raw_data, double filtered_data, Long timestamp, double calculated_bg) {
+        BgReading bgReading = new BgReading();
+        Sensor sensor = Sensor.currentSensor();
+        if (sensor == null) {
+            Log.w(TAG, "No sensor, ignoring this bg reading");
+            return ;
+        }
+
+        Calibration calibration = Calibration.last();
+        if (calibration == null) {
+            Log.d(TAG, "create: No calibration yet");
+            bgReading.sensor = sensor;
+            bgReading.sensor_uuid = sensor.uuid;
+            bgReading.raw_data = (raw_data / 1000);
+            bgReading.filtered_data = (filtered_data / 1000);
+            bgReading.timestamp = timestamp;
+            bgReading.uuid = UUID.randomUUID().toString();
+            bgReading.calculated_value = calculated_bg;
+            //bgReading.time_since_sensor_started = bgReading.timestamp - sensor.started_at;
+            //bgReading.synced = false;
+            //bgReading.calibration_flag = false;
+
+            bgReading.calculateAgeAdjustedRawValue();
+
+            bgReading.save();
+            bgReading.perform_calculations();
+        } else {
+            Log.d(TAG,"Calibrations, so doing everything bgReading = " + bgReading);
+            bgReading.sensor = sensor;
+            bgReading.sensor_uuid = sensor.uuid;
+            bgReading.calibration = calibration;
+            bgReading.calibration_uuid = calibration.uuid;
+            bgReading.raw_data = (raw_data/1000);
+            bgReading.filtered_data = (filtered_data/1000);
+            bgReading.timestamp = timestamp;
+            bgReading.uuid = UUID.randomUUID().toString();
+            bgReading.calculated_value = calculated_bg;
+            //bgReading.time_since_sensor_started = bgReading.timestamp - sensor.started_at;
+            //bgReading.synced = false;
+
+            bgReading.calculateAgeAdjustedRawValue();
+
+            if (bgReading.calculated_value < 10) {
+                bgReading.calculated_value = 9;
+                bgReading.hide_slope = true;
+            } else {
+                bgReading.calculated_value = Math.min(400, Math.max(39, bgReading.calculated_value));
+            }
+            Log.i(TAG, "NEW VALUE CALCULATED AT: " + bgReading.calculated_value);
+
+            bgReading.save();
+            bgReading.perform_calculations();
+            context.startService(new Intent(context, Notifications.class));
+        }
+
+        Log.i("BG GSON: ",bgReading.toS());
+
+    }
 
     public static String activeSlopeArrow() {
         double slope = (float) (BgReading.activeSlope() * 60000);
