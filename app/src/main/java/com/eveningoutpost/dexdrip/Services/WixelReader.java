@@ -10,6 +10,7 @@ import com.eveningoutpost.dexdrip.Models.BgReading;
 import com.eveningoutpost.dexdrip.Models.Calibration;
 import com.eveningoutpost.dexdrip.Models.TransmitterData;
 import com.eveningoutpost.dexdrip.Models.UserError.Log;
+import com.eveningoutpost.dexdrip.ShareModels.DexcomShare;
 import com.eveningoutpost.dexdrip.Sensor;
 import com.eveningoutpost.dexdrip.utils.BgToSpeech;
 import com.google.gson.Gson;
@@ -27,12 +28,20 @@ import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+
+import retrofit.Call;
+import retrofit.Response;
 import retrofit.http.GET;
 import retrofit.http.Query;
-import retrofit.RestAdapter;
+import retrofit.Retrofit;
 import retrofit.http.Headers;
 import retrofit.http.Header;
-import retrofit.RetrofitError;
+import retrofit.GsonConverterFactory;
+import com.squareup.okhttp.Interceptor;
+import com.squareup.okhttp.logging.HttpLoggingInterceptor;
+import com.squareup.okhttp.OkHttpClient;
 
 
 
@@ -453,11 +462,26 @@ public class WixelReader extends AsyncTask<String, Void, Void > {
     
     
     
+    class NightscoutBg {
+        double dex_raw; // raw_data
+        double dex_filtered; // filtered_data;
+        Long date; // timestamp
+        double sgv; // calculated_bg
+    }
+    
+    class NightscoutMbg {
+        Long date; // timestamp
+        double mbg; // calculated_bg
+    }
+    
     class Curator {
         public String device;
         Long date;
     }
-    
+/*
+ * 
+ *     1.9 version
+
     public interface IApiMethods {
         
 
@@ -469,56 +493,166 @@ public class WixelReader extends AsyncTask<String, Void, Void > {
         );
         
         
-        @GET("/api/v1/entries.json?find[type][$eq]=cal&find[date][$gte]=1448085290400&count=1000")
+        @GET("/api/v1/entries.json?find[type][$eq]=cal&find[date][$gte]=1448085290400&count=10")
         List<Curator> getCurators(
                 //@Header("Authorization") String authorization
                 @Header("Accept") String Accept
         );
         
         // gets all sgvs
-        @GET("/api/v1/entries.json?find[type][$eq]=sgv&find[date][$gte]=1448085290400&count=1000")
-        List<Curator> getSgv(
+        @GET("/api/v1/entries.json?find[type][$eq]=sgv&find[date][$gte]=1448085290400&count=10")
+        List<NightscoutBg> getSgv(
                 @Header("Accept") String Accept
                 //@Header("Accept") String authorization
         );
     }
+*/
     
+
     public void readData() {
-        Log.e(TAG,"Starting 2 to read from retrofit");
+        final String API_KEY = "application/json api-secret: 6aaafe81264eb79d079caa91bbf25dba379ff6e2"; // probably we can do without the josn. if url contains it
+        verifySensor();
+        readCalData(API_KEY);
+        readBgData(API_KEY);
         
-        RestAdapter restAdapter;
+    }
+    
+    void verifySensor() {
+        Sensor sensor = Sensor.currentSensor();
+        if(sensor != null) {
+            return;
+        }
+        Sensor.create(new Date().getTime());
+    }
+    
+
+    public interface INsRestApi {
         
+        // gets all sgvs
+        @GET("/api/v1/entries.json?find[type][$eq]=sgv&find[date][$gte]=1448085290400&count=10")
+        Call<List<NightscoutBg>> getSgv(
+                @Header("Accept") String Accept
+                //@Header("Accept") String authorization
+        );
+        
+        @GET("/api/v1/entries.json?find[type][$eq]=cal&find[date][$gte]=1448085290400&count=10")
+        Call<List<NightscoutBg>> getCal(
+                //@Header("Authorization") String authorization
+                @Header("Accept") String Accept
+        );
+        
+        @GET("/api/v1/entries.json?find[type][$eq]=mbg&find[date][$gte]=1448085290400&count=10")
+        Call<List<NightscoutMbg>> getMbg(
+                //@Header("Authorization") String authorization
+                @Header("Accept") String Accept
+        );
+    }    
+    
+    INsRestApi CreateNsMethods() {
+        Retrofit retrofit;
+
         //final String API_URL = "http://freemusicarchive.org/api";
         final String API_URL = "https://snirdar.azurewebsites.net";
-        
-        final String API_KEY = "application/json api-secret: 6aaafe81264eb79d079caa91bbf25dba379ff6e2"; // probably we can do without the josn. if url contains it
-         
-        restAdapter = new RestAdapter.Builder()
-        .setEndpoint(API_URL)
-        .setLogLevel(RestAdapter.LogLevel.FULL).build();
-        
-        
-        IApiMethods methods = restAdapter.create(IApiMethods.class);
-        List<Curator> curators = new ArrayList<Curator>(1);
+
+
+        HttpLoggingInterceptor logging = new HttpLoggingInterceptor();  
+        // set your desired log level
+        logging.setLevel(HttpLoggingInterceptor.Level.BODY);
+
+        OkHttpClient httpClient = new OkHttpClient();  
+        // add your other interceptors ...
+
+        // add logging as last interceptor
+        httpClient.interceptors().add(logging);  // <-- this is the important line 
+
+        Gson gson = new GsonBuilder().create();
+        retrofit = new Retrofit.Builder()
+        .baseUrl(API_URL)
+        .addConverterFactory(GsonConverterFactory.create(gson))
+        .client(httpClient)
+        .build();
+
+        return retrofit.create(INsRestApi.class);
+    }
+
+    private void readCalData(String key) {
+        INsRestApi methods = CreateNsMethods();
+        List<NightscoutMbg> nightscoutMbgs = null;
         try {
         
-           curators = methods.getSgv(API_KEY);
-        } catch (RetrofitError error) {
-            Log.e(TAG,"RetrofitError exception was cought", error);
-        }
-
-        Log.e(TAG,"retrofit before print");
-        
-        long last_print = 5448140601613l;
-        for (Curator dataset : curators) {
-            Log.e(TAG, dataset.device + " date = " + dataset.date);
-            if(last_print <= dataset.date) {
-                Log.e(TAG, "hiiiiiiiiiiiiiiiiiii received outof order packets");
-                last_print = dataset.date;
+            Call<List<NightscoutMbg>> call = methods.getMbg(key); 
+            
+            Response<List<NightscoutMbg>> response = call.execute();
+            if(response == null) {
+                Log.e(TAG,"readBgData  call.execute returned null");
+                return;
             }
+            // http://stackoverflow.com/questions/32517114/how-is-error-handling-done-in-retrofit-2-i-can-not-find-the-retrofiterror-clas
+            if(!response.isSuccess() && response.errorBody() != null) {
+                Log.e(TAG,"readBgData  call.execute returned with error " + response.errorBody());
+                return;
+            }
+            nightscoutMbgs = response.body();
+            //
+        } catch (IOException e ) {
+            Log.e(TAG,"RetrofitError exception was cought", e);
+            return;
+        }
+        
+        Log.e(TAG,"retrofit before print");
+        if(nightscoutMbgs == null) {
+            Log.e(TAG,"readBgData returned null");
+            return;
+        }
+        for (NightscoutMbg nightscoutmBg : nightscoutMbgs) {
+            // also load to other table !!!
+            Log.e(TAG, "nightscoutBg " + nightscoutmBg.mbg );
+            // filter based on time !!!
+            Calibration.create(mContext, nightscoutmBg.mbg, nightscoutmBg.date);
+            
         }
         Log.e(TAG,"retrofit aftert print");
         
+    }
+    
+    private void readBgData(String key) {
+        Log.e(TAG,"readBgData Starting to read from retrofit");
+        INsRestApi methods = CreateNsMethods();
+        List<NightscoutBg> nightscoutBgs = null;
+        try {
+        
+            Call<List<NightscoutBg>> call = methods.getSgv(key); 
+            
+            Response<List<NightscoutBg>> response = call.execute();
+            if(response == null) {
+                Log.e(TAG,"readBgData  call.execute returned null");
+                return;
+            }
+            // http://stackoverflow.com/questions/32517114/how-is-error-handling-done-in-retrofit-2-i-can-not-find-the-retrofiterror-clas
+            if(!response.isSuccess() && response.errorBody() != null) {
+                Log.e(TAG,"readBgData  call.execute returned with error " + response.errorBody());
+                return;
+            }
+            nightscoutBgs = response.body();
+            //
+        } catch (IOException e ) {
+            Log.e(TAG,"RetrofitError exception was cought", e);
+            return;
+        }
+        
+        Log.e(TAG,"retrofit before print");
+        if(nightscoutBgs == null) {
+            Log.e(TAG,"readBgData returned null");
+            return;
+        }
+        for (NightscoutBg nightscoutBg : nightscoutBgs) {
+            // also load to other table !!!
+            Log.e(TAG, "nightscoutBg " + nightscoutBg.sgv + " " + nightscoutBg.dex_raw + " " + mContext);
+            // filter based on time !!!
+            BgReading.create(mContext, nightscoutBg.dex_raw * 1000, nightscoutBg.dex_filtered * 1000, nightscoutBg.date, nightscoutBg.sgv);
+            
+        }
+        Log.e(TAG,"retrofit aftert print");
     }
     
 /*
