@@ -139,8 +139,8 @@
     <orderEntry type="library" exported="" name="android-uploader-CORE_FOR_XDRIP" level="project" />
     <orderEntry type="library" exported="" name="pngj-2.1.0" level="project" />
     <orderEntry type="library" exported="" name="1_pngj-2.1.0" level="project" />
-    <orderEntry type="library" exported="" name="okio-1.2.0" level="project" />
     <orderEntry type="library" exported="" name="slf4j-api-1.7.7" level="project" />
+    <orderEntry type="library" exported="" name="okio-1.2.0" level="project" />
     <orderEntry type="library" exported="" name="guava-18.0" level="project" />
     <orderEntry type="library" exported="" name="zxing-android-minimal-2.0.0" level="project" />
     <orderEntry type="library" exported="" name="beta-1.1.3" level="project" />
