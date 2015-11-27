@@ -194,7 +194,7 @@ public class PebbleSync extends Service {
         }
         String msg = PreferenceManager.getDefaultSharedPreferences(mContext).getString("pebble_special_value","");
         if(bgReading().compareTo(msg)==0) {
-            dictionary.addString(MESSAGE_KEY, msg);
+            dictionary.addString(MESSAGE_KEY, PreferenceManager.getDefaultSharedPreferences(mContext).getString("pebble_special_text", "BAZINGA!"));
         }else {
             dictionary.addString(MESSAGE_KEY, "");
         }
