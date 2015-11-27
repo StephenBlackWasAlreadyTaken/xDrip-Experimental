@@ -388,6 +388,21 @@ public class Calibration extends Model {
         return Calibration.last();
     }
 
+    public static void create(Context context, double bg, long timeStamp) {
+        Calibration calibration = new Calibration();
+        Sensor sensor = Sensor.currentSensor();
+
+        if (sensor != null) {
+            calibration.sensor = sensor;
+            calibration.bg = bg;
+            calibration.check_in = false;
+            calibration.timestamp = timeStamp;
+            calibration.sensor_uuid = sensor.uuid;
+            calibration.uuid = UUID.randomUUID().toString();
+            calibration.save();
+        }
+    }
+    
     public static List<Calibration> allForSensorInLastFiveDays() {
         Sensor sensor = Sensor.currentSensor();
         if (sensor == null) { return null; }
