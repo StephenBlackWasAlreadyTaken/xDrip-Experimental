@@ -529,16 +529,19 @@ public class WixelReader extends AsyncTask<String, Void, Void > {
     public interface INsRestApi {
         
         // gets all sgvs
-        @GET("/api/v1/entries.json?find[type][$eq]=sgv&find[date][$gte]=1448085290400&count=10")
+        //@GET("/api/v1/entries.json?find[type][$eq]=sgv&find[date][$gte]=1448085290400&count=10")
+        @GET("/api/v1/entries.json?find[type][$eq]=sgv&count=10")
         Call<List<NightscoutBg>> getSgv(
-                @Header("Accept") String Accept
-                //@Header("Accept") String authorization
+                @Header("Accept") String Accept,
+                @Query("find[date][$gte]") long date,
+                @Query("count") long count
         );
         
         @GET("/api/v1/entries.json?find[type][$eq]=cal&find[date][$gte]=1448085290400&count=10")
         Call<List<NightscoutBg>> getCal(
                 //@Header("Authorization") String authorization
                 @Header("Accept") String Accept
+                
         );
         
         @GET("/api/v1/entries.json?find[type][$eq]=mbg&find[date][$gte]=1448085290400&count=10")
@@ -621,7 +624,7 @@ public class WixelReader extends AsyncTask<String, Void, Void > {
         List<NightscoutBg> nightscoutBgs = null;
         try {
         
-            Call<List<NightscoutBg>> call = methods.getSgv(key); 
+            Call<List<NightscoutBg>> call = methods.getSgv(key, 1448815870256l, 100); 
             
             Response<List<NightscoutBg>> response = call.execute();
             if(response == null) {
