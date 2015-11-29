@@ -80,7 +80,7 @@ android {
     buildToolsVersion "22.0.1"
 
     defaultConfig {
-        applicationId "com.eveningoutpost.dexdrip"
+        applicationId "com.eveningoutpost.dexdrip2"
         minSdkVersion 17
         targetSdkVersion 23
         versionCode 2
