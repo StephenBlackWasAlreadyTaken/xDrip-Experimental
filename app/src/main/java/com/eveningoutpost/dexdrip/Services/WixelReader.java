@@ -11,13 +11,14 @@ import com.eveningoutpost.dexdrip.Models.Calibration;
 import com.eveningoutpost.dexdrip.Models.TransmitterData;
 import com.eveningoutpost.dexdrip.Models.UserError.Log;
 import com.eveningoutpost.dexdrip.Models.Sensor;
+import com.eveningoutpost.dexdrip.Services.WixelReader.NightscoutBg;
 import com.eveningoutpost.dexdrip.ShareModels.DexcomShare;
 import com.eveningoutpost.dexdrip.utils.BgToSpeech;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.squareup.okhttp.OkHttpClient;
 import com.squareup.okhttp.Request;
-import com.squareup.okhttp.Response;
+//import com.squareup.okhttp.Response;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -31,6 +32,8 @@ import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+import java.util.ListIterator;
+
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -43,6 +46,7 @@ import retrofit.Retrofit;
 import retrofit.http.Headers;
 import retrofit.http.Header;
 import retrofit.GsonConverterFactory;
+
 import com.squareup.okhttp.Interceptor;
 import com.squareup.okhttp.logging.HttpLoggingInterceptor;
 import com.squareup.okhttp.OkHttpClient;
@@ -453,6 +457,9 @@ public class WixelReader extends AsyncTask<String, Void, Void > {
     
     public void readData1()
     {
+        if(!WixelReader.IsConfigured(mContext)) {
+            return;
+        }
         Long LastReportedTime = 0L;
     	TransmitterData lastTransmitterData = TransmitterData.last();
     	if(lastTransmitterData != null) {
@@ -472,9 +479,7 @@ public class WixelReader extends AsyncTask<String, Void, Void > {
     	Log.d(TAG, "Starting... LastReportedReading " + LastReportedReading);
     	// try to read one object...
         TransmitterRawData[] LastReadingArr = null;
-        if(!WixelReader.IsConfigured(mContext)) {
-            return;
-        }
+
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(mContext);
         String recieversIpAddresses = prefs.getString("wifi_recievers_addresses", "");
         
@@ -622,10 +627,10 @@ public class WixelReader extends AsyncTask<String, Void, Void > {
         
         // gets all sgvs
         //@GET("/api/v1/entries.json?find[type][$eq]=sgv&find[date][$gte]=1448085290400&count=10")
-        @GET("/api/v1/entries.json?find[type][$eq]=sgv&count=10")
+        @GET("/api/v1/entries.json?find[type][$eq]=sgv")
         Call<List<NightscoutBg>> getSgv(
                 @Header("Accept") String Accept,
-                @Query("find[date][$gte]") long date,
+                @Query("find[date][$gt]") long date,
                 @Query("count") long count
         );
         
@@ -710,44 +715,69 @@ public class WixelReader extends AsyncTask<String, Void, Void > {
         
     }
     
-    private void readBgData(String key) {
+    private List<NightscoutBg> readBgDataFromNs(String key, long startTime, long maxCount) {
         Log.e(TAG,"readBgData Starting to read from retrofit");
         INsRestApi methods = CreateNsMethods();
         List<NightscoutBg> nightscoutBgs = null;
         try {
         
-            Call<List<NightscoutBg>> call = methods.getSgv(key, 1448815870256l, 100); 
+            Call<List<NightscoutBg>> call = methods.getSgv(key, startTime, maxCount); 
             
             Response<List<NightscoutBg>> response = call.execute();
             if(response == null) {
                 Log.e(TAG,"readBgData  call.execute returned null");
-                return;
+                return null;
             }
             // http://stackoverflow.com/questions/32517114/how-is-error-handling-done-in-retrofit-2-i-can-not-find-the-retrofiterror-clas
             if(!response.isSuccess() && response.errorBody() != null) {
                 Log.e(TAG,"readBgData  call.execute returned with error " + response.errorBody());
-                return;
+                return null;
             }
             nightscoutBgs = response.body();
             //
         } catch (IOException e ) {
             Log.e(TAG,"RetrofitError exception was cought", e);
+            return null;
+        }
+        
+        
+        if(nightscoutBgs == null) {
+            Log.e(TAG,"readBgData returned null");
+            return null;
+        }
+        Log.e(TAG,"retrofit returning a list, size = " + nightscoutBgs.size());
+       
+        return nightscoutBgs;
+    }
+    
+    private void readBgData(String key) {
+        
+        Long LastReportedTime = 0L;
+        TransmitterData lastTransmitterData = TransmitterData.last();
+        if(lastTransmitterData != null) {
+            LastReportedTime = lastTransmitterData.timestamp;
+        }
+        Log.e(TAG, "readBgData  LastReportedTime = " + LastReportedTime);
+        
+        List<NightscoutBg> nightscoutBgs = readBgDataFromNs(key, LastReportedTime, 12 * 24 * 2);
+        if(nightscoutBgs == null) {
+            Log.e(TAG, "readBgDataFromNs returned null");
             return;
         }
         
-        Log.e(TAG,"retrofit before print");
-        if(nightscoutBgs == null) {
-            Log.e(TAG,"readBgData returned null");
-            return;
-        }
-        for (NightscoutBg nightscoutBg : nightscoutBgs) {
+        ListIterator<NightscoutBg> li = nightscoutBgs.listIterator(nightscoutBgs.size());
+        //for (NightscoutBg nightscoutBg : nightscoutBgs) {
+        while(li.hasPrevious()) {
             // also load to other table !!!
+            NightscoutBg nightscoutBg = li.previous();
             Log.e(TAG, "nightscoutBg " + nightscoutBg.sgv + " " + nightscoutBg.dex_raw + " " + mContext);
             // filter based on time !!!
             BgReading.create(mContext, nightscoutBg.dex_raw * 1000, nightscoutBg.dex_filtered * 1000, nightscoutBg.date, nightscoutBg.sgv);
+            TransmitterData.create((int)nightscoutBg.dex_raw, 100 /* ??????? */, nightscoutBg.date);
             
         }
-        Log.e(TAG,"retrofit aftert print");
+        
+        
     }
     
 /*
