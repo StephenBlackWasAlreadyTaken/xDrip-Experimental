@@ -627,7 +627,6 @@ public class WixelReader extends AsyncTask<String, Void, Void > {
     public interface INsRestApi {
         
         // gets all sgvs
-        //@GET("/api/v1/entries.json?find[type][$eq]=sgv&find[date][$gte]=1448085290400&count=10")
         @GET("/api/v1/entries.json?find[type][$eq]=sgv")
         Call<List<NightscoutBg>> getSgv(
                 @Header("Accept") String Accept,
@@ -635,17 +634,22 @@ public class WixelReader extends AsyncTask<String, Void, Void > {
                 @Query("count") long count
         );
         
-        @GET("/api/v1/entries.json?find[type][$eq]=cal&find[date][$gte]=1448085290400&count=10")
+//        @GET("/api/v1/entries.json?find[type][$eq]=cal&find[date][$gte]=1448085290400&count=10")
+        @GET("/api/v1/entries.json?find[type][$eq]=cal")
         Call<List<NightscoutBg>> getCal(
                 //@Header("Authorization") String authorization
-                @Header("Accept") String Accept
-                
+                @Header("Accept") String Accept,
+                @Query("find[date][$gt]") long date,
+                @Query("count") long count
         );
         
-        @GET("/api/v1/entries.json?find[type][$eq]=mbg&find[date][$gte]=1448085290400&count=10")
+        //@GET("/api/v1/entries.json?find[type][$eq]=mbg&find[date][$gte]=1448085290400&count=10")
+        @GET("/api/v1/entries.json?find[type][$eq]=mbg")
         Call<List<NightscoutMbg>> getMbg(
                 //@Header("Authorization") String authorization
-                @Header("Accept") String Accept
+                @Header("Accept") String Accept,
+                @Query("find[date][$gt]") long date,
+                @Query("count") long count
         );
     }    
     
@@ -664,7 +668,7 @@ public class WixelReader extends AsyncTask<String, Void, Void > {
         // add your other interceptors ...
 
         // add logging as last interceptor
-        httpClient.interceptors().add(logging);  // <-- this is the important line 
+        httpClient.interceptors().add(logging);  // <-- this is the important line for logging
 
         Gson gson = new GsonBuilder().create();
         retrofit = new Retrofit.Builder()
@@ -676,45 +680,71 @@ public class WixelReader extends AsyncTask<String, Void, Void > {
         return retrofit.create(INsRestApi.class);
     }
 
-    private void readCalData(String key) {
+    private List<NightscoutMbg> readCalDataFromNs(String key, long startTime, long maxCount) {
         INsRestApi methods = CreateNsMethods();
         List<NightscoutMbg> nightscoutMbgs = null;
         try {
         
-            Call<List<NightscoutMbg>> call = methods.getMbg(key); 
+            Call<List<NightscoutMbg>> call = methods.getMbg(key,startTime, maxCount); 
             
             Response<List<NightscoutMbg>> response = call.execute();
             if(response == null) {
                 Log.e(TAG,"readBgData  call.execute returned null");
-                return;
+                return null;
             }
             // http://stackoverflow.com/questions/32517114/how-is-error-handling-done-in-retrofit-2-i-can-not-find-the-retrofiterror-clas
             if(!response.isSuccess() && response.errorBody() != null) {
                 Log.e(TAG,"readBgData  call.execute returned with error " + response.errorBody());
-                return;
+                return null;
             }
             nightscoutMbgs = response.body();
             //
         } catch (IOException e ) {
             Log.e(TAG,"RetrofitError exception was cought", e);
-            return;
+            return null;
         }
         
-        Log.e(TAG,"retrofit before print");
         if(nightscoutMbgs == null) {
             Log.e(TAG,"readBgData returned null");
-            return;
+            return null;
         }
-        for (NightscoutMbg nightscoutmBg : nightscoutMbgs) {
-            // also load to other table !!!
-            Log.e(TAG, "nightscoutBg " + nightscoutmBg.mbg );
-            // filter based on time !!!
-            Calibration.create(mContext, nightscoutmBg.mbg, nightscoutmBg.date);
-            
-        }
-        Log.e(TAG,"retrofit aftert print");
-        
+        return nightscoutMbgs;
     }
+
+    private void readCalData(String key) {
+      
+      Long LastReportedTime = 0L;
+      
+      Calibration lastCalibration = Calibration.last();
+      
+      if(lastCalibration != null) {
+          LastReportedTime = (long)lastCalibration.timestamp;
+      }
+      Log.e(TAG, "readBgData  LastReportedTime = " + LastReportedTime);
+      
+      List<NightscoutMbg> nightscoutMbgs = readCalDataFromNs(key, LastReportedTime, 10 );
+      if(nightscoutMbgs == null) {
+          Log.e(TAG, "readBgDataFromNs returned null");
+          return;
+      }
+      
+      ListIterator<NightscoutMbg> li = nightscoutMbgs.listIterator(nightscoutMbgs.size());
+      long lastInserted = 0;
+      while(li.hasPrevious()) {
+          NightscoutMbg nightscoutMbg = li.previous();
+          Log.e(TAG, "NightscoutMbg " + nightscoutMbg.mbg + " " + nightscoutMbg.date);
+          if(nightscoutMbg.date == lastInserted) {
+            Log.w(TAG, "not inserting calibration, since it seems duplicate ");
+            continue;
+          }
+          if(nightscoutMbg.date < lastInserted) {
+            Log.e(TAG, "not inserting calibratoin, since order is wrong. ");
+            continue;
+          }
+          Calibration.create(mContext, nightscoutMbg.mbg, nightscoutMbg.date);
+          lastInserted = nightscoutMbg.date;
+      }
+  }    
     
     private List<NightscoutBg> readBgDataFromNs(String key, long startTime, long maxCount) {
         Log.e(TAG,"readBgData Starting to read from retrofit");
@@ -747,7 +777,6 @@ public class WixelReader extends AsyncTask<String, Void, Void > {
             return null;
         }
         Log.e(TAG,"retrofit returning a list, size = " + nightscoutBgs.size());
-       
         return nightscoutBgs;
     }
     
@@ -760,25 +789,30 @@ public class WixelReader extends AsyncTask<String, Void, Void > {
         }
         Log.e(TAG, "readBgData  LastReportedTime = " + LastReportedTime);
         
-        List<NightscoutBg> nightscoutBgs = readBgDataFromNs(key, LastReportedTime, 12 * 24 * 2);
+        List<NightscoutBg> nightscoutBgs = readBgDataFromNs(key, LastReportedTime, 12 * 24 );
         if(nightscoutBgs == null) {
             Log.e(TAG, "readBgDataFromNs returned null");
             return;
         }
         
         ListIterator<NightscoutBg> li = nightscoutBgs.listIterator(nightscoutBgs.size());
-        //for (NightscoutBg nightscoutBg : nightscoutBgs) {
+        long lastInserted = 0;
         while(li.hasPrevious()) {
             // also load to other table !!!
             NightscoutBg nightscoutBg = li.previous();
             Log.e(TAG, "nightscoutBg " + nightscoutBg.sgv + " " + nightscoutBg.dex_raw + " " + mContext);
-            // filter based on time !!!
+            if(nightscoutBg.date == lastInserted) {
+              Log.w(TAG, "not inserting packet, since it seems duplicate ");
+              continue;
+            }
+            if(nightscoutBg.date < lastInserted) {
+              Log.e(TAG, "not inserting packet, since order is wrong. ");
+              continue;
+            }
             BgReading.create(mContext, nightscoutBg.dex_raw * 1000, nightscoutBg.dex_filtered * 1000, nightscoutBg.date, nightscoutBg.sgv);
             TransmitterData.create((int)nightscoutBg.dex_raw, 100 /* ??????? */, nightscoutBg.date);
-            
+            lastInserted = nightscoutBg.date;
         }
-        
-        
     }
     
 /*
