@@ -1,3 +1,6 @@
+<!--                 android:targetPackage="@string/package_activity_preferences" -->
+<!--                 http://stackoverflow.com/questions/18924279/specifying-a-targetpackage-for-an-intent-in-an-xml-file-of-a-library-project -->
+
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
     <PreferenceCategory
         android:title="Alerts and Notifications"
