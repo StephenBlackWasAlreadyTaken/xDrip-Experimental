@@ -176,27 +176,29 @@ public class PebbleSync extends Service {
             dictionary.addString(BG_KEY, bgReading());
             dictionary.addUint32(RECORD_TIME_KEY, (int) (((mBgReading.timestamp + offsetFromUTC) / 1000)));
             dictionary.addString(BG_DELTA_KEY, bgDelta());
+            String msg = PreferenceManager.getDefaultSharedPreferences(mContext).getString("pebble_special_value","");
+            if(bgReading().compareTo(msg)==0) {
+                dictionary.addString(MESSAGE_KEY, PreferenceManager.getDefaultSharedPreferences(mContext).getString("pebble_special_text", "BAZINGA!"));
+            }else {
+                dictionary.addString(MESSAGE_KEY, "");
+            }
         } else {
             Log.v(TAG, "buildDictionary: latest mBgReading is null, so sending default values");
             dictionary.addString(ICON_KEY, slopeOrdinal());
             dictionary.addString(BG_KEY, "?SN");
             dictionary.addUint32(RECORD_TIME_KEY, (int) ((new Date().getTime() + offsetFromUTC / 1000)));
             dictionary.addString(BG_DELTA_KEY, "No Sensor");
+            dictionary.addString(MESSAGE_KEY, "");
+
         }
         dictionary.addUint32(PHONE_TIME_KEY, (int) ((new Date().getTime() + offsetFromUTC) / 1000));
         if(PreferenceManager.getDefaultSharedPreferences(mContext).getString("dex_collection_method", "DexbridgeWixel").compareTo("DexbridgeWixel")==0 &&
-                PreferenceManager.getDefaultSharedPreferences(mContext).getBoolean("display_bridge_battery",true)) {
+                PreferenceManager.getDefaultSharedPreferences(mContext).getBoolean("display_bridge_battery", true)) {
             dictionary.addString(UPLOADER_BATTERY_KEY, bridgeBatteryString());
             dictionary.addString(NAME_KEY, "Bridge");
         } else {
             dictionary.addString(UPLOADER_BATTERY_KEY, phoneBattery());
             dictionary.addString(NAME_KEY, "Phone");
-        }
-        String msg = PreferenceManager.getDefaultSharedPreferences(mContext).getString("pebble_special_value","");
-        if(bgReading().compareTo(msg)==0) {
-            dictionary.addString(MESSAGE_KEY, PreferenceManager.getDefaultSharedPreferences(mContext).getString("pebble_special_text", "BAZINGA!"));
-        }else {
-            dictionary.addString(MESSAGE_KEY, "");
         }
         //return dictionary;
     }
