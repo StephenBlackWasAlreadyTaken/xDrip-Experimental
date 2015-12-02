@@ -305,7 +305,12 @@ public class NightscoutUploader {
                             testData.put("unfiltered", record.usedRaw() * 1000);
                             testData.put("rssi", 100);
                             testData.put("noise", record.noiseValue());
-                            dexcomData.insert(testData, WriteConcern.UNACKNOWLEDGED);
+                            testData.put("dex_raw", record.raw_data);
+                            testData.put("dex_filtered", record.filtered_data);
+
+                            testData.put("sysTime", format.format(record.timestamp));
+                            BasicDBObject query = new BasicDBObject("type", "sgv").append("sysTime", format.format(record.timestamp));
+                            dexcomData.update(query, testData, true, false,  WriteConcern.UNACKNOWLEDGED);
                         }
 
                         Log.i(TAG, "The number of MBG records being sent to MongoDB is " + meterRecords.size());
