@@ -305,7 +305,12 @@ public class NightscoutUploader {
                             testData.put("unfiltered", record.usedRaw() * 1000);
                             testData.put("rssi", 100);
                             testData.put("noise", record.noiseValue());
-                            dexcomData.insert(testData, WriteConcern.UNACKNOWLEDGED);
+                            testData.put("xDrip_raw", record.raw_data);
+                            testData.put("xDrip_filtered", record.filtered_data);
+
+                            testData.put("sysTime", format.format(record.timestamp));
+                            BasicDBObject query = new BasicDBObject("type", "sgv").append("sysTime", format.format(record.timestamp));
+                            dexcomData.update(query, testData, true, false,  WriteConcern.UNACKNOWLEDGED);
                         }
 
                         Log.i(TAG, "The number of MBG records being sent to MongoDB is " + meterRecords.size());
@@ -317,7 +322,13 @@ public class NightscoutUploader {
                             testData.put("date", meterRecord.timestamp);
                             testData.put("dateString", format.format(meterRecord.timestamp));
                             testData.put("mbg", meterRecord.bg);
+                            testData.put("xDrip_slope", meterRecord.slope);
+                            testData.put("xDrip_intercept", meterRecord.intercept);
                             dexcomData.insert(testData, WriteConcern.UNACKNOWLEDGED);
+                            
+                            testData.put("sysTime", format.format(meterRecord.timestamp));
+                            BasicDBObject query = new BasicDBObject("type", "mbg").append("sysTime", format.format(meterRecord.timestamp));
+                            dexcomData.update(query, testData, true, false,  WriteConcern.UNACKNOWLEDGED);
                         }
 
                         for (Calibration calRecord : calRecords) {
@@ -336,7 +347,10 @@ public class NightscoutUploader {
                                 testData.put("scale", 1);
                             }
                             testData.put("type", "cal");
-                            dexcomData.insert(testData, WriteConcern.UNACKNOWLEDGED);
+                            
+                            testData.put("sysTime", format.format(calRecord.timestamp));
+                            BasicDBObject query = new BasicDBObject("type", "cal").append("sysTime", format.format(calRecord.timestamp));
+                            dexcomData.update(query, testData, true, false,  WriteConcern.UNACKNOWLEDGED);
                         }
 
                         // TODO: quick port from original code, revisit before release
