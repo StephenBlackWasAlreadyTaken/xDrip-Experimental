@@ -63,7 +63,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:textAppearance="?android:attr/textAppearanceSmall"
-                    android:text="100%"
+                    android:text="xDrip Battery level unknown"
                     android:id="@+id/textBridgeBattery"
                     android:textStyle="normal"
                     android:textSize="12sp"
