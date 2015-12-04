@@ -149,14 +149,12 @@ public class Home extends ActivityWithMenu {
             @Override
             public void onReceive(Context ctx, Intent intent) {
                 holdViewport.set(0, 0, 0, 0);
-                setupCharts();
                 updateCurrentBgInfo();
             }
         };
         registerReceiver(_broadcastReceiver, new IntentFilter(Intent.ACTION_TIME_TICK));
         registerReceiver(newDataReceiver, new IntentFilter(Intents.ACTION_NEW_BG_ESTIMATE_NO_DATA));
         holdViewport.set(0, 0, 0, 0);
-        setupCharts();
         updateCurrentBgInfo();
     }
 
@@ -250,6 +248,7 @@ public class Home extends ActivityWithMenu {
     }
 
     public void updateCurrentBgInfo() {
+        setupCharts();
         final TextView notificationText = (TextView) findViewById(R.id.notices);
         if(BgGraphBuilder.isXLargeTablet(getApplicationContext())) {
             notificationText.setTextSize(40);
@@ -378,7 +377,7 @@ public class Home extends ActivityWithMenu {
         displayCurrentInfo();
     }
 
-    public void displayCurrentInfo() {
+    private void displayCurrentInfo() {
         DecimalFormat df = new DecimalFormat("#");
         df.setMaximumFractionDigits(0);
 
@@ -411,7 +410,6 @@ public class Home extends ActivityWithMenu {
         if (lastBgReading != null) {
             displayCurrentInfoFromReading(lastBgReading, predictive);
         }
-        setupCharts();
     }
 
     private void displayCurrentInfoFromReading(BgReading lastBgReading, boolean predictive) {
