@@ -38,7 +38,6 @@ import com.eveningoutpost.dexdrip.Models.UserError;
 import com.eveningoutpost.dexdrip.Services.WixelReader;
 import com.eveningoutpost.dexdrip.UtilityModels.BgGraphBuilder;
 import com.eveningoutpost.dexdrip.UtilityModels.CollectionServiceStarter;
-import com.eveningoutpost.dexdrip.UtilityModels.IdempotentMigrations;
 import com.eveningoutpost.dexdrip.UtilityModels.Intents;
 import com.eveningoutpost.dexdrip.utils.ActivityWithMenu;
 import com.eveningoutpost.dexdrip.utils.DatabaseUtil;
@@ -82,15 +81,9 @@ public class Home extends ActivityWithMenu {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        CollectionServiceStarter collectionServiceStarter = new CollectionServiceStarter(getApplicationContext());
-        collectionServiceStarter.start(getApplicationContext());
-        PreferenceManager.setDefaultValues(this, R.xml.pref_general, false);
-        PreferenceManager.setDefaultValues(this, R.xml.pref_data_sync, false);
-        PreferenceManager.setDefaultValues(this, R.xml.pref_notifications, false);
-        PreferenceManager.setDefaultValues(this, R.xml.pref_data_source, false);
+
         prefs = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
         checkEula();
-        new IdempotentMigrations(getApplicationContext()).performAll();
         setContentView(R.layout.activity_home);
 
         this.dexbridgeBattery = (TextView) findViewById(R.id.textBridgeBattery);
