@@ -124,7 +124,7 @@ public class Home extends ActivityWithMenu {
         return menu_name;
     }
 
-    public void checkEula() {
+    private void checkEula() {
         boolean IUnderstand = prefs.getBoolean("I_understand", false);
         if (!IUnderstand) {
             Intent intent = new Intent(getApplicationContext(), LicenseAgreementActivity.class);
@@ -158,7 +158,7 @@ public class Home extends ActivityWithMenu {
         updateCurrentBgInfo();
     }
 
-    public void setupCharts() {
+    private void setupCharts() {
         bgGraphBuilder = new BgGraphBuilder(this);
         updateStuff = false;
         chart = (LineChartView) findViewById(R.id.chart);
@@ -247,7 +247,7 @@ public class Home extends ActivityWithMenu {
         }
     }
 
-    public void updateCurrentBgInfo() {
+    private void updateCurrentBgInfo() {
         setupCharts();
         final TextView notificationText = (TextView) findViewById(R.id.notices);
         if(BgGraphBuilder.isXLargeTablet(getApplicationContext())) {
