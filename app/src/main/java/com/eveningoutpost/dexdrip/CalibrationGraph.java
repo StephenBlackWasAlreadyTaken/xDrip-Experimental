@@ -1,15 +1,10 @@
 package com.eveningoutpost.dexdrip;
 
-import android.app.Activity;
 import android.os.Bundle;
-import android.support.v4.widget.DrawerLayout;
-import android.view.Menu;
-import android.view.MenuItem;
-import android.widget.EditText;
 import android.widget.TextView;
 
 import com.eveningoutpost.dexdrip.Models.Calibration;
-import com.eveningoutpost.dexdrip.UtilityModels.Constants;
+import com.eveningoutpost.dexdrip.utils.ActivityWithMenu;
 
 import java.text.DateFormat;
 import java.text.DecimalFormat;
@@ -21,42 +16,36 @@ import lecho.lib.hellocharts.model.Axis;
 import lecho.lib.hellocharts.model.Line;
 import lecho.lib.hellocharts.model.LineChartData;
 import lecho.lib.hellocharts.model.PointValue;
-import lecho.lib.hellocharts.util.Utils;
+import lecho.lib.hellocharts.util.ChartUtils;
 import lecho.lib.hellocharts.view.LineChartView;
 
 
-public class CalibrationGraph extends Activity implements NavigationDrawerFragment.NavigationDrawerCallbacks {
-    private String menu_name = "Calibration Graph";
-    private NavigationDrawerFragment mNavigationDrawerFragment;
-    private LineChartView chart;
+public class CalibrationGraph extends ActivityWithMenu {
+    public static String menu_name = "Calibration Graph";
+   private LineChartView chart;
     private LineChartData data;
     public double  start_x = 50;
     public double  end_x = 300;
-    
+
     TextView GraphHeader;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_calibration_graph);
-        
         GraphHeader = (TextView) findViewById(R.id.CalibrationGraphHeader);
     }
+
+    @Override
+    public String getMenuName() {
+        return menu_name;
+    }
+
     @Override
     protected void onResume(){
         super.onResume();
-
-        mNavigationDrawerFragment = (NavigationDrawerFragment) getFragmentManager().findFragmentById(R.id.navigation_drawer);
-        mNavigationDrawerFragment.setUp(R.id.navigation_drawer, (DrawerLayout) findViewById(R.id.drawer_layout), menu_name, this);
-
         setupCharts();
     }
-
-    @Override
-    public void onNavigationDrawerItemSelected(int position) {
-        mNavigationDrawerFragment.swapContext(position);
-    }
-
 
     public void setupCharts() {
         chart = (LineChartView) findViewById(R.id.chart);
@@ -70,7 +59,7 @@ public class CalibrationGraph extends Activity implements NavigationDrawerFragme
         }
 
         Line line = new Line(values);
-        line.setColor(Utils.COLOR_BLUE);
+        line.setColor(ChartUtils.COLOR_BLUE);
         line.setHasLines(false);
         line.setPointRadius(4);
         line.setHasPoints(true);
@@ -81,7 +70,7 @@ public class CalibrationGraph extends Activity implements NavigationDrawerFragme
         if(calibration != null) {
             lineValues.add(new PointValue((float) start_x, (float) (start_x * calibration.slope + calibration.intercept)));
             lineValues.add(new PointValue((float) end_x, (float) (end_x * calibration.slope + calibration.intercept)));
-            
+
             DecimalFormat df = new DecimalFormat("#");
             df.setMaximumFractionDigits(2);
             df.setMinimumFractionDigits(2);
@@ -89,7 +78,7 @@ public class CalibrationGraph extends Activity implements NavigationDrawerFragme
             GraphHeader.setText(Header);
         }
         Line calibrationLine = new Line(lineValues);
-        calibrationLine.setColor(Utils.COLOR_RED);
+        calibrationLine.setColor(ChartUtils.COLOR_RED);
         calibrationLine.setHasLines(true);
         calibrationLine.setHasPoints(false);
         Axis axisX = new Axis();

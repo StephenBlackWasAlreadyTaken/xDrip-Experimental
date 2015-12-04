@@ -6,25 +6,30 @@ import android.content.res.Configuration;
 import android.graphics.Color;
 import android.preference.PreferenceManager;
 import android.text.format.DateFormat;
+import android.widget.Toast;
 
 import com.eveningoutpost.dexdrip.Models.BgReading;
+import com.eveningoutpost.dexdrip.Models.Calibration;
 
 import java.text.DecimalFormat;
+import java.text.DecimalFormatSymbols;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.List;
+import java.util.Locale;
 import java.util.TimeZone;
 
+import lecho.lib.hellocharts.listener.LineChartOnValueSelectListener;
 import lecho.lib.hellocharts.model.Axis;
 import lecho.lib.hellocharts.model.AxisValue;
 import lecho.lib.hellocharts.model.Line;
 import lecho.lib.hellocharts.model.LineChartData;
 import lecho.lib.hellocharts.model.PointValue;
 import lecho.lib.hellocharts.model.Viewport;
-import lecho.lib.hellocharts.util.Utils;
+import lecho.lib.hellocharts.util.ChartUtils;
 import lecho.lib.hellocharts.view.Chart;
 
 /**
@@ -49,10 +54,12 @@ public class BgGraphBuilder {
     private double endHour;
     private final int numValues =(60/5)*24;
     private final List<BgReading> bgReadings = BgReading.latestForGraph( numValues, (start_time * FUZZER));
+    private final List<Calibration> calibrations = Calibration.latestForGraph( numValues, (start_time * FUZZER));
     private List<PointValue> inRangeValues = new ArrayList<PointValue>();
     private List<PointValue> highValues = new ArrayList<PointValue>();
     private List<PointValue> lowValues = new ArrayList<PointValue>();
     private List<PointValue> rawInterpretedValues = new ArrayList<PointValue>();
+    private List<PointValue> calibrationValues = new ArrayList<PointValue>();
     public Viewport viewport;
 
 
@@ -61,7 +68,7 @@ public class BgGraphBuilder {
         this.prefs = PreferenceManager.getDefaultSharedPreferences(context);
         this.highMark = Double.parseDouble(prefs.getString("highValue", "170"));
         this.lowMark = Double.parseDouble(prefs.getString("lowValue", "70"));
-        this.doMgdl = (prefs.getString("units", "mgdl").compareTo("mgdl") == 0);
+        this.doMgdl = (prefs.getString("units", "mgdl").equals("mgdl"));
         defaultMinY = unitized(40);
         defaultMaxY = unitized(250);
         pointSize = isXLargeTablet(context) ? 5 : 3;
@@ -90,6 +97,8 @@ public class BgGraphBuilder {
     public List<Line> defaultLines() {
         addBgReadingValues();
         List<Line> lines = new ArrayList<Line>();
+        Line[] calib = calibrationValuesLine();
+        lines.add(calib[0]); // white circle of calib in background
         lines.add(minShowLine());
         lines.add(maxShowLine());
         lines.add(highLine());
@@ -98,12 +107,13 @@ public class BgGraphBuilder {
         lines.add(lowValuesLine());
         lines.add(highValuesLine());
         lines.add(rawInterpretedLine());
+        lines.add(calib[1]); // red dot of calib in foreground
         return lines;
     }
 
     public Line highValuesLine() {
         Line highValuesLine = new Line(highValues);
-        highValuesLine.setColor(Utils.COLOR_ORANGE);
+        highValuesLine.setColor(ChartUtils.COLOR_ORANGE);
         highValuesLine.setHasLines(false);
         highValuesLine.setPointRadius(pointSize);
         highValuesLine.setHasPoints(true);
@@ -121,7 +131,7 @@ public class BgGraphBuilder {
 
     public Line inRangeValuesLine() {
         Line inRangeValuesLine = new Line(inRangeValues);
-        inRangeValuesLine.setColor(Utils.COLOR_BLUE);
+        inRangeValuesLine.setColor(ChartUtils.COLOR_BLUE);
         inRangeValuesLine.setHasLines(false);
         inRangeValuesLine.setPointRadius(pointSize);
         inRangeValuesLine.setHasPoints(true);
@@ -135,6 +145,22 @@ public class BgGraphBuilder {
         line.setHasPoints(true);
         return line;
     }
+
+    public Line[] calibrationValuesLine() {
+        Line[] lines = new Line[2];
+        lines[0] = new Line(calibrationValues);
+        lines[0].setColor(Color.parseColor("#FFFFFF"));
+        lines[0].setHasLines(false);
+        lines[0].setPointRadius(pointSize * 3 / 2);
+        lines[0].setHasPoints(true);
+        lines[1] = new Line(calibrationValues);
+        lines[1].setColor(ChartUtils.COLOR_RED);
+        lines[1].setHasLines(false);
+        lines[1].setPointRadius(pointSize * 3 / 4);
+        lines[1].setHasPoints(true);
+        return lines;
+    }
+
 
     private void addBgReadingValues() {
         for (BgReading bgReading : bgReadings) {
@@ -152,16 +178,19 @@ public class BgGraphBuilder {
                 lowValues.add(new PointValue((float)(bgReading.timestamp/ FUZZER), (float) unitized(40)));
             }
         }
+        for (Calibration calibration : calibrations) {
+            calibrationValues.add(new PointValue((float)(calibration.timestamp/ FUZZER), (float) unitized(calibration.bg)));
+        }
     }
 
     public Line highLine() {
         List<PointValue> highLineValues = new ArrayList<PointValue>();
-        highLineValues.add(new PointValue((float)start_time, (float)highMark));
-        highLineValues.add(new PointValue((float)end_time, (float)highMark));
+        highLineValues.add(new PointValue((float) start_time, (float) highMark));
+        highLineValues.add(new PointValue((float) end_time, (float) highMark));
         Line highLine = new Line(highLineValues);
         highLine.setHasPoints(false);
         highLine.setStrokeWidth(1);
-        highLine.setColor(Utils.COLOR_ORANGE);
+        highLine.setColor(ChartUtils.COLOR_ORANGE);
         return highLine;
     }
 
@@ -180,8 +209,8 @@ public class BgGraphBuilder {
 
     public Line maxShowLine() {
         List<PointValue> maxShowValues = new ArrayList<PointValue>();
-        maxShowValues.add(new PointValue((float)start_time, (float)defaultMaxY));
-        maxShowValues.add(new PointValue((float)end_time, (float)defaultMaxY));
+        maxShowValues.add(new PointValue((float) start_time, (float) defaultMaxY));
+        maxShowValues.add(new PointValue((float) end_time, (float) defaultMaxY));
         Line maxShowLine = new Line(maxShowValues);
         maxShowLine.setHasLines(false);
         maxShowLine.setHasPoints(false);
@@ -190,8 +219,8 @@ public class BgGraphBuilder {
 
     public Line minShowLine() {
         List<PointValue> minShowValues = new ArrayList<PointValue>();
-        minShowValues.add(new PointValue((float)start_time, (float)defaultMinY));
-        minShowValues.add(new PointValue((float)end_time, (float)defaultMinY));
+        minShowValues.add(new PointValue((float) start_time, (float) defaultMinY));
+        minShowValues.add(new PointValue((float) end_time, (float) defaultMinY));
         Line minShowLine = new Line(minShowValues);
         minShowLine.setHasPoints(false);
         minShowLine.setHasLines(false);
@@ -273,7 +302,7 @@ public class BgGraphBuilder {
     /////////VIEWPORT RELATED//////////////
     public Viewport advanceViewport(Chart chart, Chart previewChart) {
         viewport = new Viewport(previewChart.getMaximumViewport());
-        viewport.inset((float)((86400000 / 2.5)/ FUZZER), 0);
+        viewport.inset((float) ((86400000 / 2.5) / FUZZER), 0);
         double distance_to_move = ((new Date().getTime())/ FUZZER) - viewport.left - (((viewport.right - viewport.left) /2));
         viewport.offset((float) distance_to_move, 0);
         return viewport;
@@ -327,19 +356,50 @@ public class BgGraphBuilder {
         }
     }
 
-    public String unitizedDeltaString(double value) {
-        DecimalFormat df = new DecimalFormat("#");
-        df.setMaximumFractionDigits(1);
+    public String unitizedDeltaString(boolean showUnit, boolean highGranularity) {
+
+        List<BgReading> last2 = BgReading.latest(2);
+        if(last2.size() < 2 || last2.get(0).timestamp - last2.get(1).timestamp > 20 * 60 * 1000){
+            // don't show delta if there are not enough values or the values are more than 20 mintes apart
+            return "???";
+        }
+
+        double value = BgReading.currentSlope() * 5*60*1000;
+
+        if(Math.abs(value) > 100){
+            // a delta > 100 will not happen with real BG values -> problematic sensor data
+            return "ERR";
+        }
+
+        // TODO: allow localization from os settings once pebble doesn't require english locale
+        DecimalFormat df = new DecimalFormat("#", new DecimalFormatSymbols(Locale.ENGLISH));
         String delta_sign = "";
-        if (value > 0.1) { delta_sign = "+"; }
+        if (value > 0) { delta_sign = "+"; }
         if(doMgdl) {
-            return delta_sign + df.format(unitized(value)) + " mg/dl";
+
+            if(highGranularity){
+                df.setMaximumFractionDigits(1);
+            } else {
+                df.setMaximumFractionDigits(0);
+            }
+
+            return delta_sign + df.format(unitized(value)) +  (showUnit?" mg/dl":"");
         } else {
-            return delta_sign + df.format(unitized(value)) + " mmol";
+
+            if(highGranularity){
+                df.setMaximumFractionDigits(2);
+            } else {
+                df.setMaximumFractionDigits(1);
+            }
+
+            df.setMinimumFractionDigits(1);
+            df.setMinimumIntegerDigits(1);
+            return delta_sign + df.format(unitized(value)) + (showUnit?" mmol/l":"");
         }
     }
 
-    public double mmolConvert(double mgdl) {
+
+    public static double mmolConvert(double mgdl) {
         return mgdl * Constants.MGDL_TO_MMOLL;
     }
 
@@ -350,5 +410,31 @@ public class BgGraphBuilder {
             return "mmol";
         }
 
+    }
+
+    public OnValueSelectTooltipListener getOnValueSelectTooltipListener(){
+        return new OnValueSelectTooltipListener();
+    }
+
+    public class OnValueSelectTooltipListener implements LineChartOnValueSelectListener{
+
+        private Toast tooltip;
+
+        @Override
+        public synchronized void onValueSelected(int i, int i1, PointValue pointValue) {
+            final java.text.DateFormat timeFormat = DateFormat.getTimeFormat(context);
+            //Won't give the exact time of the reading but the time on the grid: close enough.
+            Long time = ((long)pointValue.getX())*FUZZER;
+            if(tooltip!= null){
+                tooltip.cancel();
+            }
+            tooltip = Toast.makeText(context, timeFormat.format(time)+ ": " + Math.round(pointValue.getY()*10)/ 10d , Toast.LENGTH_LONG);
+            tooltip.show();
+        }
+
+        @Override
+        public void onValueDeselected() {
+            // do nothing
+        }
     }
 }

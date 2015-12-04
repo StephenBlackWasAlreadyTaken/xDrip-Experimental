@@ -13,6 +13,8 @@
     <string name="menu_stop">Stop</string>
     <string name="menu_refresh">Refresh</string>
     <string name="menu_export_database">Export database</string>
+    <string name="menu_export_csv_sidiary">Export CSV (SiDiary format)</string>
+    <string name="menu_import_db">Import database</string>
     <string name="error_bluetooth_not_supported">Error: Bluetooth not supported by this device</string>
     <string name="unknown_device">Unrecognized Device</string>
     <string name="connecting_to_device">Connecting to device</string>
@@ -20,6 +22,7 @@
     <string name="title_activity_calculated_data_table">CalculatedDataTable</string>
     <string name="title_activity_add_calibration">AddCalibration</string>
     <string name="title_activity_start_new_sensor">StartNewSensor</string>
+    <string name="title_activity_new_sensor_location">NewSensorLocation</string>
     <string name="title_activity_stop_sensor">StopSensor</string>
     <string name="title_activity_nav_drawer">NavDrawer</string>
     <string name="title_section1">Home</string>
@@ -37,6 +40,10 @@
     <string name="title_activity_usb_connected">UsbConnectedActivity</string>
     <string name="snooze">Snooze</string>
     <string name="snooze_hint">Snooze alert for x minutes</string>
+    <string name="ok">OK</string>
+    <string name="cancel">Cancel</string>
+    <string name="no">No</string>
+    <string name="pref_sensor_location_dont_ask_again"> Don\'t ask me that again</string>
 
     <string-array name="menu_options">
         <item>Dex Drip</item>
@@ -58,6 +65,10 @@
     <string name="title_activity_calibration_override">CalibrationOverride</string>
     <string name="title_activity_calibration_graph">CalibrationGraph</string>
     <string name="pref_header_cloud_storage">Cloud Storage</string>
+    <string name="auto_configure_title">Auto configure</string>
+    <string name="prefs_auto_config_summary">Auto configure using a barcode. See http://nightscout.github.io/pages/configure/ for more details</string>
+    <string name="scan_share2_barcode">Scan Share Barcode</string>
+    <string name="pref_share2_scan_barcode_summary">Or scan the barcode on the share receiver</string>
 
     <!-- MongoDB Settings -->
     <string name="pref_title_mongodb">MongoDB</string>
@@ -82,7 +93,7 @@
     <string name="pref_title_api_url">Base URL</string>
     <string name="pref_dialog_api_url">Enter Base API URL</string>
     <string name="pref_message_api_url">This only the base URL, the uploader will automatically append /entries for the POST.  API_SECRET on the server should match yourpassphrase in this setting.</string>
-    <string name="pref_default_api_url">yourpassphrase@https://{YOUR-SITE}.azurewebsites.net/api/v1</string>
+    <string name="pref_default_api_url">https://yourpassphrase@{YOUR-SITE}.azurewebsites.net/api/v1/</string>
 
     <!-- wifi Settings -->
     <string name="wifi_recievers_dialog_message">Comma separated list of ip:port (for example 37.142.132.220:50005,37.142.132.220:50010,mongodb://user:pass@ds053958.mongolab.com:53958/db/collection)</string>
@@ -98,5 +109,20 @@
     <string name="appwidget_text">EXAMPLE</string>
     <string name="add_widget">Add widget</string>
     <string name="title_activity_alert_list">AlertList</string>
-
+    <string name="import_db_warning">
+        WARNING: Importing a database might cause SEVERE DATA LOSS. If you don\'t know why you want to use the import, don\'t use it.
+        In regular operation of xDrip it is not needed. Just use it in case of previous data loss.
+        If you are not sure what to do, in case you still want to use the import, please ask an expert user.\n\n
+        Instructions:\n
+        Place the database you want to install in the directory \'xdrip\' on your primary external storage
+        (sometimes called \'internal storage\' by the file browser).
+        It is the same directory xDrip exports to.\n
+        In case you have a zipped export in this directory, unzip it (usually longpress->extract on the file in the file browser).
+        If it gets extracted to a subdirectory it will still be found by the import.\n\n
+        After having placed the file, start this import routine.
+        Scroll to the correct database name, click on it and follow the instructions on the screen.  \n\n
+        ATTENTION: A Database can only be imported if it has the same database version number currently needed for this xDrip version.
+        The database verions number may change with xDrip updates.
+        It is best to import the database with the same version of the xDrip app it was exported and then update xDrip.
+    </string>
 </resources>

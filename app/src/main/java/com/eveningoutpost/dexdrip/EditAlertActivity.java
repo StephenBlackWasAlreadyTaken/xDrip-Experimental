@@ -1,20 +1,10 @@
 package com.eveningoutpost.dexdrip;
 
-import java.text.DecimalFormat;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.GregorianCalendar;
-import java.util.List;
-
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.app.TimePickerDialog;
 import android.content.Context;
 import android.content.DialogInterface;
-import android.database.Cursor;
-import android.app.Activity;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.database.Cursor;
@@ -25,10 +15,9 @@ import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.provider.MediaStore;
 import android.text.InputType;
-import android.text.Layout;
 import android.text.format.DateFormat;
 import android.text.method.DigitsKeyListener;
-import android.util.Log;
+import com.eveningoutpost.dexdrip.Models.UserError.Log;
 import android.util.TypedValue;
 import android.view.MotionEvent;
 import android.view.View;
@@ -47,49 +36,61 @@ import com.eveningoutpost.dexdrip.Models.AlertType;
 import com.eveningoutpost.dexdrip.UtilityModels.AlertPlayer;
 import com.eveningoutpost.dexdrip.UtilityModels.BgGraphBuilder;
 import com.eveningoutpost.dexdrip.UtilityModels.Constants;
-import com.eveningoutpost.dexdrip.R;
+import com.eveningoutpost.dexdrip.utils.ActivityWithMenu;
 
-public class EditAlertActivity extends Activity {
+import java.text.DecimalFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.List;
 
-    TextView viewHeader;
+public class EditAlertActivity extends ActivityWithMenu {
+    public static String menu_name = "Edit Alert";
 
-    EditText alertText;
-    EditText alertThreshold;
-    EditText alertMp3File;
-    EditText editSnooze;
+    private TextView viewHeader;
 
-    Button buttonalertMp3;
+    private EditText alertText;
+    private EditText alertThreshold;
+    private EditText alertMp3File;
+    private EditText editSnooze;
+    private EditText reraise;
 
-    Button buttonSave;
-    Button buttonRemove;
-    Button buttonTest;
-    Button buttonPreSnooze;
-    CheckBox checkboxAllDay;
+    private Button buttonalertMp3;
 
-    LinearLayout layoutTimeBetween;
-    LinearLayout timeInstructions;
-    TextView viewTimeStart;
-    TextView viewTimeEnd;
+    private Button buttonSave;
+    private Button buttonRemove;
+    private Button buttonTest;
+    private Button buttonPreSnooze;
+    private CheckBox checkboxAllDay;
+    private CheckBox checkboxVibrate;
 
-    int startHour = 0;
-    int startMinute = 0;
-    int endHour = 23;
-    int endMinute = 59;
+    private LinearLayout layoutTimeBetween;
+    private LinearLayout timeInstructions;
+    private TextView viewTimeStart;
+    private TextView viewTimeEnd;
+    private TextView timeInstructionsStart;
+    private TextView timeInstructionsEnd;
 
-    int defaultSnooze;
+    private int startHour = 0;
+    private int startMinute = 0;
+    private int endHour = 23;
+    private int endMinute = 59;
+    private int alertReraise = 1;
 
-    String audioPath;
+    private int defaultSnooze;
 
-    TextView viewAlertOverrideText;
-    CheckBox checkboxAlertOverride;
-    Boolean doMgdl;
+    private String audioPath;
 
-    String uuid;
-    Context mContext;
-    boolean above;
-    final int CHOOSE_FILE = 1;
-    final int MIN_ALERT = 40;
-    final int MAX_ALERT = 400;
+    private TextView viewAlertOverrideText;
+    private CheckBox checkboxAlertOverride;
+    private boolean doMgdl;
+
+    private String uuid;
+    private Context mContext;
+    private boolean above;
+    private final int CHOOSE_FILE = 1;
+    private final int MIN_ALERT = 40;
+    private final int MAX_ALERT = 400;
 
     private final static String TAG = AlertPlayer.class.getSimpleName();
 
@@ -128,12 +129,18 @@ public class EditAlertActivity extends Activity {
         alertMp3File = (EditText) findViewById(R.id.edit_alert_mp3_file);
 
         checkboxAllDay = (CheckBox) findViewById(R.id.check_alert_time);
+        checkboxVibrate = (CheckBox) findViewById(R.id.check_vibrate);
 
         layoutTimeBetween = (LinearLayout) findViewById(R.id.time_between);
         timeInstructions = (LinearLayout) findViewById(R.id.time_instructions);
+        timeInstructionsStart = (TextView) findViewById(R.id.time_instructions_start);
+        timeInstructionsEnd = (TextView) findViewById(R.id.time_instructions_end);
+
+
         viewTimeStart = (TextView) findViewById(R.id.view_alert_time_start);
         viewTimeEnd = (TextView) findViewById(R.id.view_alert_time_end);
         editSnooze = (EditText) findViewById(R.id.edit_snooze);
+        reraise = (EditText) findViewById(R.id.reraise);
 
         viewAlertOverrideText = (TextView) findViewById(R.id.view_alert_override_silent);
         checkboxAlertOverride = (CheckBox) findViewById(R.id.check_override_silent);
@@ -153,10 +160,12 @@ public class EditAlertActivity extends Activity {
             alertMp3File.setTextSize(TypedValue.COMPLEX_UNIT_SP, 30);
 
             checkboxAllDay.setTextSize(TypedValue.COMPLEX_UNIT_SP, 30);
+            checkboxVibrate.setTextSize(TypedValue.COMPLEX_UNIT_SP, 30);
 
             viewTimeStart.setTextSize(TypedValue.COMPLEX_UNIT_SP, 30);
             viewTimeEnd.setTextSize(TypedValue.COMPLEX_UNIT_SP, 30);
             editSnooze.setTextSize(TypedValue.COMPLEX_UNIT_SP, 30);
+            reraise.setTextSize(TypedValue.COMPLEX_UNIT_SP, 30);
             viewAlertOverrideText.setTextSize(TypedValue.COMPLEX_UNIT_SP, 30);
 
             ((TextView) findViewById(R.id.view_alert_text)).setTextSize(TypedValue.COMPLEX_UNIT_SP, 30);
@@ -164,6 +173,7 @@ public class EditAlertActivity extends Activity {
             ((TextView) findViewById(R.id.view_alert_default_snooze)).setTextSize(TypedValue.COMPLEX_UNIT_SP, 30);
             ((TextView) findViewById(R.id.view_alert_mp3_file)).setTextSize(TypedValue.COMPLEX_UNIT_SP, 30);
             ((TextView) findViewById(R.id.view_alert_time)).setTextSize(TypedValue.COMPLEX_UNIT_SP, 30);
+            ((TextView) findViewById(R.id.view_alert_time_between)).setTextSize(TypedValue.COMPLEX_UNIT_SP, 30);
 
         }
         SharedPreferences prefs =  PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
@@ -181,6 +191,7 @@ public class EditAlertActivity extends Activity {
             // This is a new alert
             above = Boolean.parseBoolean(getExtra(savedInstanceState, "above"));
             checkboxAllDay.setChecked(true);
+            checkboxVibrate.setChecked(true);
             checkboxAlertOverride.setChecked(true);
 
             audioPath = "";
@@ -195,7 +206,7 @@ public class EditAlertActivity extends Activity {
             startMinute = 0;
             endHour = 23;
             endMinute = 59;
-
+            alertReraise = 1;
         } else {
             // We are editing an alert
             AlertType at = AlertType.get_alert(uuid);
@@ -209,8 +220,9 @@ public class EditAlertActivity extends Activity {
 
             above =at.above;
             alertText.setText(at.name);
-            alertThreshold.setText(UnitsConvert2Disp(doMgdl, at.threshold));
+            alertThreshold.setText(unitsConvert2Disp(doMgdl, at.threshold));
             checkboxAllDay.setChecked(at.all_day);
+            checkboxVibrate.setChecked(at.vibrate);
             checkboxAlertOverride.setChecked(at.override_silent_mode);
             defaultSnooze = at.default_snooze;
             if(defaultSnooze == 0) {
@@ -225,6 +237,7 @@ public class EditAlertActivity extends Activity {
             startMinute = AlertType.time2Minutes(at.start_time_minutes);
             endHour = AlertType.time2Hours(at.end_time_minutes);
             endMinute = AlertType.time2Minutes(at.end_time_minutes);
+            alertReraise = at.minutes_between;
 
             if(uuid.equals(AlertType.LOW_ALERT_55)) {
                 // This is the 55 alert, can not be edited
@@ -232,9 +245,12 @@ public class EditAlertActivity extends Activity {
                 alertThreshold.setKeyListener(null);
                 buttonalertMp3.setEnabled(false);
                 checkboxAllDay.setEnabled(false);
+                checkboxVibrate.setEnabled(false);
                 checkboxAlertOverride.setEnabled(false);
+                reraise.setEnabled(false);
             }
         }
+        reraise.setText(String.valueOf(alertReraise));
         alertMp3File.setKeyListener(null);
         viewHeader.setText(status);
         setDefaultSnoozeSpinner();
@@ -245,20 +261,34 @@ public class EditAlertActivity extends Activity {
 
     }
 
-    public static String UnitsConvert2Disp(boolean doMgdl, double threshold) {
+    @Override
+    public String getMenuName() {
+        return menu_name;
+    }
+
+
+    public static DecimalFormat getNumberFormatter(boolean doMgdl) {
         DecimalFormat df = new DecimalFormat("#");
-        if(doMgdl ) {
+        if (doMgdl) {
             df.setMaximumFractionDigits(0);
             df.setMinimumFractionDigits(0);
-            return df.format(threshold);
         } else {
             df.setMaximumFractionDigits(1);
             df.setMinimumFractionDigits(1);
-            return df.format(threshold / Constants.MMOLL_TO_MGDL);
         }
+
+        return df;
     }
 
-    double UnitsConvertFromDisp(double threshold ) {
+    public static String unitsConvert2Disp(boolean doMgdl, double threshold) {
+        DecimalFormat df = getNumberFormatter(doMgdl);
+        if (doMgdl)
+            return df.format(threshold);
+
+        return df.format(threshold / Constants.MMOLL_TO_MGDL);
+    }
+
+    double unitsConvertFromDisp(double threshold) {
         if(doMgdl ) {
             return threshold;
         } else {
@@ -281,7 +311,7 @@ public class EditAlertActivity extends Activity {
         if(overrideSilence) {
             checkboxAlertOverride.setText("");
         } else {
-            checkboxAlertOverride.setText("Warning, no alert will be played at silent/vibrate mode!!!");
+            checkboxAlertOverride.setText("Warning, no alert will be played at phone silent/vibrate mode!!!");
         }
     }
 
@@ -290,7 +320,7 @@ public class EditAlertActivity extends Activity {
         List<AlertType> highAlerts = AlertType.getAll(true);
 
         if(threshold < MIN_ALERT || threshold > MAX_ALERT) {
-            Toast.makeText(getApplicationContext(), "threshold has to be between " + MIN_ALERT + " and " + MAX_ALERT,Toast.LENGTH_LONG).show();
+            Toast.makeText(getApplicationContext(), "threshold has to be between " +unitsConvert2Disp(doMgdl, MIN_ALERT) + " and " + unitsConvert2Disp(doMgdl, MAX_ALERT),Toast.LENGTH_LONG).show();
             return false;
         }
         if (uuid == null) {
@@ -333,21 +363,57 @@ public class EditAlertActivity extends Activity {
         return true;
     }
 
+    private double parseDouble(String str) {
+        try {
+            final DecimalFormat numberFormatter = getNumberFormatter(doMgdl);
+            return numberFormatter.parse(str).doubleValue();
+        } catch (NumberFormatException nfe) {
+            Log.e(TAG, "Invalid number", nfe);
+            Toast.makeText(getApplicationContext(), "Invalid number: " + str, Toast.LENGTH_LONG).show();
+            return Double.NaN;
+        } catch (ParseException e) {
+            Log.e(TAG, "Invalid number", e);
+            Toast.makeText(getApplicationContext(), "Invalid number: " + str, Toast.LENGTH_LONG).show();
+            return Double.NaN;
+        }
+    }
+
+    private Integer parseInt(String str) {
+        try {
+            return Integer.parseInt(str);
+        }
+        catch (NumberFormatException nfe) {
+            Log.e(TAG, "Invalid number", nfe);
+            Toast.makeText(getApplicationContext(), "Invalid number: " + str, Toast.LENGTH_LONG).show();
+            return null;
+        }
+    }
+
     public void addListenerOnButtons() {
 
         buttonSave.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
-
                 // Check that values are ok.
-                double threshold = 0;
-                try {
-                    threshold = Double.parseDouble((alertThreshold.getText().toString()));
-                }
-                catch (NumberFormatException nfe) {
-                    Log.e(TAG, "Invalid number", nfe);
-                }
-                threshold = UnitsConvertFromDisp(threshold);
+                double threshold = parseDouble(alertThreshold.getText().toString());
+                if(Double.isNaN(threshold))
+                    return;
+
+                threshold = unitsConvertFromDisp(threshold);
                 if(!verifyThreshold(threshold)) {
+                    return;
+                }
+
+                alertReraise = 1;
+                Integer alterReraiseInt = parseInt(reraise.getText().toString());
+                if(alterReraiseInt ==null)
+                    return;
+                alertReraise = alterReraiseInt;
+
+                if(alertReraise < 1) {
+                    Toast.makeText(getApplicationContext(), "Reraise Value must be 1 minute or greater", Toast.LENGTH_LONG).show();
+                    return;
+                } else if (alertReraise >= defaultSnooze) {
+                    Toast.makeText(getApplicationContext(), "Reraise Value must be less than snooze length", Toast.LENGTH_LONG).show();
                     return;
                 }
 
@@ -370,13 +436,14 @@ public class EditAlertActivity extends Activity {
                     Toast.makeText(getApplicationContext(), "start time and end time of alert can not be equal",Toast.LENGTH_LONG).show();
                     return;
                 }
+                boolean vibrate = checkboxVibrate.isChecked();
                 boolean overrideSilentMode = checkboxAlertOverride.isChecked();
-;
+
                 String mp3_file = audioPath;
                 if (uuid != null) {
-                    AlertType.update_alert(uuid, alertText.getText().toString(), above, threshold, allDay, 1, mp3_file, timeStart, timeEnd, overrideSilentMode, defaultSnooze);
+                    AlertType.update_alert(uuid, alertText.getText().toString(), above, threshold, allDay, alertReraise, mp3_file, timeStart, timeEnd, overrideSilentMode, defaultSnooze, vibrate);
                 }  else {
-                    AlertType.add_alert(null, alertText.getText().toString(), above, threshold, allDay, 1, mp3_file, timeStart, timeEnd, overrideSilentMode, defaultSnooze);
+                    AlertType.add_alert(null, alertText.getText().toString(), above, threshold, allDay, alertReraise, mp3_file, timeStart, timeEnd, overrideSilentMode, defaultSnooze, vibrate);
                 }
                 Intent returnIntent = new Intent();
                 setResult(RESULT_OK,returnIntent);
@@ -452,7 +519,9 @@ public class EditAlertActivity extends Activity {
             }
         });
 
-        viewTimeStart.setOnClickListener(new View.OnClickListener() {
+        //Register Liseners to modify start and end time
+
+        View.OnClickListener startTimeListener = new View.OnClickListener() {
 
             @Override
             public void onClick(View v) {
@@ -468,9 +537,9 @@ public class EditAlertActivity extends Activity {
                 mTimePicker.show();
 
             }
-        });
+        } ;
 
-        viewTimeEnd.setOnClickListener(new View.OnClickListener() {
+        View.OnClickListener endTimeListener = new View.OnClickListener() {
 
             @Override
             public void onClick(View v) {
@@ -486,7 +555,13 @@ public class EditAlertActivity extends Activity {
                 mTimePicker.show();
 
             }
-        });
+        };
+
+        viewTimeStart.setOnClickListener(startTimeListener);
+        timeInstructionsStart.setOnClickListener(startTimeListener);
+        viewTimeEnd.setOnClickListener(endTimeListener);
+        timeInstructionsEnd.setOnClickListener(endTimeListener);
+
     }
 
 
@@ -560,22 +635,37 @@ public class EditAlertActivity extends Activity {
         viewTimeEnd.setText(timeFormatString(endHour, endMinute));
     }
 
-    public String shortPath(String path) {
-        if(path != null) {
-            if(path.length() == 0) {
-                return "xDrip Default";
-            }
-            Ringtone ringtone = RingtoneManager.getRingtone(mContext, Uri.parse(path));
-            if (ringtone != null) {
-                return ringtone.getTitle(mContext);
-            } else {
-                String[] segments = path.split("/");
-                if (segments.length > 1) {
-                    return segments[segments.length - 1];
-                }
-            }
+    public static boolean isPathRingtone(Context context, String path) {
+        if(path == null) {
+            return false;
         }
-        return "";
+        if(path.length() == 0) {
+            return false;
+        }
+        Ringtone ringtone = RingtoneManager.getRingtone(context, Uri.parse(path));
+        if(ringtone == null) {
+            return false;
+        }
+        return true;
+    }
+
+    public String shortPath(String path) {
+        if(isPathRingtone(mContext, path)) {
+            Ringtone ringtone = RingtoneManager.getRingtone(mContext, Uri.parse(path));
+            // Just verified that the ringtone exists... not checking for null
+            return ringtone.getTitle(mContext);
+        }
+        if(path == null) {
+            return "";
+        }
+        if(path.length() == 0) {
+            return "xDrip Default";
+        }
+        String[] segments = path.split("/");
+        if (segments.length > 1) {
+            return segments[segments.length - 1];
+        }
+        return path;
     }
     public void setDefaultSnoozeSpinner() {
         editSnooze.setText(String.valueOf(defaultSnooze));
@@ -654,14 +744,11 @@ public class EditAlertActivity extends Activity {
 
     public void testAlert() {
         // Check that values are ok.
-        double threshold = 0;
-        try {
-            threshold = Double.parseDouble((alertThreshold.getText().toString()));
-        }
-        catch (NumberFormatException nfe) {
-            Log.e(TAG, "Invalid number", nfe);
-        }
-        threshold = UnitsConvertFromDisp(threshold);
+        double threshold = parseDouble(alertThreshold.getText().toString());
+        if(Double.isNaN(threshold))
+            return;
+
+        threshold = unitsConvertFromDisp(threshold);
         if(!verifyThreshold(threshold)) {
             return;
         }
@@ -685,9 +772,10 @@ public class EditAlertActivity extends Activity {
             Toast.makeText(getApplicationContext(), "start time and end time of alert can not be equal",Toast.LENGTH_LONG).show();
             return;
         }
+        boolean vibrate = checkboxVibrate.isChecked();
         boolean overrideSilentMode = checkboxAlertOverride.isChecked();
         String mp3_file = audioPath;
-        AlertType.testAlert(alertText.getText().toString(), above, threshold, allDay, 1, mp3_file, timeStart, timeEnd, overrideSilentMode, defaultSnooze, mContext);
+        AlertType.testAlert(alertText.getText().toString(), above, threshold, allDay, 1, mp3_file, timeStart, timeEnd, overrideSilentMode, defaultSnooze, vibrate, mContext);
 
     }
 }

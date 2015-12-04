@@ -1,6 +1,8 @@
 package com.eveningoutpost.dexdrip.utils;
 
+import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.res.Configuration;
@@ -8,23 +10,31 @@ import android.media.Ringtone;
 import android.media.RingtoneManager;
 import android.net.Uri;
 import android.os.Bundle;
+import android.preference.EditTextPreference;
 import android.preference.ListPreference;
 import android.preference.Preference;
 import android.preference.PreferenceActivity;
 import android.preference.PreferenceCategory;
 import android.preference.PreferenceFragment;
-import android.preference.PreferenceGroup;
 import android.preference.PreferenceManager;
 import android.preference.PreferenceScreen;
 import android.preference.RingtonePreference;
+import android.text.InputFilter;
 import android.text.TextUtils;
-import android.util.Log;
+import android.widget.Toast;
+
+import com.eveningoutpost.dexdrip.Models.UserError.Log;
 
 import com.eveningoutpost.dexdrip.R;
 import com.eveningoutpost.dexdrip.UtilityModels.CollectionServiceStarter;
-import com.eveningoutpost.dexdrip.UtilityModels.ForegroundServiceStarter;
 import com.eveningoutpost.dexdrip.UtilityModels.PebbleSync;
+import com.google.zxing.integration.android.IntentIntegrator;
+import com.google.zxing.integration.android.IntentResult;
+import com.nightscout.core.barcode.NSBarcodeConfig;
 
+import net.tribe7.common.base.Joiner;
+
+import java.net.URI;
 import java.util.List;
 
 /**
@@ -39,14 +49,89 @@ import java.util.List;
  * API Guide</a> for more information on developing a Settings UI.
  */
 public class Preferences extends PreferenceActivity {
-    public  static SharedPreferences prefs;
+    private static final String TAG = "PREFS";
+    private AllPrefsFragment preferenceFragment;
+
+
+    private void refreshFragments() {
+        preferenceFragment = new AllPrefsFragment();
+        getFragmentManager().beginTransaction().replace(android.R.id.content,
+                preferenceFragment).commit();
+    }
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        IntentResult scanResult = IntentIntegrator.parseActivityResult(requestCode, resultCode, data);
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
+        if (scanResult == null || scanResult.getContents() == null) {
+            return;
+        }
+        if (scanResult.getFormatName().equals("QR_CODE")) {
+            NSBarcodeConfig barcode = new NSBarcodeConfig(scanResult.getContents());
+            if (barcode.hasMongoConfig()) {
+                if (barcode.getMongoUri().isPresent()) {
+                    SharedPreferences.Editor editor = prefs.edit();
+                    editor.putString("cloud_storage_mongodb_uri", barcode.getMongoUri().get());
+                    editor.putString("cloud_storage_mongodb_collection", barcode.getMongoCollection().or("entries"));
+                    editor.putString("cloud_storage_mongodb_device_status_collection", barcode.getMongoDeviceStatusCollection().or("devicestatus"));
+                    editor.putBoolean("cloud_storage_mongodb_enable", true);
+                    editor.apply();
+                }
+                if (barcode.hasApiConfig()) {
+                    SharedPreferences.Editor editor = prefs.edit();
+                    editor.putBoolean("cloud_storage_api_enable", true);
+                    editor.putString("cloud_storage_api_base", Joiner.on(' ').join(barcode.getApiUris()));
+                    editor.apply();
+                } else {
+                    prefs.edit().putBoolean("cloud_storage_api_enable", false).apply();
+                }
+            }
+            if (barcode.hasApiConfig()) {
+                SharedPreferences.Editor editor = prefs.edit();
+                editor.putBoolean("cloud_storage_api_enable", true);
+                editor.putString("cloud_storage_api_base", Joiner.on(' ').join(barcode.getApiUris()));
+                editor.apply();
+            } else {
+                prefs.edit().putBoolean("cloud_storage_api_enable", false).apply();
+            }
+
+            if (barcode.hasMqttConfig()) {
+                if (barcode.getMqttUri().isPresent()) {
+                    URI uri = URI.create(barcode.getMqttUri().or(""));
+                    if (uri.getUserInfo() != null) {
+                        String[] userInfo = uri.getUserInfo().split(":");
+                        if (userInfo.length == 2) {
+                            String endpoint = uri.getScheme() + "://" + uri.getHost() + ":" + uri.getPort();
+                            if (userInfo[0].length() > 0 && userInfo[1].length() > 0) {
+                                SharedPreferences.Editor editor = prefs.edit();
+                                editor.putString("cloud_storage_mqtt_endpoint", endpoint);
+                                editor.putString("cloud_storage_mqtt_user", userInfo[0]);
+                                editor.putString("cloud_storage_mqtt_password", userInfo[1]);
+                                editor.putBoolean("cloud_storage_mqtt_enable", true);
+                                editor.apply();
+                            }
+                        }
+                    }
+                }
+            } else {
+                SharedPreferences.Editor editor = prefs.edit();
+                editor.putBoolean("cloud_storage_mqtt_enable", false);
+                editor.apply();
+            }
+        } else if (scanResult.getFormatName().equals("CODE_128")) {
+            Log.d(TAG, "Setting serial number to: " + scanResult.getContents());
+            prefs.edit().putString("share_key", scanResult.getContents()).apply();
+        }
+        refreshFragments();
+    }
+
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
+        preferenceFragment = new AllPrefsFragment();
         getFragmentManager().beginTransaction().replace(android.R.id.content,
-                new AllPrefsFragment()).commit();
+                preferenceFragment).commit();
     }
 
     @Override
@@ -118,6 +203,17 @@ public class Preferences extends PreferenceActivity {
             return true;
         }
     };
+    private static Preference.OnPreferenceChangeListener sBindNumericPreferenceSummaryToValueListener = new Preference.OnPreferenceChangeListener() {
+        @Override
+        public boolean onPreferenceChange(Preference preference, Object value) {
+            String stringValue = value.toString();
+            if (isNumeric(stringValue)) {
+                preference.setSummary(stringValue);
+                return true;
+            }
+            return false;
+        }
+    };
 
     private static void bindPreferenceSummaryToValue(Preference preference) {
         preference.setOnPreferenceChangeListener(sBindPreferenceSummaryToValueListener);
@@ -126,62 +222,92 @@ public class Preferences extends PreferenceActivity {
                         .getDefaultSharedPreferences(preference.getContext())
                         .getString(preference.getKey(), ""));
     }
+    private static void bindPreferenceSummaryToValueAndEnsureNumeric(Preference preference) {
+        preference.setOnPreferenceChangeListener(sBindNumericPreferenceSummaryToValueListener);
+        sBindPreferenceSummaryToValueListener.onPreferenceChange(preference,
+                PreferenceManager
+                        .getDefaultSharedPreferences(preference.getContext())
+                        .getString(preference.getKey(), ""));
+    }
+
 
     public static class AllPrefsFragment extends PreferenceFragment {
-        @Override
+       @Override
         public void onCreate(Bundle savedInstanceState) {
             super.onCreate(savedInstanceState);
             addPreferencesFromResource(R.xml.pref_license);
             addPreferencesFromResource(R.xml.pref_general);
-            bindPreferenceSummaryToValue(findPreference("highValue"));
-            bindPreferenceSummaryToValue(findPreference("lowValue"));
+            bindPreferenceSummaryToValueAndEnsureNumeric(findPreference("highValue"));
+            bindPreferenceSummaryToValueAndEnsureNumeric(findPreference("lowValue"));
             bindPreferenceSummaryToValue(findPreference("units"));
 
             addPreferencesFromResource(R.xml.pref_notifications);
+            bindPreferenceSummaryToValue(findPreference("bg_alert_profile"));
             bindPreferenceSummaryToValue(findPreference("calibration_notification_sound"));
-            bindPreferenceSummaryToValue(findPreference("calibration_snooze"));
-            bindPreferenceSummaryToValue(findPreference("bg_unclear_readings_minutes"));
-            bindPreferenceSummaryToValue(findPreference("bg_missed_minutes"));
+            bindPreferenceSummaryToValueAndEnsureNumeric(findPreference("calibration_snooze"));
+            bindPreferenceSummaryToValueAndEnsureNumeric(findPreference("bg_unclear_readings_minutes"));
+            bindPreferenceSummaryToValueAndEnsureNumeric(findPreference("bg_missed_minutes"));
+            bindPreferenceSummaryToValueAndEnsureNumeric(findPreference("disable_alerts_stale_data_minutes"));
+            bindPreferenceSummaryToValue(findPreference("falling_bg_val"));
+            bindPreferenceSummaryToValue(findPreference("rising_bg_val"));
             bindPreferenceSummaryToValue(findPreference("other_alerts_sound"));
-            bindPreferenceSummaryToValue(findPreference("other_alerts_snooze"));
+            bindPreferenceSummaryToValueAndEnsureNumeric(findPreference("other_alerts_snooze"));
 
             addPreferencesFromResource(R.xml.pref_data_source);
 
 
             addPreferencesFromResource(R.xml.pref_data_sync);
+            setupBarcodeConfigScanner();
+            setupBarcodeShareScanner();
             bindPreferenceSummaryToValue(findPreference("cloud_storage_mongodb_uri"));
             bindPreferenceSummaryToValue(findPreference("cloud_storage_mongodb_collection"));
             bindPreferenceSummaryToValue(findPreference("cloud_storage_mongodb_device_status_collection"));
             bindPreferenceSummaryToValue(findPreference("cloud_storage_api_base"));
 
             addPreferencesFromResource(R.xml.pref_advanced_settings);
+            addPreferencesFromResource(R.xml.pref_community_help);
 
+            bindTTSListener();
             final Preference collectionMethod = findPreference("dex_collection_method");
             final Preference runInForeground = findPreference("run_service_in_foreground");
             final Preference wifiRecievers = findPreference("wifi_recievers_addresses");
             final Preference predictiveBG = findPreference("predictive_bg");
             final Preference interpretRaw = findPreference("interpret_raw");
             final Preference shareKey = findPreference("share_key");
-            final Preference transmitterId = findPreference("dex_txid");
+            final Preference scanShare = findPreference("scan_share2_barcode");
+            final EditTextPreference transmitterId = (EditTextPreference) findPreference("dex_txid");
             final Preference pebbleSync = findPreference("broadcast_to_pebble");
             final PreferenceCategory collectionCategory = (PreferenceCategory) findPreference("collection_category");
             final PreferenceCategory otherCategory = (PreferenceCategory) findPreference("other_category");
             final PreferenceScreen calibrationAlertsScreen = (PreferenceScreen) findPreference("calibration_alerts_screen");
             final PreferenceCategory alertsCategory = (PreferenceCategory) findPreference("alerts_category");
-            prefs =  getPreferenceManager().getDefaultSharedPreferences(getActivity());
-            Log.d("PREF", prefs.getString("dex_collection_method", "BluetoothWixel"));
+            final SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getActivity());
+            final Preference disableAlertsStaleDataMinutes = findPreference("disable_alerts_stale_data_minutes");
+            disableAlertsStaleDataMinutes.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
+                @Override
+                public boolean onPreferenceChange(Preference preference, Object newValue) {
+                    if (!isNumeric(newValue.toString())) {
+                        return false;
+                    }
+                    if ((Integer.parseInt(newValue.toString())) < 10 ) {
+                        Toast.makeText(preference.getContext(),
+                                "Value must be at least 10 minutes", Toast.LENGTH_LONG).show();
+                        return false;
+                    }
+                    preference.setSummary(newValue.toString());
+                    return true;
+                }
+            });
+            Log.d(TAG, prefs.getString("dex_collection_method", "BluetoothWixel"));
             if(prefs.getString("dex_collection_method", "BluetoothWixel").compareTo("DexcomShare") != 0) {
                 collectionCategory.removePreference(shareKey);
+                collectionCategory.removePreference(scanShare);
                 otherCategory.removePreference(interpretRaw);
                 alertsCategory.addPreference(calibrationAlertsScreen);
             } else {
                 otherCategory.removePreference(predictiveBG);
                 alertsCategory.removePreference(calibrationAlertsScreen);
                 prefs.edit().putBoolean("calibration_notifications", false).apply();
-            }
-
-            if(prefs.getString("dex_collection_method", "BluetoothWixel").compareTo("BluetoothWixel") != 0 && prefs.getString("dex_collection_method", "BluetoothWixel").compareTo("DexcomShare") != 0 && prefs.getString("dex_collection_method", "BluetoothWixel").compareTo("DexbridgeWixel") != 0) {
-                collectionCategory.removePreference(runInForeground);
             }
 
             if(prefs.getString("dex_collection_method", "BluetoothWixel").compareTo("WifiWixel") != 0) {
@@ -206,16 +332,20 @@ public class Preferences extends PreferenceActivity {
             bindPreferenceSummaryToValue(collectionMethod);
             bindPreferenceSummaryToValue(shareKey);
             bindPreferenceSummaryToValue(wifiRecievers);
+            bindPreferenceSummaryToValue(transmitterId);
+            transmitterId.getEditText().setFilters(new InputFilter[]{new InputFilter.AllCaps()});
             collectionMethod.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
                 @Override
                 public boolean onPreferenceChange(Preference preference, Object newValue) {
                     if(((String) newValue).compareTo("DexcomShare") != 0) { // NOT USING SHARE
                         collectionCategory.removePreference(shareKey);
+                        collectionCategory.removePreference(scanShare);
                         otherCategory.removePreference(interpretRaw);
                         otherCategory.addPreference(predictiveBG);
                         alertsCategory.addPreference(calibrationAlertsScreen);
                     } else {
                         collectionCategory.addPreference(shareKey);
+                        collectionCategory.addPreference(scanShare);
                         otherCategory.addPreference(interpretRaw);
                         otherCategory.removePreference(predictiveBG);
                         alertsCategory.removePreference(calibrationAlertsScreen);
@@ -266,10 +396,70 @@ public class Preferences extends PreferenceActivity {
                     } else {
                         preference.setSummary(stringValue);
                     }
-                    CollectionServiceStarter.restartCollectionService(preference.getContext());
+                    if(preference.getKey().equals("dex_collection_method")) {
+                        CollectionServiceStarter.restartCollectionService(preference.getContext(), (String) newValue);
+                    } else {
+                        CollectionServiceStarter.restartCollectionService(preference.getContext());
+                    }
                     return true;
                 }
             });
         }
+
+        private void setupBarcodeConfigScanner() {
+            findPreference("auto_configure").setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
+                @Override
+                public boolean onPreferenceClick(Preference preference) {
+                    new AndroidBarcode(getActivity()).scan();
+                    return true;
+                }
+            });
+        }
+
+
+        private void setupBarcodeShareScanner() {
+            findPreference("scan_share2_barcode").setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
+                @Override
+                public boolean onPreferenceClick(Preference preference) {
+                    new AndroidBarcode(getActivity()).scan();
+                    return true;
+                }
+            });
+        }
+
+        private void bindTTSListener(){
+            findPreference("bg_to_speech").setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
+                @Override
+                public boolean onPreferenceChange(Preference preference, Object newValue) {
+                    if ((Boolean)newValue) {
+                        AlertDialog.Builder alertDialog = new AlertDialog.Builder(getActivity());
+                        alertDialog.setTitle("Install Text-To-Speech Data?");
+                        alertDialog.setMessage("Install Text-To-Speech Data?\n(After installation of languages you might have to press \"Restart Collector\" in System Status.)");
+                        alertDialog.setCancelable(true);
+                        alertDialog.setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                BgToSpeech.installTTSData(getActivity());
+                            }
+                        });
+                        alertDialog.setNegativeButton(R.string.no, null);
+                        AlertDialog alert = alertDialog.create();
+                        alert.show();
+                    }
+                    return true;
+                }
+            });
+        }
+
+    }
+
+    public static boolean isNumeric(String str) {
+        try {
+            Double.parseDouble(str);
+        } catch(NumberFormatException nfe) {
+            return false;
+        }
+        return true;
     }
 }
+

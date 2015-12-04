@@ -1,5 +1,7 @@
 package com.eveningoutpost.dexdrip.UtilityModels;
 
+import android.appwidget.AppWidgetManager;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
@@ -9,15 +11,21 @@ import android.os.Bundle;
 import android.os.PowerManager;
 import android.preference.PreferenceManager;
 import android.provider.BaseColumns;
-import android.util.Log;
+
+import com.eveningoutpost.dexdrip.Models.Calibration;
+import com.eveningoutpost.dexdrip.Models.UserError.Log;
 
 import com.activeandroid.Model;
 import com.activeandroid.annotation.Column;
 import com.activeandroid.annotation.Table;
 import com.activeandroid.query.Select;
 import com.eveningoutpost.dexdrip.Models.BgReading;
-import com.eveningoutpost.dexdrip.ShareModels.ShareRest;
-import com.eveningoutpost.dexdrip.widgetUpdateService;
+import com.eveningoutpost.dexdrip.Services.SyncService;
+import com.eveningoutpost.dexdrip.ShareModels.Models.ShareUploadPayload;
+import com.eveningoutpost.dexdrip.utils.BgToSpeech;
+import com.eveningoutpost.dexdrip.ShareModels.BgUploader;
+import com.eveningoutpost.dexdrip.WidgetUpdateService;
+import com.eveningoutpost.dexdrip.xDripWidget;
 
 import java.util.List;
 
@@ -61,17 +69,16 @@ public class BgSendQueue extends Model {
                 .from(BgSendQueue.class)
                 .where("mongo_success = ?", false)
                 .where("operation_type = ?", "create")
-                .orderBy("_ID asc")
+                .orderBy("_ID desc")
                 .limit(30)
                 .execute();
     }
 
     public static void addToQueue(BgReading bgReading, String operation_type, Context context) {
-        PowerManager powerManager = (PowerManager) context.getSystemService(context.POWER_SERVICE);
+        PowerManager powerManager = (PowerManager) context.getSystemService(Context.POWER_SERVICE);
         PowerManager.WakeLock wakeLock = powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK,
                 "sendQueue");
         wakeLock.acquire();
-
         try {
             BgSendQueue bgSendQueue = new BgSendQueue();
             bgSendQueue.operation_type = operation_type;
@@ -85,21 +92,19 @@ public class BgSendQueue extends Model {
 
             Intent updateIntent = new Intent(Intents.ACTION_NEW_BG_ESTIMATE_NO_DATA);
             context.sendBroadcast(updateIntent);
-            context.startService(new Intent(context, widgetUpdateService.class));
 
-            if (prefs.getBoolean("cloud_storage_mongodb_enable", false) || prefs.getBoolean("cloud_storage_api_enable", false)) {
-                Log.w("SENSOR QUEUE:", String.valueOf(bgSendQueue.mongo_success));
-                if (operation_type.compareTo("create") == 0) {
-                    MongoSendTask task = new MongoSendTask(context, bgSendQueue);
-                    task.execute();
-                }
+            if(AppWidgetManager.getInstance(context).getAppWidgetIds(new ComponentName(context, xDripWidget.class)).length > 0){
+                context.startService(new Intent(context, WidgetUpdateService.class));
             }
 
             if (prefs.getBoolean("broadcast_data_through_intents", false)) {
                 Log.i("SENSOR QUEUE:", "Broadcast data");
                 final Bundle bundle = new Bundle();
                 bundle.putDouble(Intents.EXTRA_BG_ESTIMATE, bgReading.calculated_value);
-                bundle.putDouble(Intents.EXTRA_BG_SLOPE, bgReading.calculated_value_slope);
+
+                //TODO: change back to bgReading.calculated_value_slope if it will also get calculated for Share data
+                // bundle.putDouble(Intents.EXTRA_BG_SLOPE, bgReading.calculated_value_slope);
+                bundle.putDouble(Intents.EXTRA_BG_SLOPE, BgReading.currentSlope());
                 if (bgReading.hide_slope) {
                     bundle.putString(Intents.EXTRA_BG_SLOPE_NAME, "9");
                 } else {
@@ -108,9 +113,45 @@ public class BgSendQueue extends Model {
                 bundle.putInt(Intents.EXTRA_SENSOR_BATTERY, getBatteryLevel(context));
                 bundle.putLong(Intents.EXTRA_TIMESTAMP, bgReading.timestamp);
 
+                //raw value
+                double slope = 0, intercept = 0, scale = 0, filtered = 0, unfiltered = 0, raw = 0;
+                Calibration cal = Calibration.last();
+                if (cal != null){
+                    // slope/intercept/scale like uploaded to NightScout (NightScoutUploader.java)
+                    if(cal.check_in) {
+                        slope = cal.first_slope;
+                        intercept= cal.first_intercept;
+                        scale =  cal.first_scale;
+                    } else {
+                        slope = cal.slope * 1000;
+                        intercept=  (cal.intercept * -1000) / (cal.slope * 1000);
+                        scale = 1;
+                    }
+                    unfiltered= bgReading.usedRaw();
+                    filtered = bgReading.ageAdjustedFiltered();
+                }
+                //raw logic from https://github.com/nightscout/cgm-remote-monitor/blob/master/lib/plugins/rawbg.js#L59
+                if (slope != 0 && intercept != 0 && scale != 0) {
+                    if (filtered == 0 || bgReading.calculated_value < 40) {
+                        raw = scale * (unfiltered - intercept) / slope;
+                    } else {
+                        double ratio = scale * (filtered - intercept) / slope / bgReading.calculated_value;
+                        raw = scale * (unfiltered - intercept) / slope / ratio;
+                    }
+                }
+                bundle.putDouble(Intents.EXTRA_RAW, raw);
                 Intent intent = new Intent(Intents.ACTION_NEW_BG_ESTIMATE);
                 intent.putExtras(bundle);
+                intent.addFlags(Intent.FLAG_INCLUDE_STOPPED_PACKAGES);
+
+
                 context.sendBroadcast(intent, Intents.RECEIVER_PERMISSION);
+
+                //just keep it alive for 3 more seconds to allow the watch to be updated
+                // TODO: change NightWatch to not allow the system to sleep.
+                powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK,
+                        "broadcstNightWatch").acquire(3000);
+
             }
 
             if(prefs.getBoolean("broadcast_to_pebble", false)) {
@@ -118,10 +159,18 @@ public class BgSendQueue extends Model {
             }
 
             if (prefs.getBoolean("share_upload", false)) {
-                ShareRest shareRest = new ShareRest(context);
-                Log.w("ShareRest", "About to call ShareRest!!");
-                shareRest.sendBgData(bgReading);
+                Log.d("ShareRest", "About to call ShareRest!!");
+                String receiverSn = prefs.getString("share_key", "SM00000000").toUpperCase();
+                BgUploader bgUploader = new BgUploader(context);
+                bgUploader.upload(new ShareUploadPayload(receiverSn, bgReading));
             }
+            context.startService(new Intent(context, SyncService.class));
+
+            //Text to speech
+            Log.d("BgToSpeech", "gonna call speak");
+            BgToSpeech.speak(bgReading.calculated_value, bgReading.timestamp);
+
+
         } finally {
             wakeLock.release();
         }

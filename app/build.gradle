@@ -12,19 +12,79 @@ apply plugin: 'io.fabric'
 
 repositories {
     maven { url 'https://maven.fabric.io/public' }
+    maven {
+        url "https://raw.github.com/embarkmobile/zxing-android-minimal/mvn-repo/maven-repository/"
+    }
+    maven {
+        url "https://jitpack.io"
+    }
+    maven { url "https://oss.sonatype.org/content/groups/public/" }
+}
+
+def generateVersionName = { ->
+
+    StringBuilder stringBuilder = new StringBuilder();
+    try {
+        def stdout = new ByteArrayOutputStream()
+        exec {
+            commandLine 'git', 'describe', '--always'
+            standardOutput = stdout
+        }
+        String commitObject =  stdout.toString().trim()
+        try {
+            stdout = new ByteArrayOutputStream()
+            exec {
+                commandLine 'git', 'describe', '--tags'
+                standardOutput = stdout
+            }
+            stringBuilder.append(stdout.toString().trim())
+            stringBuilder.append("-")
+        } catch (ignored) {
+            // no tags
+        }
+
+        stringBuilder.append(commitObject)
+        stdout = new ByteArrayOutputStream()
+        exec {
+           commandLine 'git', 'rev-parse', '--show-toplevel'
+            standardOutput = stdout
+        }
+        if(stdout.toString().trim().contains("xDrip-Experimental")) {
+            stringBuilder.append("-experimental")
+        }
+
+        stdout = new ByteArrayOutputStream()
+        exec {
+            commandLine 'git',  'rev-parse', '--abbrev-ref', 'HEAD'
+            standardOutput = stdout
+        }
+        String branch = stdout.toString().trim()
+        if(!branch.equals("master")) {
+            stringBuilder.append('-')
+            stringBuilder.append(branch)
+        }
+
+    } catch (ignored) {
+        return "NoGitSystemAvailable";
+    }
+    stringBuilder.append('-')
+    stringBuilder.append((new Date()).format('yyyy.MM.dd'))
+    return stringBuilder.toString()
+
 }
 
 
+
 android {
-    compileSdkVersion 22
+    compileSdkVersion 23
     buildToolsVersion "22.0.1"
 
     defaultConfig {
         applicationId "com.eveningoutpost.dexdrip"
         minSdkVersion 17
-        targetSdkVersion 21
-        versionCode 1
-        versionName "1.0"
+        targetSdkVersion 23
+        versionCode 2
+        versionName generateVersionName()
     }
     buildTypes {
     }
@@ -32,17 +92,33 @@ android {
 
 dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
-    testCompile 'com.squareup.okhttp:mockwebserver:2.2.0'
+    testCompile 'com.squareup.okhttp:mockwebserver:2.5.0'
     compile 'com.nispok:snackbar:2.10.8'
-    compile 'com.android.support:appcompat-v7:22.1.1'
-    compile 'com.squareup.okhttp:okhttp:2.2.0'
+    compile 'com.android.support:appcompat-v7:23.1.0'
+    compile 'com.squareup.okhttp:okhttp:2.5.0'
     compile 'com.google.code.gson:gson:2.3'
-    compile 'org.mongodb:mongo-java-driver:2.10.1'
-    compile 'com.squareup.retrofit:retrofit:1.9.0'
-    compile 'com.getpebble:pebblekit:2.6.0@aar'
+    compile 'com.squareup.retrofit:converter-gson:2.0.0-beta2'
+    compile 'com.squareup.retrofit:retrofit:2.0.0-beta2'
+    compile 'com.getpebble:pebblekit:3.0.0'
     compile 'io.reactivex:rxjava:1.0.0'
-    compile 'ch.acra:acra:4.5.0'
-    compile('com.crashlytics.sdk.android:crashlytics:2.2.3@aar') {
+    compile 'com.github.lecho:hellocharts-android:v1.5.5'
+
+    compile 'com.google.guava:guava:18.0'
+
+    compile('com.github.nightscout:android-uploader:CORE_FOR_XDRIP') {
+        transitive = false;
+    }
+    /* begin relevant android-uploader dependencies */
+    compile 'com.embarkmobile:zxing-android-minimal:2.0.0@aar'
+    compile 'com.embarkmobile:zxing-android-legacy:2.0.0@aar'
+    compile 'com.embarkmobile:zxing-android-integration:2.0.0@aar'
+    compile 'com.google.zxing:core:3.1.0'
+    compile 'net.tribe7.seeds:seeds-functional:16.0.1'
+    compile 'net.tribe7.seeds:seeds-primitives:16.0.1'
+    compile 'org.slf4j:slf4j-api:1.7.7'
+    /* end relevant android-uploader dependencies */
+
+    compile('com.crashlytics.sdk.android:crashlytics:2.5.0@aar') {
         transitive = true;
     }
 }

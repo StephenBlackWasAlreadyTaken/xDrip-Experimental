@@ -8,7 +8,7 @@ import android.content.IntentFilter;
 import android.os.BatteryManager;
 import android.os.IBinder;
 import android.preference.PreferenceManager;
-import android.util.Log;
+import com.eveningoutpost.dexdrip.Models.UserError.Log;
 import com.eveningoutpost.dexdrip.Models.BgReading;
 import com.getpebble.android.kit.PebbleKit;
 import com.getpebble.android.kit.util.PebbleDictionary;
@@ -29,7 +29,8 @@ public class PebbleSync extends Service {
     //    CGM_DLTA_KEY = 0x4,		// TUPLE_CSTRING, MAX 5 BYTES (BG DELTA, -100 or -10.0)
     //    CGM_UBAT_KEY = 0x5,		// TUPLE_CSTRING, MAX 3 BYTES (UPLOADER BATTERY, 100)
     //    CGM_NAME_KEY = 0x6		// TUPLE_CSTRING, MAX 9 BYTES (xDrip)
-    public static final UUID PEBBLEAPP_UUID = UUID.fromString("2c3f5ab3-7506-44e7-b8d0-2c63de32e1ec");
+    //public static final UUID PEBBLEAPP_UUID = UUID.fromString("2c3f5ab3-7506-44e7-b8d0-2c63de32e1ec");
+    public static final UUID PEBBLEAPP_UUID = UUID.fromString("79f8ecb3-7214-4bfc-b996-cb95148ee6d3");
     public static final int ICON_KEY = 0;
     public static final int BG_KEY = 1;
     public static final int RECORD_TIME_KEY = 2;
@@ -59,7 +60,7 @@ public class PebbleSync extends Service {
             stopSelf();
             return START_NOT_STICKY;
         }
-        Log.w(TAG, "STARTING SERVICE");
+        Log.i(TAG, "STARTING SERVICE");
         sendData();
         return START_STICKY;
     }
@@ -86,9 +87,12 @@ public class PebbleSync extends Service {
                 Log.d(TAG, "receiveData: transactionId is " + String.valueOf(transactionId));
                 if (lastTransactionId == 0 || transactionId != lastTransactionId) {
                     lastTransactionId = transactionId;
-                    Log.d(TAG, "Received Query. data: " + data.size());
+                    Log.d(TAG, "Received Query. data: " + data.size() + ". sending ACK and data");
                     PebbleKit.sendAckToPebble(context, transactionId);
                     sendData();
+                } else {
+                    Log.d(TAG, "receiveData: lastTransactionId is "+ String.valueOf(lastTransactionId)+ ", sending NACK");
+                    PebbleKit.sendNackToPebble(context,transactionId);
                 }
             }
         });
@@ -131,18 +135,7 @@ public class PebbleSync extends Service {
     }
 
     public String bgDelta() {
-        String deltaString;
-        if((PreferenceManager.getDefaultSharedPreferences(mContext).getString("units","mg/dl").compareTo("mg/dl") == 0)) {
-            deltaString = String.format("%.0f", mBgReading.calculated_value_slope * 360000);
-        } else {
-            deltaString = String.format("%.1f", (mBgReading.calculated_value_slope * 360000)*Constants.MGDL_TO_MMOLL);
-        }
-        Log.v(TAG,"bgDelta: "+ deltaString);
-        if(Float.valueOf(deltaString) > 0) {
-            return ("+"+deltaString);
-        } else {
-            return deltaString;
-        }
+        return new BgGraphBuilder(mContext).unitizedDeltaString(false, false);
     }
 
     public String phoneBattery() {
@@ -171,27 +164,16 @@ public class PebbleSync extends Service {
     }
 
     public String slopeOrdinal(){
-        double slope_by_minute = mBgReading.calculated_value_slope * 60000;
-        String arrow = "0";
-        if (slope_by_minute <= (-3.5)) {
-            arrow = "7";
-        } else if (slope_by_minute <= (-2)) {
-            arrow = "6";
-        } else if (slope_by_minute <= (-1)) {
-            arrow = "5";
-        } else if (slope_by_minute <= (1)) {
-            arrow = "4";
-        } else if (slope_by_minute <= (2)) {
-            arrow = "3";
-        } else if (slope_by_minute <= (3.5)) {
-            arrow = "2";
-        } else {
-            arrow = "1";
-        }
-        if(mBgReading.hide_slope) {
-            arrow = "9";
-        }
-        return arrow;
+        String arrow_name = mBgReading.slopeName();
+        if(arrow_name.compareTo("DoubleDown")==0) return "7";
+        if(arrow_name.compareTo("SingleDown")==0) return "6";
+        if(arrow_name.compareTo("FortyFiveDown")==0) return "5";
+        if(arrow_name.compareTo("Flat")==0) return "4";
+        if(arrow_name.compareTo("FortyFiveUp")==0) return "3";
+        if(arrow_name.compareTo("SingleUp")==0) return "2";
+        if(arrow_name.compareTo("DoubleUp")==0) return "1";
+        if(arrow_name.compareTo("9")==0) return arrow_name;
+        return "0";
     }
 }
 
