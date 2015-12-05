@@ -328,7 +328,6 @@ public class NightscoutUploader {
                             testData.put("mbg", meterRecord.bg);
                             testData.put("xDrip_slope", meterRecord.slope);
                             testData.put("xDrip_intercept", meterRecord.intercept);
-                            dexcomData.insert(testData, WriteConcern.UNACKNOWLEDGED);
                             
                             testData.put("sysTime", format.format(meterRecord.timestamp));
                             BasicDBObject query = new BasicDBObject("type", "mbg").append("sysTime", format.format(meterRecord.timestamp));
