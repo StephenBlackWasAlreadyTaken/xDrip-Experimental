@@ -47,6 +47,7 @@ public class BgSendQueue extends Model {
     @Column(name = "operation_type")
     public String operation_type;
 
+/*
     public static List<BgSendQueue> queue() {
         return new Select()
                 .from(BgSendQueue.class)
@@ -55,6 +56,7 @@ public class BgSendQueue extends Model {
                 .limit(20)
                 .execute();
     }
+*/
     public static List<BgSendQueue> mongoQueue() {
         return new Select()
                 .from(BgSendQueue.class)
