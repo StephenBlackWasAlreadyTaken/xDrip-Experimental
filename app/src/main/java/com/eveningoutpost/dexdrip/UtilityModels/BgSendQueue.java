@@ -47,15 +47,6 @@ public class BgSendQueue extends Model {
     @Column(name = "operation_type")
     public String operation_type;
 
-    public static BgSendQueue nextBgJob() {
-        return new Select()
-                .from(BgSendQueue.class)
-                .where("success = ?", false)
-                .orderBy("_ID desc")
-                .limit(1)
-                .executeSingle();
-    }
-
     public static List<BgSendQueue> queue() {
         return new Select()
                 .from(BgSendQueue.class)
@@ -74,19 +65,23 @@ public class BgSendQueue extends Model {
                 .execute();
     }
 
-    public static void addToQueue(BgReading bgReading, String operation_type, Context context) {
+    private static void addToQueue(BgReading bgReading, String operation_type) {
+        BgSendQueue bgSendQueue = new BgSendQueue();
+        bgSendQueue.operation_type = operation_type;
+        bgSendQueue.bgReading = bgReading;
+        bgSendQueue.success = false;
+        bgSendQueue.mongo_success = false;
+        bgSendQueue.save();
+        Log.d("BGQueue", "New value added to queue!");
+    }
+    
+    public static void handleNewBgReading(BgReading bgReading, String operation_type, Context context) {
         PowerManager powerManager = (PowerManager) context.getSystemService(Context.POWER_SERVICE);
         PowerManager.WakeLock wakeLock = powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK,
                 "sendQueue");
         wakeLock.acquire();
         try {
-            BgSendQueue bgSendQueue = new BgSendQueue();
-            bgSendQueue.operation_type = operation_type;
-            bgSendQueue.bgReading = bgReading;
-            bgSendQueue.success = false;
-            bgSendQueue.mongo_success = false;
-            bgSendQueue.save();
-            Log.d("BGQueue", "New value added to queue!");
+            addToQueue(bgReading, operation_type);
 
             SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
 

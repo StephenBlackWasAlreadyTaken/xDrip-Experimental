@@ -366,7 +366,7 @@ public class Calibration extends Model {
                 bgReading.calibration = calibration;
                 bgReading.calibration_flag = true;
                 bgReading.save();
-                BgSendQueue.addToQueue(bgReading, "update", context);
+                BgSendQueue.handleNewBgReading(bgReading, "update", context);
 
                 calculate_w_l_s();
                 adjustRecentBgReadings();
