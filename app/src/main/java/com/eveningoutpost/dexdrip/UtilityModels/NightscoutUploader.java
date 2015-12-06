@@ -328,6 +328,7 @@ public class NightscoutUploader {
                             testData.put("mbg", meterRecord.bg);
                             testData.put("xDrip_slope", meterRecord.slope);
                             testData.put("xDrip_intercept", meterRecord.intercept);
+                            testData.put("xDrip_estimate_raw_at_time_of_calibration", meterRecord.estimate_raw_at_time_of_calibration);
                             
                             testData.put("sysTime", format.format(meterRecord.timestamp));
                             BasicDBObject query = new BasicDBObject("type", "mbg").append("sysTime", format.format(meterRecord.timestamp));
