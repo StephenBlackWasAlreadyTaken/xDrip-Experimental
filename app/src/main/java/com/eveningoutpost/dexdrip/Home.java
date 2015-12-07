@@ -38,7 +38,6 @@ import com.eveningoutpost.dexdrip.Models.UserError;
 import com.eveningoutpost.dexdrip.Services.WixelReader;
 import com.eveningoutpost.dexdrip.UtilityModels.BgGraphBuilder;
 import com.eveningoutpost.dexdrip.UtilityModels.CollectionServiceStarter;
-import com.eveningoutpost.dexdrip.UtilityModels.IdempotentMigrations;
 import com.eveningoutpost.dexdrip.UtilityModels.Intents;
 import com.eveningoutpost.dexdrip.utils.ActivityWithMenu;
 import com.eveningoutpost.dexdrip.utils.DatabaseUtil;
@@ -77,19 +76,14 @@ public class Home extends ActivityWithMenu {
     private TextView                 dexbridgeBattery;
     private TextView                 currentBgValueText;
     private TextView                 notificationText;
+    private boolean                  alreadyDisplayedBgInfoCommon = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        CollectionServiceStarter collectionServiceStarter = new CollectionServiceStarter(getApplicationContext());
-        collectionServiceStarter.start(getApplicationContext());
-        PreferenceManager.setDefaultValues(this, R.xml.pref_general, false);
-        PreferenceManager.setDefaultValues(this, R.xml.pref_data_sync, false);
-        PreferenceManager.setDefaultValues(this, R.xml.pref_notifications, false);
-        PreferenceManager.setDefaultValues(this, R.xml.pref_data_source, false);
+
         prefs = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
         checkEula();
-        new IdempotentMigrations(getApplicationContext()).performAll();
         setContentView(R.layout.activity_home);
 
         this.dexbridgeBattery = (TextView) findViewById(R.id.textBridgeBattery);
@@ -123,7 +117,7 @@ public class Home extends ActivityWithMenu {
         return menu_name;
     }
 
-    public void checkEula() {
+    private void checkEula() {
         boolean IUnderstand = prefs.getBoolean("I_understand", false);
         if (!IUnderstand) {
             Intent intent = new Intent(getApplicationContext(), LicenseAgreementActivity.class);
@@ -148,18 +142,16 @@ public class Home extends ActivityWithMenu {
             @Override
             public void onReceive(Context ctx, Intent intent) {
                 holdViewport.set(0, 0, 0, 0);
-                setupCharts();
                 updateCurrentBgInfo();
             }
         };
         registerReceiver(_broadcastReceiver, new IntentFilter(Intent.ACTION_TIME_TICK));
         registerReceiver(newDataReceiver, new IntentFilter(Intents.ACTION_NEW_BG_ESTIMATE_NO_DATA));
         holdViewport.set(0, 0, 0, 0);
-        setupCharts();
         updateCurrentBgInfo();
     }
 
-    public void setupCharts() {
+    private void setupCharts() {
         bgGraphBuilder = new BgGraphBuilder(this);
         updateStuff = false;
         chart = (LineChartView) findViewById(R.id.chart);
@@ -248,7 +240,8 @@ public class Home extends ActivityWithMenu {
         }
     }
 
-    public void updateCurrentBgInfo() {
+    private void updateCurrentBgInfo() {
+        setupCharts();
         final TextView notificationText = (TextView) findViewById(R.id.notices);
         if(BgGraphBuilder.isXLargeTablet(getApplicationContext())) {
             notificationText.setTextSize(40);
@@ -257,15 +250,17 @@ public class Home extends ActivityWithMenu {
         notificationText.setTextColor(Color.RED);
         boolean isBTWixel = CollectionServiceStarter.isBTWixel(getApplicationContext());
         boolean isDexbridgeWixel = CollectionServiceStarter.isDexbridgeWixel(getApplicationContext());
+        boolean isWifiBluetoothWixel = CollectionServiceStarter.isWifiandBTWixel(getApplicationContext());
         isBTShare = CollectionServiceStarter.isBTShare(getApplicationContext());
         boolean isWifiWixel = CollectionServiceStarter.isWifiWixel(getApplicationContext());
+        alreadyDisplayedBgInfoCommon = false; // reset flag
         if (isBTShare) {
             updateCurrentBgInfoForBtShare(notificationText);
         }
-        if (isBTWixel || isDexbridgeWixel) {
+        if (isBTWixel || isDexbridgeWixel ||  isWifiBluetoothWixel) {
             updateCurrentBgInfoForBtBasedWixel(notificationText);
         }
-        if (isWifiWixel) {
+        if (isWifiWixel || isWifiBluetoothWixel) {
             updateCurrentBgInfoForWifiWixel(notificationText);
         }
         if (prefs.getLong("alerts_disabled_until", 0) > new Date().getTime()) {
@@ -307,6 +302,9 @@ public class Home extends ActivityWithMenu {
     }
 
     private void updateCurrentBgInfoCommon(TextView notificationText) {
+        if (alreadyDisplayedBgInfoCommon) return; // with bluetooth and wifi, skip second time
+        alreadyDisplayedBgInfoCommon = true;
+
         final boolean isSensorActive = Sensor.isActive();
         if(!isSensorActive){
             notificationText.setText("Now start your sensor");
@@ -372,7 +370,7 @@ public class Home extends ActivityWithMenu {
         displayCurrentInfo();
     }
 
-    public void displayCurrentInfo() {
+    private void displayCurrentInfo() {
         DecimalFormat df = new DecimalFormat("#");
         df.setMaximumFractionDigits(0);
 
@@ -405,7 +403,6 @@ public class Home extends ActivityWithMenu {
         if (lastBgReading != null) {
             displayCurrentInfoFromReading(lastBgReading, predictive);
         }
-        setupCharts();
     }
 
     private void displayCurrentInfoFromReading(BgReading lastBgReading, boolean predictive) {

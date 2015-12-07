@@ -44,6 +44,8 @@ public class WixelReader extends AsyncTask<String, Void, Void > {
     private final Context mContext;
     PowerManager.WakeLock wakeLock;
 
+    private final static long DEXCOM_PERIOD=300000;
+    
     private static int lockCounter = 0;
     
     // This variables are for fake function only
@@ -378,7 +380,7 @@ public class WixelReader extends AsyncTask<String, Void, Void > {
     }
 
     static Long timeForNextRead() {
-        final long DEXCOM_PERIOD=300000;
+
         TransmitterData lastTransmitterData = TransmitterData.last();
         if(lastTransmitterData == null) {
             // We did not receive a packet, well someone hopefully is looking at data, return relatively fast
@@ -436,9 +438,17 @@ public class WixelReader extends AsyncTask<String, Void, Void > {
     	TransmitterData lastTransmitterData = TransmitterData.last();
     	if(lastTransmitterData != null) {
     	    LastReportedTime = lastTransmitterData.timestamp;
-    	}
+
+            // jamorham fix to avoid going twice to network when we just got a packet
+            if ((new Date().getTime() - LastReportedTime) < DEXCOM_PERIOD-2000) {
+            Log.d(TAG, "Already have a recent packet - returning");
+            return;
+            }
+
+
+        }
     	Long startReadTime = LastReportedTime;
-    	
+
     	TransmitterRawData LastReportedReading = null;
     	Log.d(TAG, "Starting... LastReportedReading " + LastReportedReading);
     	// try to read one object...

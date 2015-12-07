@@ -318,8 +318,12 @@ public class BluetoothScan extends ListActivityWithMenu {
             } else returnToHome();
 
         } else if(device.getName().toLowerCase().contains("drip")) {
-            if (!CollectionServiceStarter.isBTWixel(getApplicationContext()))
+            if (!
+                    (CollectionServiceStarter.isBTWixel(getApplicationContext())
+                            || CollectionServiceStarter.isWifiandBTWixel(getApplicationContext())
+                    )) {
                 prefs.edit().putString("dex_collection_method", "BluetoothWixel").apply();
+            }
             returnToHome();
         } else {
             returnToHome();

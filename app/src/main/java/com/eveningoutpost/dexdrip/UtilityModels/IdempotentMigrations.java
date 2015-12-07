@@ -89,8 +89,12 @@ public class IdempotentMigrations {
             if (i.hasNext())
                 newUris.append(" ");
         }
-
-        prefs.edit().putString("cloud_storage_api_base", newUris.toString()).apply();
+        if (newUris.length() != 0) {
+            prefs.edit().putString("cloud_storage_api_base", newUris.toString()).apply();
+        } else {
+            // instead of an empty string: delete the setting to show (but later not read) default string
+            prefs.edit().remove("cloud_storage_api_base").apply();
+        }
     }
 
 }
