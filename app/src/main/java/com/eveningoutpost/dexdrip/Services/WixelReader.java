@@ -39,11 +39,11 @@ public class WixelReader extends AsyncTask<String, Void, Void > {
     private final static String TAG = WixelReader.class.getName();
     private static BgToSpeech bgToSpeech;
 
+    private static OkHttpClient httpClient = null;
+
     private final Context mContext;
     PowerManager.WakeLock wakeLock;
 
-    private static OkHttpClient httpClient = null;
-    
     private static int lockCounter = 0;
     
     // This variables are for fake function only
