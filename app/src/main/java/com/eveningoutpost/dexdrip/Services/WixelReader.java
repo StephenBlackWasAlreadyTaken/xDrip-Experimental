@@ -40,7 +40,9 @@ public class WixelReader extends AsyncTask<String, Void, Void > {
     private static BgToSpeech bgToSpeech;
 
     private final Context mContext;
-    PowerManager.WakeLock wakeLock; 
+    PowerManager.WakeLock wakeLock;
+
+    private static OkHttpClient httpClient = null;
     
     private static int lockCounter = 0;
     
@@ -194,11 +196,10 @@ public class WixelReader extends AsyncTask<String, Void, Void > {
     	return mt.ReadFromMongo(numberOfRecords);
     }
 
-    private static OkHttpClient httpClient = null;
 
 
     // read from http source like cloud hosted parakeet receiver.cgi / json.get
-    public static List<TransmitterRawData> ReadHttpJson(String url, int numberOfRecords) {
+    public static List<TransmitterRawData> readHttpJson(String url, int numberOfRecords) {
         List<TransmitterRawData> trd_list = new LinkedList<TransmitterRawData>();
 
         try {
@@ -235,11 +236,11 @@ public class WixelReader extends AsyncTask<String, Void, Void > {
                 for (String data : lines) {
 
                     if (data == null) {
-                        System.out.println("received null exiting");
+                        System.out.println("received null continuing");
                         continue;
                     }
                     if (data.equals("")) {
-                        System.out.println("received \"\" exiting");
+                        System.out.println("received \"\" continuing");
                         continue;
                     }
 
@@ -258,7 +259,7 @@ public class WixelReader extends AsyncTask<String, Void, Void > {
             }
 
         } catch (Exception e) {
-            Log.e(TAG, "caught HTTPException! " + e.toString());
+            Log.e(TAG, "caught Exception in reading http json data " + e.toString());
         }
         return trd_list;
     }
@@ -281,7 +282,7 @@ public class WixelReader extends AsyncTask<String, Void, Void > {
             	tmpList = ReadFromMongo(host ,numberOfRecords);
             } else if ((host.startsWith("http://") || host.startsWith("https://"))
                     && host.contains("/json.get")) {
-                tmpList = ReadHttpJson(host,numberOfRecords);
+                tmpList = readHttpJson(host, numberOfRecords);
             } else {
             	tmpList = ReadHost(host, numberOfRecords);
             }
