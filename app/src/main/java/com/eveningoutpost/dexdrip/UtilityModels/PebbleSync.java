@@ -363,6 +363,7 @@ public class PebbleSync extends Service {
                  dictionary.remove(RECORD_TIME_KEY);
                  dictionary.remove(UPLOADER_BATTERY_KEY);
                  transactionOk = false;
+                 sendStep = 1;
              }
              if (sendStep > 0 && sendStep < 5) {
                     sendTrendToPebble();
