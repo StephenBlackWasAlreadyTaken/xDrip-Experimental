@@ -569,8 +569,8 @@ public class WixelReader extends AsyncTask<String, Void, Void > {
     class NightscoutMbg {
         Long date; // timestamp
         double mbg; // calculated_bg
-        double slope;
-        double intercept;
+        double xDrip_slope;
+        double xDrip_intercept;
         double xDrip_estimate_raw_at_time_of_calibration;
     }
     
