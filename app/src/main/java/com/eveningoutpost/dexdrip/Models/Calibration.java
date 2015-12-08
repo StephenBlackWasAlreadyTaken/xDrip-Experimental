@@ -38,7 +38,7 @@ public class Calibration extends Model {
 
     @Expose
     @Column(name = "timestamp", index = true)
-    public double timestamp;
+    public long timestamp;
 
     @Expose
     @Column(name = "sensor_age_at_time_of_estimation")
@@ -73,7 +73,7 @@ public class Calibration extends Model {
 
     @Expose
     @Column(name = "raw_timestamp")
-    public double raw_timestamp;
+    public long raw_timestamp;
 
     @Expose
     @Column(name = "slope")
@@ -255,6 +255,7 @@ public class Calibration extends Model {
                     Calibration calibration = new Calibration();
                     calibration.bg = calSubrecord.getCalBGL();
                     calibration.timestamp = calSubrecord.getDateEntered().getTime() + addativeOffset;
+                    calibration.raw_timestamp = calibration.timestamp;
                     if (calibration.timestamp > new Date().getTime()) {
                         Log.d(TAG, "ERROR - Calibration timestamp is from the future, wont save!");
                         return;
