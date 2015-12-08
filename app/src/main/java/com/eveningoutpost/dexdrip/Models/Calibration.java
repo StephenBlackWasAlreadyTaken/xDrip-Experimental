@@ -380,7 +380,9 @@ public class Calibration extends Model {
         return Calibration.last();
     }
 
-    public static void create(Context context, double bg, long timeStamp, double intercept, double slope, double estimate_raw_at_time_of_calibration) {
+    public static void create(Context context, double bg, long timeStamp, double intercept, double slope, 
+            double estimate_raw_at_time_of_calibration, double slope_confidence , double sensor_confidence, 
+            double raw_timestamp) {
         Calibration calibration = new Calibration();
         Sensor sensor = Sensor.currentSensor();
 
@@ -393,6 +395,9 @@ public class Calibration extends Model {
             calibration.intercept = intercept;
             calibration.slope = slope;
             calibration.estimate_raw_at_time_of_calibration = estimate_raw_at_time_of_calibration;
+            calibration.slope_confidence = slope_confidence;
+            calibration.sensor_confidence = sensor_confidence;
+            calibration.raw_timestamp = raw_timestamp;
             calibration.check_in = true;
             calibration.save();
         }

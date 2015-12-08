@@ -489,6 +489,9 @@ public class WixelReader extends AsyncTask<String, Void, Void > {
         double xDrip_slope;
         double xDrip_intercept;
         double xDrip_estimate_raw_at_time_of_calibration;
+        double xDrip_slope_confidence;
+        double xDrip_sensor_confidence;
+        double xDrip_raw_timestamp;
     }
     
 /*
@@ -656,7 +659,8 @@ public class WixelReader extends AsyncTask<String, Void, Void > {
             Log.e(TAG, "not inserting calibratoin, since order is wrong. ");
             continue;
           }
-          Calibration.create(mContext, nightscoutMbg.mbg, nightscoutMbg.date, nightscoutMbg.xDrip_intercept, nightscoutMbg.xDrip_slope, nightscoutMbg.xDrip_estimate_raw_at_time_of_calibration);
+          Calibration.create(mContext, nightscoutMbg.mbg, nightscoutMbg.date, nightscoutMbg.xDrip_intercept, nightscoutMbg.xDrip_slope, nightscoutMbg.xDrip_estimate_raw_at_time_of_calibration,
+                  nightscoutMbg.xDrip_slope_confidence , nightscoutMbg.xDrip_sensor_confidence, nightscoutMbg.xDrip_raw_timestamp);
           lastInserted = nightscoutMbg.date;
       }
   }    
