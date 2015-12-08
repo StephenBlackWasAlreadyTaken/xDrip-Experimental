@@ -561,8 +561,8 @@ public class WixelReader extends AsyncTask<String, Void, Void > {
     
     
     class NightscoutBg {
-        double dex_raw; // raw_data
-        double dex_filtered; // filtered_data;
+        double xDrip_raw; // raw_data
+        double xDrip_filtered; // filtered_data;
         Long date; // timestamp
         double sgv; // calculated_bg
     }
@@ -570,12 +570,11 @@ public class WixelReader extends AsyncTask<String, Void, Void > {
     class NightscoutMbg {
         Long date; // timestamp
         double mbg; // calculated_bg
+        double slope;
+        double intercept;
+        double xDrip_estimate_raw_at_time_of_calibration;
     }
     
-    class Curator {
-        public String device;
-        Long date;
-    }
 /*
  * 
  *     1.9 version
@@ -657,7 +656,7 @@ public class WixelReader extends AsyncTask<String, Void, Void > {
         Retrofit retrofit;
 
         //final String API_URL = "http://freemusicarchive.org/api";
-        final String API_URL = "https://snirdar.azurewebsites.net";
+        final String API_URL = "https://snirdar3.azurewebsites.net";
 
 
         HttpLoggingInterceptor logging = new HttpLoggingInterceptor();  
@@ -741,7 +740,7 @@ public class WixelReader extends AsyncTask<String, Void, Void > {
             Log.e(TAG, "not inserting calibratoin, since order is wrong. ");
             continue;
           }
-          Calibration.create(mContext, nightscoutMbg.mbg, nightscoutMbg.date);
+          Calibration.create(mContext, nightscoutMbg.mbg, nightscoutMbg.date, nightscoutMbg.xDrip_intercept, nightscoutMbg.xDrip_slope, nightscoutMbg.xDrip_estimate_raw_at_time_of_calibration);
           lastInserted = nightscoutMbg.date;
       }
   }    
@@ -800,7 +799,7 @@ public class WixelReader extends AsyncTask<String, Void, Void > {
         while(li.hasPrevious()) {
             // also load to other table !!!
             NightscoutBg nightscoutBg = li.previous();
-            Log.e(TAG, "nightscoutBg " + nightscoutBg.sgv + " " + nightscoutBg.dex_raw + " " + mContext);
+            Log.e(TAG, "nightscoutBg " + nightscoutBg.sgv + " " + nightscoutBg.xDrip_raw + " " + mContext);
             if(nightscoutBg.date == lastInserted) {
               Log.w(TAG, "not inserting packet, since it seems duplicate ");
               continue;
@@ -809,8 +808,8 @@ public class WixelReader extends AsyncTask<String, Void, Void > {
               Log.e(TAG, "not inserting packet, since order is wrong. ");
               continue;
             }
-            BgReading.create(mContext, nightscoutBg.dex_raw * 1000, nightscoutBg.dex_filtered * 1000, nightscoutBg.date, nightscoutBg.sgv);
-            TransmitterData.create((int)nightscoutBg.dex_raw, 100 /* ??????? */, nightscoutBg.date);
+            BgReading.create(mContext, nightscoutBg.xDrip_raw * 1000, nightscoutBg.xDrip_filtered * 1000, nightscoutBg.date, nightscoutBg.sgv);
+            TransmitterData.create((int)nightscoutBg.xDrip_raw, 100 /* ??????? */, nightscoutBg.date);
             lastInserted = nightscoutBg.date;
         }
     }
