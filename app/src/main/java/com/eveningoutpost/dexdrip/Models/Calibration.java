@@ -380,17 +380,20 @@ public class Calibration extends Model {
         return Calibration.last();
     }
 
-    public static void create(Context context, double bg, long timeStamp) {
+    public static void create(Context context, double bg, long timeStamp, double intercept, double slope, double estimate_raw_at_time_of_calibration) {
         Calibration calibration = new Calibration();
         Sensor sensor = Sensor.currentSensor();
 
         if (sensor != null) {
             calibration.sensor = sensor;
             calibration.bg = bg;
-            calibration.check_in = false;
             calibration.timestamp = timeStamp;
             calibration.sensor_uuid = sensor.uuid;
             calibration.uuid = UUID.randomUUID().toString();
+            calibration.intercept = intercept;
+            calibration.slope = slope;
+            calibration.estimate_raw_at_time_of_calibration = estimate_raw_at_time_of_calibration;
+            calibration.check_in = true;
             calibration.save();
         }
     }
