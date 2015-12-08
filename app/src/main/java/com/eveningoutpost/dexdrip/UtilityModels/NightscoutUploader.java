@@ -329,7 +329,9 @@ public class NightscoutUploader {
                             testData.put("xDrip_slope", meterRecord.slope);
                             testData.put("xDrip_intercept", meterRecord.intercept);
                             testData.put("xDrip_estimate_raw_at_time_of_calibration", meterRecord.estimate_raw_at_time_of_calibration);
-                            
+                            testData.put("xDrip_slope_confidence", meterRecord.slope_confidence);
+                            testData.put("xDrip_sensor_confidence", meterRecord.sensor_confidence);
+                            testData.put("xDrip_raw_timestamp", meterRecord.raw_timestamp);
                             testData.put("sysTime", format.format(meterRecord.timestamp));
                             BasicDBObject query = new BasicDBObject("type", "mbg").append("sysTime", format.format(meterRecord.timestamp));
                             dexcomData.update(query, testData, true, false,  WriteConcern.UNACKNOWLEDGED);
