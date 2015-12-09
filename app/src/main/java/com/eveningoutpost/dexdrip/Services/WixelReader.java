@@ -10,7 +10,8 @@ import com.eveningoutpost.dexdrip.Models.BgReading;
 import com.eveningoutpost.dexdrip.Models.Calibration;
 import com.eveningoutpost.dexdrip.Models.TransmitterData;
 import com.eveningoutpost.dexdrip.Models.UserError.Log;
-import com.eveningoutpost.dexdrip.Services.WixelReader.NightscoutBg;
+import com.eveningoutpost.dexdrip.Services.NsRestApiReader.NightscoutBg;
+import com.eveningoutpost.dexdrip.Services.NsRestApiReader.NightscoutMbg;
 import com.eveningoutpost.dexdrip.ShareModels.DexcomShare;
 import com.eveningoutpost.dexdrip.Sensor;
 import com.eveningoutpost.dexdrip.utils.BgToSpeech;
@@ -476,60 +477,17 @@ public class WixelReader extends AsyncTask<String, Void, Void > {
     
     
     
-    class NightscoutBg {
-        double xDrip_raw; // raw_data
-        double xDrip_filtered; // filtered_data;
-        Long date; // timestamp
-        double sgv; // calculated_bg
-    }
     
-    class NightscoutMbg {
-        Long date; // timestamp
-        double mbg; // calculated_bg
-        double xDrip_slope;
-        double xDrip_intercept;
-        double xDrip_estimate_raw_at_time_of_calibration;
-        double xDrip_slope_confidence;
-        double xDrip_sensor_confidence;
-        double xDrip_raw_timestamp;
-    }
-    
-/*
- * 
- *     1.9 version
-
-    public interface IApiMethods {
-        
-
-        // gets all entries, this worked brings all data
-        @GET("/api/v1/entries?count=1000")  
-        List<Curator> getCurators1(
-                //@Header("Accept") String authorization
-                @Header("Accept") String authorization
-        );
-        
-        
-        @GET("/api/v1/entries.json?find[type][$eq]=cal&find[date][$gte]=1448085290400&count=10")
-        List<Curator> getCurators(
-                //@Header("Authorization") String authorization
-                @Header("Accept") String Accept
-        );
-        
-        // gets all sgvs
-        @GET("/api/v1/entries.json?find[type][$eq]=sgv&find[date][$gte]=1448085290400&count=10")
-        List<NightscoutBg> getSgv(
-                @Header("Accept") String Accept
-                //@Header("Accept") String authorization
-        );
-    }
-*/
     
 
     public void readData() {
         final String API_KEY = "application/json api-secret: 6aaafe81264eb79d079caa91bbf25dba379ff6e2"; // probably we can do without the josn. if url contains it
+        final String API_URL = "https://snirdar3.azurewebsites.net";
+        
+        
         verifySensor();
-        readCalData(API_KEY);
-        readBgData(API_KEY);
+        readCalData(API_URL, API_KEY);
+        readBgData(API_URL, API_KEY);
         
     }
     
@@ -542,95 +500,10 @@ public class WixelReader extends AsyncTask<String, Void, Void > {
     }
     
 
-    public interface INsRestApi {
-        
-        // gets all sgvs
-        @GET("/api/v1/entries.json?find[type][$eq]=sgv")
-        Call<List<NightscoutBg>> getSgv(
-                @Header("Accept") String Accept,
-                @Query("find[date][$gt]") long date,
-                @Query("count") long count
-        );
-        
-//        @GET("/api/v1/entries.json?find[type][$eq]=cal&find[date][$gte]=1448085290400&count=10")
-        @GET("/api/v1/entries.json?find[type][$eq]=cal")
-        Call<List<NightscoutBg>> getCal(
-                //@Header("Authorization") String authorization
-                @Header("Accept") String Accept,
-                @Query("find[date][$gt]") long date,
-                @Query("count") long count
-        );
-        
-        //@GET("/api/v1/entries.json?find[type][$eq]=mbg&find[date][$gte]=1448085290400&count=10")
-        @GET("/api/v1/entries.json?find[type][$eq]=mbg")
-        Call<List<NightscoutMbg>> getMbg(
-                //@Header("Authorization") String authorization
-                @Header("Accept") String Accept,
-                @Query("find[date][$gt]") long date,
-                @Query("count") long count
-        );
-    }    
-    
-    INsRestApi CreateNsMethods() {
-        Retrofit retrofit;
 
-        //final String API_URL = "http://freemusicarchive.org/api";
-        final String API_URL = "https://snirdar3.azurewebsites.net";
+    private void readCalData(String baseUrl, String key) {
 
-
-        HttpLoggingInterceptor logging = new HttpLoggingInterceptor();  
-        // set your desired log level
-        logging.setLevel(HttpLoggingInterceptor.Level.BODY);
-
-        OkHttpClient httpClient = new OkHttpClient();  
-        // add your other interceptors ...
-
-        // add logging as last interceptor
-        httpClient.interceptors().add(logging);  // <-- this is the important line for logging
-
-        Gson gson = new GsonBuilder().create();
-        retrofit = new Retrofit.Builder()
-        .baseUrl(API_URL)
-        .addConverterFactory(GsonConverterFactory.create(gson))
-        .client(httpClient)
-        .build();
-
-        return retrofit.create(INsRestApi.class);
-    }
-
-    private List<NightscoutMbg> readCalDataFromNs(String key, long startTime, long maxCount) {
-        INsRestApi methods = CreateNsMethods();
-        List<NightscoutMbg> nightscoutMbgs = null;
-        try {
-        
-            Call<List<NightscoutMbg>> call = methods.getMbg(key,startTime, maxCount); 
-            
-            Response<List<NightscoutMbg>> response = call.execute();
-            if(response == null) {
-                Log.e(TAG,"readBgData  call.execute returned null");
-                return null;
-            }
-            // http://stackoverflow.com/questions/32517114/how-is-error-handling-done-in-retrofit-2-i-can-not-find-the-retrofiterror-clas
-            if(!response.isSuccess() && response.errorBody() != null) {
-                Log.e(TAG,"readBgData  call.execute returned with error " + response.errorBody());
-                return null;
-            }
-            nightscoutMbgs = response.body();
-            //
-        } catch (IOException e ) {
-            Log.e(TAG,"RetrofitError exception was cought", e);
-            return null;
-        }
-        
-        if(nightscoutMbgs == null) {
-            Log.e(TAG,"readBgData returned null");
-            return null;
-        }
-        return nightscoutMbgs;
-    }
-
-    private void readCalData(String key) {
-      
+    	NsRestApiReader nsRestApiReader = new NsRestApiReader();
       Long LastReportedTime = 0L;
       
       Calibration lastCalibration = Calibration.last();
@@ -640,7 +513,7 @@ public class WixelReader extends AsyncTask<String, Void, Void > {
       }
       Log.e(TAG, "readBgData  LastReportedTime = " + LastReportedTime);
       
-      List<NightscoutMbg> nightscoutMbgs = readCalDataFromNs(key, LastReportedTime, 10 );
+      List<NightscoutMbg> nightscoutMbgs = nsRestApiReader.readCalDataFromNs(baseUrl, key, LastReportedTime, 10 );
       if(nightscoutMbgs == null) {
           Log.e(TAG, "readBgDataFromNs returned null");
           return;
@@ -665,42 +538,10 @@ public class WixelReader extends AsyncTask<String, Void, Void > {
       }
   }    
     
-    private List<NightscoutBg> readBgDataFromNs(String key, long startTime, long maxCount) {
-        Log.e(TAG,"readBgData Starting to read from retrofit");
-        INsRestApi methods = CreateNsMethods();
-        List<NightscoutBg> nightscoutBgs = null;
-        try {
-        
-            Call<List<NightscoutBg>> call = methods.getSgv(key, startTime, maxCount); 
-            
-            Response<List<NightscoutBg>> response = call.execute();
-            if(response == null) {
-                Log.e(TAG,"readBgData  call.execute returned null");
-                return null;
-            }
-            // http://stackoverflow.com/questions/32517114/how-is-error-handling-done-in-retrofit-2-i-can-not-find-the-retrofiterror-clas
-            if(!response.isSuccess() && response.errorBody() != null) {
-                Log.e(TAG,"readBgData  call.execute returned with error " + response.errorBody());
-                return null;
-            }
-            nightscoutBgs = response.body();
-            //
-        } catch (IOException e ) {
-            Log.e(TAG,"RetrofitError exception was cought", e);
-            return null;
-        }
-        
-        
-        if(nightscoutBgs == null) {
-            Log.e(TAG,"readBgData returned null");
-            return null;
-        }
-        Log.e(TAG,"retrofit returning a list, size = " + nightscoutBgs.size());
-        return nightscoutBgs;
-    }
     
-    private void readBgData(String key) {
+    private void readBgData(String baseUrl, String key) {
         
+    	NsRestApiReader nsRestApiReader = new NsRestApiReader();
         Long LastReportedTime = 0L;
         TransmitterData lastTransmitterData = TransmitterData.last();
         if(lastTransmitterData != null) {
@@ -708,7 +549,7 @@ public class WixelReader extends AsyncTask<String, Void, Void > {
         }
         Log.e(TAG, "readBgData  LastReportedTime = " + LastReportedTime);
         
-        List<NightscoutBg> nightscoutBgs = readBgDataFromNs(key, LastReportedTime, 12 * 24 );
+        List<NightscoutBg> nightscoutBgs = nsRestApiReader.readBgDataFromNs(baseUrl,key, LastReportedTime, 12 * 24 );
         if(nightscoutBgs == null) {
             Log.e(TAG, "readBgDataFromNs returned null");
             return;
@@ -744,3 +585,4 @@ public class WixelReader extends AsyncTask<String, Void, Void > {
  */
     
 }
+
