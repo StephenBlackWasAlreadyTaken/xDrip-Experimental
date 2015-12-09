@@ -375,9 +375,10 @@ public class Home extends ActivityWithMenu {
         df.setMaximumFractionDigits(0);
 
         boolean isDexbridge = CollectionServiceStarter.isDexbridgeWixel(getApplicationContext());
+        boolean displayBattery = prefs.getBoolean("display_bridge_battery",false);
         int bridgeBattery = prefs.getInt("bridge_battery", 0);
 
-        if (isDexbridge) {
+        if (isDexbridge && displayBattery) {
             if (bridgeBattery == 0) {
                 dexbridgeBattery.setText("Waiting for packet");
             } else {
