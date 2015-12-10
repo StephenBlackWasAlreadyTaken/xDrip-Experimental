@@ -385,11 +385,12 @@ public class Home extends ActivityWithMenu {
             } else {
                 dexbridgeBattery.setText("xBridge Battery: " + bridgeBattery + "%");
             }
-            if (bridgeBattery < 50) dexbridgeBattery.setTextColor(Color.YELLOW);
-            if (bridgeBattery < 25) dexbridgeBattery.setTextColor(Color.RED);
+            if (bridgeBattery < 50 && bridgeBattery >25) dexbridgeBattery.setTextColor(Color.YELLOW);
+            if (bridgeBattery <= 25) dexbridgeBattery.setTextColor(Color.RED);
             else dexbridgeBattery.setTextColor(Color.GREEN);
             dexbridgeBattery.setVisibility(View.VISIBLE);
         } else {
+            dexbridgeBattery.setText("");
             dexbridgeBattery.setVisibility(View.INVISIBLE);
         }
 
