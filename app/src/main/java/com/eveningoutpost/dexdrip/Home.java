@@ -380,9 +380,10 @@ public class Home extends ActivityWithMenu {
 
         if (isDexbridge && displayBattery) {
             if (bridgeBattery == 0) {
-                dexbridgeBattery.setText("Waiting for packet");
+                dexbridgeBattery.setText("sBridge Battery unknown: Waiting for packet");
+                dexbridgeBattery.setTextColor(Color.WHITE);
             } else {
-                dexbridgeBattery.setText("Bridge Battery: " + bridgeBattery + "%");
+                dexbridgeBattery.setText("xBridge Battery: " + bridgeBattery + "%");
             }
             if (bridgeBattery < 50) dexbridgeBattery.setTextColor(Color.YELLOW);
             if (bridgeBattery < 25) dexbridgeBattery.setTextColor(Color.RED);
