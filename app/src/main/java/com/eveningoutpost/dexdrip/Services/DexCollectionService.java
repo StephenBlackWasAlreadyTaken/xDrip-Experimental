@@ -91,6 +91,10 @@ public class DexCollectionService extends Service {
         prefs = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
         listenForChangeInSettings();
         bgToSpeech = BgToSpeech.setupTTS(mContext); //keep reference to not being garbage collected
+        if(CollectionServiceStarter.isDexbridgeWixel(getApplicationContext())){
+            Log.i(TAG,"onCreate: resetting bridge_battery preference to 0");
+            prefs.edit().putInt("bridge_battery",0).apply();
+        }
         Log.i(TAG, "onCreate: STARTING SERVICE");
     }
 
