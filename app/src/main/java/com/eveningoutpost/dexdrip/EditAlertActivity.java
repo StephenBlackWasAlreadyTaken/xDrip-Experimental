@@ -323,23 +323,26 @@ public class EditAlertActivity extends ActivityWithMenu {
             Toast.makeText(getApplicationContext(), "threshold has to be between " +unitsConvert2Disp(doMgdl, MIN_ALERT) + " and " + unitsConvert2Disp(doMgdl, MAX_ALERT),Toast.LENGTH_LONG).show();
             return false;
         }
-        if (uuid == null) {
-            // We want to make sure that for each threashold there is only one alert. Otherwise, which file should we play.
-            for (AlertType lowAlert : lowAlerts) {
-                if(lowAlert.threshold == threshold  && overlapping(lowAlert, allDay, startTime, endTime)) {
-                    Toast.makeText(getApplicationContext(),
-                            "Each alert should have it's own threshold. Please choose another threshold.",Toast.LENGTH_LONG).show();
-                    return false;
-                }
-            }
-            for (AlertType highAlert : highAlerts) {
-                if(highAlert.threshold == threshold  && overlapping(highAlert, allDay, startTime, endTime)) {
+        // We want to make sure that for each threashold there is only one alert. Otherwise, which file should we play.
+        for (AlertType lowAlert : lowAlerts) {
+            if(lowAlert.threshold == threshold  && overlapping(lowAlert, allDay, startTime, endTime)) {
+                if(uuid == null || uuid != lowAlert.uuid){ //new alert or not myself
                     Toast.makeText(getApplicationContext(),
                             "Each alert should have it's own threshold. Please choose another threshold.",Toast.LENGTH_LONG).show();
                     return false;
                 }
             }
         }
+        for (AlertType highAlert : highAlerts) {
+            if(highAlert.threshold == threshold  && overlapping(highAlert, allDay, startTime, endTime)) {
+                if(uuid == null || uuid != highAlert.uuid){ //new alert or not myself
+                    Toast.makeText(getApplicationContext(),
+                            "Each alert should have it's own threshold. Please choose another threshold.",Toast.LENGTH_LONG).show();
+                    return false;
+                }
+            }
+        }
+
         // high alerts have to be higher than all low alerts...
         if(above) {
             for (AlertType lowAlert : lowAlerts) {
@@ -379,6 +382,7 @@ public class EditAlertActivity extends ActivityWithMenu {
                 st1 <= st2 && (et2 < st2) && et2 > st1 || //2nd timeframe passes midnight
                 st2 <= st1 && et2 > st1 ||
                 st2 <= st1 && (et1 < st1) && et1 > st2; //1st timeframe passes midnight
+
     }
 
     private double parseDouble(String str) {
@@ -550,7 +554,7 @@ public class EditAlertActivity extends ActivityWithMenu {
                         startMinute = selectedMinute;
                         setTimeRanges();
                     }
-                }, 0, 0, DateFormat.is24HourFormat(mContext));
+                }, startHour, startMinute, DateFormat.is24HourFormat(mContext));
                 mTimePicker.setTitle("Select Time");
                 mTimePicker.show();
 
@@ -568,7 +572,7 @@ public class EditAlertActivity extends ActivityWithMenu {
                         endMinute = selectedMinute;
                         setTimeRanges();
                     }
-                }, 23, 59, DateFormat.is24HourFormat(mContext));
+                }, endHour, endMinute, DateFormat.is24HourFormat(mContext));
                 mTimePicker.setTitle("Select Time");
                 mTimePicker.show();
 
@@ -631,9 +635,9 @@ public class EditAlertActivity extends ActivityWithMenu {
         }
     }
 
-    public String timeFormatString(int Hour, int Minute) {
+    public String timeFormatString(int hour, int minute) {
         SimpleDateFormat timeFormat24 = new SimpleDateFormat("HH:mm");
-        String selected = Hour+":"+Minute;
+        String selected = hour+":" + ((minute<10)?"0":"") + minute;
         if (!DateFormat.is24HourFormat(mContext)) {
             try {
                 Date date = timeFormat24.parse(selected);
