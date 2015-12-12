@@ -326,7 +326,7 @@ public class EditAlertActivity extends ActivityWithMenu {
         // We want to make sure that for each threashold there is only one alert. Otherwise, which file should we play.
         for (AlertType lowAlert : lowAlerts) {
             if(lowAlert.threshold == threshold  && overlapping(lowAlert, allDay, startTime, endTime)) {
-                if(uuid == null || uuid != lowAlert.uuid){ //new alert or not myself
+                if(uuid == null || ! uuid.equals(lowAlert.uuid)){ //new alert or not myself
                     Toast.makeText(getApplicationContext(),
                             "Each alert should have it's own threshold. Please choose another threshold.",Toast.LENGTH_LONG).show();
                     return false;
@@ -335,7 +335,7 @@ public class EditAlertActivity extends ActivityWithMenu {
         }
         for (AlertType highAlert : highAlerts) {
             if(highAlert.threshold == threshold  && overlapping(highAlert, allDay, startTime, endTime)) {
-                if(uuid == null || uuid != highAlert.uuid){ //new alert or not myself
+                if(uuid == null || ! uuid.equals(highAlert.uuid)){ //new alert or not myself
                     Toast.makeText(getApplicationContext(),
                             "Each alert should have it's own threshold. Please choose another threshold.",Toast.LENGTH_LONG).show();
                     return false;
