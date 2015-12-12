@@ -381,8 +381,8 @@ public class EditAlertActivity extends ActivityWithMenu {
         return  st1 <= st2 && et1 > st2 ||
                 st1 <= st2 && (et2 < st2) && et2 > st1 || //2nd timeframe passes midnight
                 st2 <= st1 && et2 > st1 ||
-                st2 <= st1 && (et1 < st1) && et1 > st2; //1st timeframe passes midnight
-
+                st2 <= st1 && (et1 < st1) && et1 > st2 ||
+                (et1 < st1 && et2 < st2); //both timeframes pass midnight -> overlap at least at midnight
     }
 
     private double parseDouble(String str) {
