@@ -116,15 +116,15 @@ public class SnoozeActivity extends ActivityWithMenu {
             alertStatus.setTextSize(TypedValue.COMPLEX_UNIT_SP, 30);
             buttonSnooze.setTextSize(TypedValue.COMPLEX_UNIT_SP, 30);
         }
-
-        displayStatus();
+        displayStatus(); //still needed to set margins?
     }
 
     @Override
-    protected void onResume() {
-        super.onResume();
-        //also make sure the text in the Activity is changed
-        displayStatus();
+    public void onWindowFocusChanged(boolean hasFocus) {
+        super.onWindowFocusChanged(hasFocus);
+        if (hasFocus){
+            displayStatus();
+        }
     }
 
     @Override
@@ -134,16 +134,16 @@ public class SnoozeActivity extends ActivityWithMenu {
 
     public void addListenerOnButton() {
         buttonSnooze = (Button)findViewById(R.id.button_snooze);
-		
-		//low alerts
-		disableLowAlerts = (Button)findViewById(R.id.button_disable_low_alerts);
-		clearLowDisabled = (Button)findViewById(R.id.enable_low_alerts);
-        
-		//high alerts
-		disableHighAlerts = (Button)findViewById(R.id.button_disable_high_alerts);
-		clearHighDisabled = (Button)findViewById(R.id.enable_high_alerts);
 
-		//all alerts
+        //low alerts
+        disableLowAlerts = (Button)findViewById(R.id.button_disable_low_alerts);
+        clearLowDisabled = (Button)findViewById(R.id.enable_low_alerts);
+
+        //high alerts
+        disableHighAlerts = (Button)findViewById(R.id.button_disable_high_alerts);
+        clearHighDisabled = (Button)findViewById(R.id.enable_high_alerts);
+
+        //all alerts
         disableAlerts = (Button)findViewById(R.id.button_disable_alerts);
         clearDisabled = (Button)findViewById(R.id.enable_alerts);
         buttonSnooze.setOnClickListener(new View.OnClickListener() {
@@ -222,8 +222,8 @@ public class SnoozeActivity extends ActivityWithMenu {
                         if (aba != null) {
                             AlertType activeBgAlert = ActiveBgAlert.alertTypegetOnly();
                             if (disableType.equalsIgnoreCase("alerts_disabled_until")
-                            || (activeBgAlert.above && disableType.equalsIgnoreCase("high_alerts_disabled_until"))
-                            || (!activeBgAlert.above && disableType.equalsIgnoreCase("low_alerts_disabled_until"))
+                                    || (activeBgAlert.above && disableType.equalsIgnoreCase("high_alerts_disabled_until"))
+                                    || (!activeBgAlert.above && disableType.equalsIgnoreCase("low_alerts_disabled_until"))
                                     ) {
                                 //active bg alert exists which is a type that is being disabled so let's remove it completely from the database
                                 ActiveBgAlert.ClearData();
@@ -305,20 +305,23 @@ public class SnoozeActivity extends ActivityWithMenu {
             if (prefs.getLong("alerts_disabled_until", 0) > now
                     ||
                     (prefs.getLong("low_alerts_disabled_until", 0) > now
-                    && prefs.getLong("high_alerts_disabled_until", 0) > now)
-               )
+                            && prefs.getLong("high_alerts_disabled_until", 0) > now)
+                    ) {
                 //not useful to show now that there's no active alert because either all alerts are disabled or high and low alerts are disabled
                 //there can not be any active alert
                 status = "";
-            else
+            }
+            else {
                 status = "No active alert exists";
+            }
             buttonSnooze.setVisibility(View.GONE);
             snoozeValue.setVisibility(View.GONE);
         } else {
             if(!aba.ready_to_alarm()) {
-                status = "Active alert exists named \"" + activeBgAlert.name + "\" Alert snoozed until " +
-                    DateFormat.getTimeInstance(DateFormat.MEDIUM).format(new Date(aba.next_alert_at)) +
-                    " (" + (aba.next_alert_at - now) / 60000 + " minutes left)";
+                status = "Active alert exists named \"" + activeBgAlert.name
+                        + (aba.is_snoozed?"\" Alert snoozed until ":"\" Alert will rerise at ")
+                        + DateFormat.getTimeInstance(DateFormat.MEDIUM).format(new Date(aba.next_alert_at)) +
+                        " (" + (aba.next_alert_at - now) / 60000 + " minutes left)";
             } else {
                 status = "Active alert exists named \"" + activeBgAlert.name + "\" (not snoozed)";
             }
@@ -345,11 +348,9 @@ public class SnoozeActivity extends ActivityWithMenu {
                 status += "\n\nHigh alerts disabled until " + textToAdd;
             }
         }
-        alertStatus.post(new Runnable() {
-            public void run() {
-                alertStatus.setText(status);
-            }
-        });
+
+        alertStatus.setText(status);
+
     }
 
 }
