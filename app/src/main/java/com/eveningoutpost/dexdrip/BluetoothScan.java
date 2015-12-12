@@ -37,10 +37,7 @@ import com.activeandroid.query.Select;
 import com.eveningoutpost.dexdrip.Models.ActiveBluetoothDevice;
 import com.eveningoutpost.dexdrip.Models.UserError.Log;
 import com.eveningoutpost.dexdrip.UtilityModels.CollectionServiceStarter;
-import com.eveningoutpost.dexdrip.utils.AndroidBarcode;
-import com.eveningoutpost.dexdrip.utils.ListActivityWithMenu;
-import com.google.zxing.integration.android.IntentIntegrator;
-import com.google.zxing.integration.android.IntentResult;
+import com.eveningoutpost.dexdrip.utils.LocationHelper;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -83,21 +80,8 @@ public class BluetoothScan extends ListActivityWithMenu {
                 Toast.makeText(this, "The android version of this device is not compatible with Bluetooth Low Energy", Toast.LENGTH_LONG).show();
             }
         }
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            if (ContextCompat.checkSelfPermission(this,
-                    android.Manifest.permission.ACCESS_COARSE_LOCATION)
-                    != PackageManager.PERMISSION_GRANTED) {
-
-                ActivityCompat.requestPermissions(this,
-                        new String[]{android.Manifest.permission.ACCESS_COARSE_LOCATION},
-                        0);
-
-
-            }
-        }
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP)
-            initializeScannerCallback();
-
+        // Will request that GPS be enabled for devices running Marshmallow or newer.
+        LocationHelper.requestLocationForBluetooth(this);
         mLeDeviceListAdapter = new LeDeviceListAdapter();
         setListAdapter(mLeDeviceListAdapter);
     }
