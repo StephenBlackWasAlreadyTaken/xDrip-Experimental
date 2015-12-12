@@ -83,6 +83,9 @@ public class BluetoothScan extends ListActivityWithMenu {
         }
         // Will request that GPS be enabled for devices running Marshmallow or newer.
         LocationHelper.requestLocationForBluetooth(this);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP)
+            initializeScannerCallback();
+
         mLeDeviceListAdapter = new LeDeviceListAdapter();
         setListAdapter(mLeDeviceListAdapter);
     }
