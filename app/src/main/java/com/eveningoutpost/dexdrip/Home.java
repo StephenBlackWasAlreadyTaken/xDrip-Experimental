@@ -460,6 +460,17 @@ public class Home extends ActivityWithMenu {
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.menu_home, menu);
+        MenuItem menuItem =  menu.findItem(R.id.action_toggle_speakreadings);
+        if(prefs.getBoolean("bg_to_speech_shortcut", false)){
+            menuItem.setVisible(true);
+            if(prefs.getBoolean("bg_to_speech", false)){
+                menuItem.setChecked(true);
+            } else {
+                menuItem.setChecked(false);
+            }
+        } else {
+            menuItem.setVisible(false);
+        }
         return super.onCreateOptionsMenu(menu);
     }
 
@@ -538,6 +549,11 @@ public class Home extends ActivityWithMenu {
             return true;
         }
 
+        if (item.getItemId() == R.id.action_toggle_speakreadings) {
+            prefs.edit().putBoolean("bg_to_speech", !prefs.getBoolean("bg_to_speech", false)).commit();
+            invalidateOptionsMenu();
+            return true;
+        }
 
         return super.onOptionsItemSelected(item);
     }

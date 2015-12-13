@@ -18,4 +18,10 @@
         android:orderInCategory="1"
         android:showAsAction="never"/>
 
+    <item android:id="@+id/action_toggle_speakreadings"
+        android:title="@string/menu_toggle_speakreadings"
+        android:checkable="true"
+        android:orderInCategory="2"
+        android:visible="false"
+        android:showAsAction="never"/>
 </menu>
