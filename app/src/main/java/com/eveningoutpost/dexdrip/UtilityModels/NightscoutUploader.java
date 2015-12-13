@@ -196,6 +196,9 @@ public class NightscoutUploader {
         }
 
         private void populateV1APIBGEntry(JSONArray array, BgReading record) throws Exception {
+            
+            Log.e(TAG, "populateV1APIBGEntry preparing bg with data " + record.timestamp);
+            
             JSONObject json = new JSONObject();
             SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ", Locale.US);
             format.setTimeZone(TimeZone.getDefault());
@@ -209,6 +212,10 @@ public class NightscoutUploader {
             json.put("unfiltered", record.usedRaw() * 1000);
             json.put("rssi", 100);
             json.put("noise", record.noiseValue());
+            json.put("xDrip_raw", record.raw_data);
+            json.put("xDrip_filtered", record.filtered_data);
+            json.put("xDrip_calculated_value", record.calculated_value);
+            json.put("xDrip_age_adjusted_raw_value", record.age_adjusted_raw_value);
             array.put(json);
         }
 
@@ -233,6 +240,12 @@ public class NightscoutUploader {
             json.put("date", record.timestamp);
             json.put("dateString", format.format(record.timestamp));
             json.put("mbg", record.bg);
+            json.put("xDrip_slope", record.slope);
+            json.put("xDrip_intercept", record.intercept);
+            json.put("xDrip_estimate_raw_at_time_of_calibration", record.estimate_raw_at_time_of_calibration);
+            json.put("xDrip_slope_confidence", record.slope_confidence);
+            json.put("xDrip_sensor_confidence", record.sensor_confidence);
+            json.put("xDrip_raw_timestamp", record.raw_timestamp);
             array.put(json);
         }
 
@@ -295,9 +308,10 @@ public class NightscoutUploader {
                     DBCollection dexcomData = db.getCollection(collectionName.trim());
 
                     try {
-                        Log.i(TAG, "The number of EGV records being sent to MongoDB is " + glucoseDataSets.size());
+                        Log.e(TAG, "The number of EGV records being sent to MongoDB is " + glucoseDataSets.size());
                         for (BgReading record : glucoseDataSets) {
                             // make db object
+                            Log.e(TAG, "uploading bg with data " + record.timestamp);
                             BasicDBObject testData = new BasicDBObject();
                             testData.put("device", "xDrip-" + prefs.getString("dex_collection_method", "BluetoothWixel"));
                             testData.put("date", record.timestamp);
@@ -311,6 +325,9 @@ public class NightscoutUploader {
                             testData.put("noise", record.noiseValue());
                             testData.put("xDrip_raw", record.raw_data);
                             testData.put("xDrip_filtered", record.filtered_data);
+                            testData.put("xDrip_calculated_value", record.calculated_value);
+                            testData.put("xDrip_age_adjusted_raw_value", record.age_adjusted_raw_value);
+                            
 
                             testData.put("sysTime", format.format(record.timestamp));
                             BasicDBObject query = new BasicDBObject("type", "sgv").append("sysTime", format.format(record.timestamp));
@@ -326,12 +343,6 @@ public class NightscoutUploader {
                             testData.put("date", meterRecord.timestamp);
                             testData.put("dateString", format.format(meterRecord.timestamp));
                             testData.put("mbg", meterRecord.bg);
-                            testData.put("xDrip_slope", meterRecord.slope);
-                            testData.put("xDrip_intercept", meterRecord.intercept);
-                            testData.put("xDrip_estimate_raw_at_time_of_calibration", meterRecord.estimate_raw_at_time_of_calibration);
-                            testData.put("xDrip_slope_confidence", meterRecord.slope_confidence);
-                            testData.put("xDrip_sensor_confidence", meterRecord.sensor_confidence);
-                            testData.put("xDrip_raw_timestamp", meterRecord.raw_timestamp);
                             testData.put("sysTime", format.format(meterRecord.timestamp));
                             BasicDBObject query = new BasicDBObject("type", "mbg").append("sysTime", format.format(meterRecord.timestamp));
                             dexcomData.update(query, testData, true, false,  WriteConcern.UNACKNOWLEDGED);
@@ -354,7 +365,14 @@ public class NightscoutUploader {
                                 testData.put("intercept", ((calRecord.intercept * -1000) / (calRecord.slope)));
                                 testData.put("scale", 1);
                             }
+                            testData.put("xDrip_slope", calRecord.slope);
+                            testData.put("xDrip_intercept", calRecord.intercept);
+                            testData.put("xDrip_estimate_raw_at_time_of_calibration", calRecord.estimate_raw_at_time_of_calibration);
+                            testData.put("xDrip_slope_confidence", calRecord.slope_confidence);
+                            testData.put("xDrip_sensor_confidence", calRecord.sensor_confidence);
+                            testData.put("xDrip_raw_timestamp", calRecord.raw_timestamp);
                             testData.put("type", "cal");
+
                             
                             testData.put("sysTime", format.format(calRecord.timestamp));
                             BasicDBObject query = new BasicDBObject("type", "cal").append("sysTime", format.format(calRecord.timestamp));
