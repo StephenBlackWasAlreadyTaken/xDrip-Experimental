@@ -463,14 +463,11 @@ public class Home extends ActivityWithMenu {
         MenuItem menuItem =  menu.findItem(R.id.action_toggle_speakreadings);
         if(prefs.getBoolean("bg_to_speech_shortcut", false)){
             menuItem.setVisible(true);
-
             if(prefs.getBoolean("bg_to_speech", false)){
                 menuItem.setChecked(true);
             } else {
                 menuItem.setChecked(false);
             }
-
-
         } else {
             menuItem.setVisible(false);
         }
