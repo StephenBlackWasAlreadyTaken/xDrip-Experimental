@@ -48,17 +48,24 @@ public class MissedReadingService extends IntentService {
         otherAlertSnooze =  Integer.parseInt(prefs.getString("other_alerts_snooze", "20"));
 
         long now = new Date().getTime();
+        
+        if (!bg_missed_alerts) {
+        	// we should not do anything in this case. Until there is a listener on UI changes, try again in 5 minutes
+            Log.d(TAG, "Setting timer to  5 minutes from now" );
+            checkBackAfterMissedTime(now + 5 * 60 *1000);
+        	return;
+        }
 
-        if (bg_missed_alerts && 
-                BgReading.getTimeSinceLastReading() >= (bg_missed_minutes * 1000 * 60) &&
+        if (BgReading.getTimeSinceLastReading() >= (bg_missed_minutes * 1000 * 60) &&
                 prefs.getLong("alerts_disabled_until", 0) <= now) {
             Notifications.bgMissedAlert(context);
             checkBackAfterSnoozeTime();
         } else  {
-            long alarmIn = prefs.getLong("alerts_disabled_until", 0) - now;
-            if (alarmIn <= 0) {
-                alarmIn = Long.parseLong(prefs.getString("bg_missed_minutes", "30"))* 1000 * 60 - BgReading.getTimeSinceLastReading();
-            }
+            
+            long disabletime = prefs.getLong("alerts_disabled_until", 0) - now;
+            
+            long missedTime = Long.parseLong(prefs.getString("bg_missed_minutes", "30"))* 1000 * 60 - BgReading.getTimeSinceLastReading();
+            long alarmIn = Math.max(disabletime, missedTime);
             Log.d(TAG, "Setting timer to  " + alarmIn / 60000 + " minutes from now" );
             checkBackAfterMissedTime(alarmIn);
         }
