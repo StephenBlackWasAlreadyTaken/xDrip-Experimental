@@ -7,9 +7,9 @@ import android.app.Dialog;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.os.Handler;
 import android.preference.PreferenceManager;
 import com.eveningoutpost.dexdrip.Models.UserError.Log;
+
 import android.util.TypedValue;
 import android.view.View;
 import android.widget.Button;
@@ -26,7 +26,6 @@ import com.eveningoutpost.dexdrip.utils.ActivityWithMenu;
 
 public class SnoozeActivity extends ActivityWithMenu {
     public static String menu_name = "Snooze Alert";
-    private final Handler mHandler = new Handler();
     private static String status;
 
 
@@ -44,7 +43,7 @@ public class SnoozeActivity extends ActivityWithMenu {
     NumberPicker snoozeValue;
 
     static final int infiniteSnoozeValueInMinutes = 5256000;//10 years
-    static final int snoozeValues[] = new int []{5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 75, 90, 105, 120, 150, 180, 240, 300, 360, 420, 480, 540, 600, infiniteSnoozeValueInMinutes};
+    static final int snoozeValues[] = new int []{5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 75, 90, 105, 120, 150, 180, 240, 300, 360, 420, 480, 540, 600};
 
     static int getSnoozeLocatoin(int time) {
         for (int i=0; i < snoozeValues.length; i++) {
@@ -62,8 +61,6 @@ public class SnoozeActivity extends ActivityWithMenu {
     }
 
     static String getNameFromTime(int time) {
-        if (time == infiniteSnoozeValueInMinutes)
-            return "Until you re-enable";
         if (time < 120) {
             return time + " minutes";
         }
@@ -116,7 +113,7 @@ public class SnoozeActivity extends ActivityWithMenu {
             alertStatus.setTextSize(TypedValue.COMPLEX_UNIT_SP, 30);
             buttonSnooze.setTextSize(TypedValue.COMPLEX_UNIT_SP, 30);
         }
-        displayStatus(); //still needed to set margins?
+        displayStatus();
     }
 
     @Override
@@ -211,11 +208,25 @@ public class SnoozeActivity extends ActivityWithMenu {
                 Button b2 = (Button) d.findViewById(R.id.button2);
                 final NumberPicker snoozeValue = (NumberPicker) d.findViewById(R.id.numberPicker1);
 
-                SnoozeActivity.SetSnoozePickerValues(snoozeValue, false, 60);
+                //don't use SetSnoozePickerValues because an additional value must be added
+                String[] values = new String[snoozeValues.length + 1];//adding place for "until you re-enable"
+                for (int i = 0;i < values.length - 1;i++)
+                    values[i] = getNameFromTime(snoozeValues[i]);
+                values[values.length - 1] = "Until you re-enable";
+                snoozeValue.setMaxValue(values.length - 1);
+                snoozeValue.setMinValue(0);
+                snoozeValue.setDisplayedValues(values);
+                snoozeValue.setWrapSelectorWheel(false);
+                snoozeValue.setValue(getSnoozeLocatoin(60));
+
                 b1.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
-                        Long disableUntil = new Date().getTime() + (SnoozeActivity.getTimeFromSnoozeValue(snoozeValue.getValue()) * 1000 * 60);
+                        Long disableUntil = new Date().getTime() +
+                                (snoozeValue.getValue() == snoozeValue.getMaxValue() ?
+                                infiniteSnoozeValueInMinutes
+                                :
+                                 + (SnoozeActivity.getTimeFromSnoozeValue(snoozeValue.getValue()))) * 1000 * 60;
                         prefs.edit().putLong(disableType, disableUntil).apply();
                         //check if active bg alert exists and delete it depending on type of alert
                         ActiveBgAlert aba = ActiveBgAlert.getOnly();
