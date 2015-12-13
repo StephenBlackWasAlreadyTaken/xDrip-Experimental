@@ -40,14 +40,14 @@ public class LocationHelper {
         // Shamelessly borrowed from http://stackoverflow.com/a/10311877/868533
 
         AlertDialog.Builder builder = new AlertDialog.Builder(parent);
-        builder.setTitle(R.string.gps_not_found_title);
-        builder.setMessage(R.string.gps_not_found_message);
-        builder.setPositiveButton(R.string.gps_yes, new DialogInterface.OnClickListener() {
+        builder.setTitle(R.string.location_not_found_title);
+        builder.setMessage(R.string.location_not_found_message);
+        builder.setPositiveButton(R.string.location_yes, new DialogInterface.OnClickListener() {
             public void onClick(DialogInterface dialogInterface, int i) {
                 parent.startActivity(new Intent(android.provider.Settings.ACTION_LOCATION_SOURCE_SETTINGS));
             }
         });
-        builder.setNegativeButton(R.string.gps_no, null);
+        builder.setNegativeButton(R.string.location_no, null);
         builder.create().show();
     }
 
