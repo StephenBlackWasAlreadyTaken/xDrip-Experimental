@@ -7,6 +7,7 @@ import android.app.Dialog;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.os.Handler;
 import android.preference.PreferenceManager;
 import com.eveningoutpost.dexdrip.Models.UserError.Log;
 
@@ -61,6 +62,8 @@ public class SnoozeActivity extends ActivityWithMenu {
     }
 
     static String getNameFromTime(int time) {
+        if (time == infiniteSnoozeValueInMinutes)
+            return "Until you re-enable";
         if (time < 120) {
             return time + " minutes";
         }
