@@ -62,8 +62,6 @@ public class SnoozeActivity extends ActivityWithMenu {
     }
 
     static String getNameFromTime(int time) {
-        if (time == infiniteSnoozeValueInMinutes)
-            return "Until you re-enable";
         if (time < 120) {
             return time + " minutes";
         }
