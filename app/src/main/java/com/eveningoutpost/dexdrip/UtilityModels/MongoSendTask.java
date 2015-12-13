@@ -2,8 +2,9 @@ package com.eveningoutpost.dexdrip.UtilityModels;
 
 import android.content.Context;
 import android.os.AsyncTask;
-import com.eveningoutpost.dexdrip.Models.UserError.Log;
+import android.os.PowerManager;
 
+import com.eveningoutpost.dexdrip.Models.UserError.Log;
 import com.eveningoutpost.dexdrip.Models.BgReading;
 import com.eveningoutpost.dexdrip.Models.Calibration;
 import com.eveningoutpost.dexdrip.Services.SyncService;
@@ -16,19 +17,41 @@ import java.util.List;
  */
 public class MongoSendTask extends AsyncTask<String, Void, Void> {
         private Context context;
-        public List<BgSendQueue> bgsQueue = new ArrayList<BgSendQueue>();
+        //public List<BgSendQueue> bgsQueue = new ArrayList<BgSendQueue>();
         public List<CalibrationSendQueue> calibrationsQueue = new ArrayList<CalibrationSendQueue>();
 
+        PowerManager.WakeLock wakeLock;
+        private static int lockCounter = 0;
         private Exception exception;
         private static final String TAG = MongoSendTask.class.getSimpleName();
 
         public MongoSendTask(Context pContext) {
-            calibrationsQueue = CalibrationSendQueue.mongoQueue();
-            bgsQueue = BgSendQueue.mongoQueue();
             context = pContext;
+            PowerManager pm = (PowerManager) context.getSystemService(Context.POWER_SERVICE);
+            wakeLock = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "WifiReader");
+            wakeLock.acquire();
+            lockCounter++;
+            Log.e(TAG,"MongosendTask - wakelock acquired " + lockCounter);
+
         }
 
         public Void doInBackground(String... urls) {
+            boolean sendMore = true;
+            try {
+                while (sendMore) {
+                    sendMore = sendData();
+                }
+            } finally {
+                wakeLock.release();
+                lockCounter--;
+                Log.e(TAG,"wakelock released " + lockCounter);
+            }
+        }
+        
+        private boolean sendData() {
+            List<CalibrationSendQueue>calibrationsQueue = CalibrationSendQueue.mongoQueue();
+            List<BgSendQueue> bgsQueue = BgSendQueue.mongoQueue();
+
             try {
                 List<BgReading> bgReadings = new ArrayList<BgReading>();
                 List<Calibration> calibrations = new ArrayList<Calibration>();
@@ -51,13 +74,16 @@ public class MongoSendTask extends AsyncTask<String, Void, Void> {
                             bgReading.markMongoSuccess();
                         }
                     }
+                } else {
+                    return false;
                 }
             } catch (Exception e) {
             	Log.e(TAG, "cought exception", e);
                 this.exception = e;
-                return null;
+                // We will try again soon, But I want to make sure we are not in infinite loop.
+                return false;
             }
-            return null;
+            return true;
         }
 
 //        protected void onPostExecute(RSSFeed feed) {

@@ -37,8 +37,10 @@ public class SyncService extends IntentService {
         attemptSend();
     }
 
-    public void attemptSend() {
-        if (enableRESTUpload || enableMongoUpload) { syncToMogoDb(); }
+    private void attemptSend() {
+        if (enableRESTUpload || enableMongoUpload) { 
+            syncToMogoDb(); 
+        }
         setRetryTimer();
     }
 
