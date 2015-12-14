@@ -44,8 +44,9 @@ public class MongoSendTask extends AsyncTask<String, Void, Void> {
             } finally {
                 wakeLock.release();
                 lockCounter--;
-                Log.e(TAG,"wakelock released " + lockCounter);
+                Log.e(TAG,"MongosendTask wakelock released " + lockCounter);
             }
+            return null;
         }
         
         private boolean sendData() {
@@ -67,12 +68,17 @@ public class MongoSendTask extends AsyncTask<String, Void, Void> {
                     NightscoutUploader uploader = new NightscoutUploader(context);
                     boolean uploadStatus = uploader.upload(bgReadings, calibrations, calibrations);
                     if (uploadStatus) {
+                    	Log.i(TAG, "Starting to delete objects from queue " + bgsQueue.size() + calibrationsQueue.size());
                         for (CalibrationSendQueue calibration : calibrationsQueue) {
-                            calibration.markMongoSuccess();
+                            calibration.deleteThis();
                         }
                         for (BgSendQueue bgReading : bgsQueue) {
-                            bgReading.markMongoSuccess();
+                            bgReading.deleteThis();
                         }
+                        Log.i(TAG, "finished deleting objects from queue " + bgReadings.size());
+                    } else {
+                    	Log.e(TAG, "uploader.upload returned false - exiting");
+                    	return false;
                     }
                 } else {
                     return false;
@@ -86,8 +92,4 @@ public class MongoSendTask extends AsyncTask<String, Void, Void> {
             return true;
         }
 
-//        protected void onPostExecute(RSSFeed feed) {
-//            // TODO: check this.exception
-//            // TODO: do something with the feed
-//        }
     }
