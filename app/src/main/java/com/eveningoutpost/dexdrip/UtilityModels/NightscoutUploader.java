@@ -177,7 +177,6 @@ public class NightscoutUploader {
 
         private void doRESTUploadTo(NightscoutService nightscoutService, String secret, List<BgReading> glucoseDataSets, List<Calibration> meterRecords, List<Calibration> calRecords) throws Exception {
             JSONArray array = new JSONArray();
-
             for (BgReading record : glucoseDataSets) {
                 populateV1APIBGEntry(array, record);
             }
@@ -216,6 +215,7 @@ public class NightscoutUploader {
             json.put("xDrip_filtered", record.filtered_data);
             json.put("xDrip_calculated_value", record.calculated_value);
             json.put("xDrip_age_adjusted_raw_value", record.age_adjusted_raw_value);
+            json.put("sysTime", format.format(record.timestamp));
             array.put(json);
         }
 
@@ -246,6 +246,7 @@ public class NightscoutUploader {
             json.put("xDrip_slope_confidence", record.slope_confidence);
             json.put("xDrip_sensor_confidence", record.sensor_confidence);
             json.put("xDrip_raw_timestamp", record.raw_timestamp);
+            json.put("sysTime", format.format(record.timestamp));
             array.put(json);
         }
 
@@ -266,6 +267,7 @@ public class NightscoutUploader {
                 json.put("intercept", (long) ((record.intercept * -1000) / (record.slope * 1000)));
                 json.put("scale", 1);
             }
+            json.put("sysTime", format.format(record.timestamp));
             array.put(json);
         }
 
@@ -324,7 +326,6 @@ public class NightscoutUploader {
                             testData.put("xDrip_calculated_value", record.calculated_value);
                             testData.put("xDrip_age_adjusted_raw_value", record.age_adjusted_raw_value);
                             
-
                             testData.put("sysTime", format.format(record.timestamp));
                             BasicDBObject query = new BasicDBObject("type", "sgv").append("sysTime", format.format(record.timestamp));
                             dexcomData.update(query, testData, true, false,  WriteConcern.UNACKNOWLEDGED);
