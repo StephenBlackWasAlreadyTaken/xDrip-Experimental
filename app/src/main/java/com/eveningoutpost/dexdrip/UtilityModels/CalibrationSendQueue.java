@@ -28,15 +28,6 @@ public class CalibrationSendQueue extends Model {
     @Column(name = "mongo_success", index = true)
     public boolean mongo_success;
 
-    /*
-    public static List<CalibrationSendQueue> queue() {
-        return new Select()
-                .from(CalibrationSendQueue.class)
-                .where("success = ?", false)
-                .orderBy("_ID asc")
-                .execute();
-    }
-    */
     public static List<CalibrationSendQueue> mongoQueue() {
         return new Select()
                 .from(CalibrationSendQueue.class)
@@ -52,9 +43,8 @@ public class CalibrationSendQueue extends Model {
         calibrationSendQueue.mongo_success = false;
         calibrationSendQueue.save();
     }
-
-    public void markMongoSuccess() {
-        mongo_success = true;
-        save();
+    
+    public void deleteThis() {
+        this.delete();
     }
 }
