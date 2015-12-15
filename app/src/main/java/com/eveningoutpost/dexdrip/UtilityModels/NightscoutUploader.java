@@ -204,7 +204,7 @@ public class NightscoutUploader {
             json.put("device", "xDrip-" + prefs.getString("dex_collection_method", "BluetoothWixel"));
             json.put("date", record.timestamp);
             json.put("dateString", format.format(record.timestamp));
-            json.put("sgv", (int)record.calculated_value);
+            json.put("sgv", Math.round(record.calculated_value));
             json.put("direction", record.slopeName());
             json.put("type", "sgv");
             json.put("filtered", record.ageAdjustedFiltered() * 1000);
@@ -215,6 +215,7 @@ public class NightscoutUploader {
             json.put("xDrip_filtered", record.filtered_data);
             json.put("xDrip_calculated_value", record.calculated_value);
             json.put("xDrip_age_adjusted_raw_value", record.age_adjusted_raw_value);
+            json.put("xDrip_calculated_current_slope", record.currentSlope());
             json.put("sysTime", format.format(record.timestamp));
             array.put(json);
         }
@@ -226,7 +227,7 @@ public class NightscoutUploader {
             json.put("device", "xDrip-"+prefs.getString("dex_collection_method", "BluetoothWixel"));
             json.put("date", record.timestamp);
             json.put("dateString", format.format(record.timestamp));
-            json.put("sgv", (int)record.calculated_value);
+            json.put("sgv", Math.round(record.calculated_value));
             json.put("direction", record.slopeName());
             return RequestBody.create(MediaType.parse("application/json"), json.toString());
         }
@@ -328,6 +329,7 @@ public class NightscoutUploader {
                             testData.put("xDrip_raw", record.raw_data);
                             testData.put("xDrip_filtered", record.filtered_data);
                             testData.put("xDrip_calculated_value", record.calculated_value);
+                            testData.put("xDrip_calculated_current_slope", record.currentSlope());
                             testData.put("xDrip_age_adjusted_raw_value", record.age_adjusted_raw_value);
                             
                             testData.put("sysTime", format.format(record.timestamp));
