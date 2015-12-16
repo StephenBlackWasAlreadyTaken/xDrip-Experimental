@@ -393,7 +393,7 @@ public class Calibration extends Model {
                 .execute();
     }
 
-    public static void calculate_w_l_s() {
+    private static void calculate_w_l_s() {
         if (Sensor.isActive()) {
             double l = 0;
             double m = 0;
@@ -407,6 +407,7 @@ public class Calibration extends Model {
                 calibration.slope = 1;
                 calibration.intercept = calibration.bg - (calibration.raw_value * calibration.slope);
                 calibration.save();
+                CalibrationRequest.createOffset(calibration.bg, 25);
             } else {
                 for (Calibration calibration : calibrations) {
                     w = calibration.calculateWeight();
