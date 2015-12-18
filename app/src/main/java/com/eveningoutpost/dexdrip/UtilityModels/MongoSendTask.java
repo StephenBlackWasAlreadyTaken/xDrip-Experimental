@@ -28,7 +28,7 @@ public class MongoSendTask extends AsyncTask<String, Void, Void> {
         public MongoSendTask(Context pContext) {
             context = pContext;
             PowerManager pm = (PowerManager) context.getSystemService(Context.POWER_SERVICE);
-            wakeLock = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "WifiReader");
+            wakeLock = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "MongoSendTask");
             wakeLock.acquire();
             lockCounter++;
             Log.e(TAG,"MongosendTask - wakelock acquired " + lockCounter);
@@ -36,11 +36,8 @@ public class MongoSendTask extends AsyncTask<String, Void, Void> {
         }
 
         public Void doInBackground(String... urls) {
-            boolean sendMore = true;
             try {
-                while (sendMore) {
-                    sendMore = sendData();
-                }
+               	sendData();
             } finally {
                 wakeLock.release();
                 lockCounter--;
@@ -50,8 +47,9 @@ public class MongoSendTask extends AsyncTask<String, Void, Void> {
         }
         
         private boolean sendData() {
-            List<CalibrationSendQueue>calibrationsQueue = CalibrationSendQueue.mongoQueue();
-            List<BgSendQueue> bgsQueue = BgSendQueue.mongoQueue();
+        	boolean nightWatchproMode = false;//???????
+            List<CalibrationSendQueue>calibrationsQueue = CalibrationSendQueue.mongoQueue(nightWatchproMode);
+            List<BgSendQueue> bgsQueue = BgSendQueue.mongoQueue( nightWatchproMode);
 
             try {
                 List<BgReading> bgReadings = new ArrayList<BgReading>();
@@ -66,7 +64,7 @@ public class MongoSendTask extends AsyncTask<String, Void, Void> {
                 if(bgReadings.size() + calibrations.size() > 0) {
                 	Log.i(TAG, "uoader.upload called " + bgReadings.size());
                     NightscoutUploader uploader = new NightscoutUploader(context);
-                    boolean uploadStatus = uploader.upload(bgReadings, calibrations, calibrations);
+                    boolean uploadStatus = uploader.upload(bgReadings, calibrations, calibrations, nightWatchproMode);
                     if (uploadStatus) {
                     	Log.i(TAG, "Starting to delete objects from queue " + bgsQueue.size() + calibrationsQueue.size());
                         for (CalibrationSendQueue calibration : calibrationsQueue) {

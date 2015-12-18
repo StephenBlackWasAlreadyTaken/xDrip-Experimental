@@ -27,6 +27,7 @@ import com.eveningoutpost.dexdrip.ShareModels.BgUploader;
 import com.eveningoutpost.dexdrip.WidgetUpdateService;
 import com.eveningoutpost.dexdrip.xDripWidget;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -47,14 +48,27 @@ public class BgSendQueue extends Model {
     @Column(name = "operation_type")
     public String operation_type;
 
-    public static List<BgSendQueue> mongoQueue() {
-        return new Select()
+    public static List<BgSendQueue> mongoQueue(boolean nightWatchproMode) {
+    	List<BgSendQueue> values = new Select()
                 .from(BgSendQueue.class)
                 .where("mongo_success = ?", false)
                 .where("operation_type = ?", "create")
-                .orderBy("_ID asc")
-                .limit(300)
+                .orderBy("_ID desc")
+                .limit(nightWatchproMode ? 500 : 30)
                 .execute();
+    	if (!nightWatchproMode) {
+    		return values;
+    	}
+    	// swap the order of objects
+    	ArrayList<BgSendQueue> ret = new ArrayList<BgSendQueue>(values.size());	
+
+		int location = values.size() - 1;
+		for(BgSendQueue value : values) {
+			ret.set(location, value);
+			location--;
+		}
+		return ret;
+    	
     }
 
     private static void addToQueue(BgReading bgReading, String operation_type) {

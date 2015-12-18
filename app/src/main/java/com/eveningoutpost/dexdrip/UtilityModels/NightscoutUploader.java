@@ -96,27 +96,27 @@ public class NightscoutUploader {
             enableMongoUpload = prefs.getBoolean("cloud_storage_mongodb_enable", false);
         }
 
-        public boolean upload(List<BgReading> glucoseDataSets, List<Calibration> meterRecords, List<Calibration> calRecords) {
+        public boolean upload(List<BgReading> glucoseDataSets, List<Calibration> meterRecords, List<Calibration> calRecords, boolean nightWatchproMode) {
             boolean mongoStatus = false;
             boolean apiStatus = false;
 
             if (enableRESTUpload) {
                 long start = System.currentTimeMillis();
                 Log.i(TAG, String.format("Starting upload of %s record using a REST API", glucoseDataSets.size()));
-                apiStatus = doRESTUpload(prefs, glucoseDataSets, meterRecords, calRecords);
+                apiStatus = doRESTUpload(prefs, glucoseDataSets, meterRecords, calRecords, nightWatchproMode);
                 Log.i(TAG, String.format("Finished upload of %s record using a REST API in %s ms", glucoseDataSets.size(), System.currentTimeMillis() - start));
             }
 
             if (enableMongoUpload) {
                 double start = new Date().getTime();
-                mongoStatus = doMongoUpload(prefs, glucoseDataSets, meterRecords, calRecords);
+                mongoStatus = doMongoUpload(prefs, glucoseDataSets, meterRecords, calRecords, nightWatchproMode);
                 Log.i(TAG, String.format("Finished upload of %s record using a Mongo in %s ms", glucoseDataSets.size() + meterRecords.size(), System.currentTimeMillis() - start));
             }
 
             return apiStatus || mongoStatus;
         }
 
-        private boolean doRESTUpload(SharedPreferences prefs, List<BgReading> glucoseDataSets, List<Calibration> meterRecords, List<Calibration> calRecords) {
+        private boolean doRESTUpload(SharedPreferences prefs, List<BgReading> glucoseDataSets, List<Calibration> meterRecords, List<Calibration> calRecords, boolean nightWatchproMode) {
             String baseURLSettings = prefs.getString("cloud_storage_api_base", "");
             ArrayList<String> baseURIs = new ArrayList<String>();
 
@@ -153,7 +153,7 @@ public class NightscoutUploader {
 
                     if (apiVersion == 1) {
                         String hashedSecret = Hashing.sha1().hashBytes(secret.getBytes(Charsets.UTF_8)).toString();
-                        doRESTUploadTo(nightscoutService, hashedSecret, glucoseDataSets, meterRecords, calRecords);
+                        doRESTUploadTo(nightscoutService, hashedSecret, glucoseDataSets, meterRecords, calRecords, nightWatchproMode);
                     } else {
                         doLegacyRESTUploadTo(nightscoutService, glucoseDataSets);
                     }
@@ -175,13 +175,13 @@ public class NightscoutUploader {
             postDeviceStatus(nightscoutService, null);
         }
 
-        private void doRESTUploadTo(NightscoutService nightscoutService, String secret, List<BgReading> glucoseDataSets, List<Calibration> meterRecords, List<Calibration> calRecords) throws Exception {
+        private void doRESTUploadTo(NightscoutService nightscoutService, String secret, List<BgReading> glucoseDataSets, List<Calibration> meterRecords, List<Calibration> calRecords, boolean nightWatchproMode) throws Exception {
             JSONArray array = new JSONArray();
             for (BgReading record : glucoseDataSets) {
-                populateV1APIBGEntry(array, record);
+                populateV1APIBGEntry(array, record, nightWatchproMode);
             }
             for (Calibration record : meterRecords) {
-                populateV1APIMeterReadingEntry(array, record);
+                populateV1APIMeterReadingEntry(array, record, nightWatchproMode);
             }
             for (Calibration record : calRecords) {
                 populateV1APICalibrationEntry(array, record);
@@ -194,7 +194,7 @@ public class NightscoutUploader {
             postDeviceStatus(nightscoutService, secret);
         }
 
-        private void populateV1APIBGEntry(JSONArray array, BgReading record) throws Exception {
+        private void populateV1APIBGEntry(JSONArray array, BgReading record, boolean nightWatchproMode) throws Exception {
             
             Log.e(TAG, "populateV1APIBGEntry preparing bg with data " + record.timestamp);
             
@@ -211,11 +211,13 @@ public class NightscoutUploader {
             json.put("unfiltered", record.usedRaw() * 1000);
             json.put("rssi", 100);
             json.put("noise", record.noiseValue());
-            json.put("xDrip_raw", record.raw_data);
-            json.put("xDrip_filtered", record.filtered_data);
-            json.put("xDrip_calculated_value", record.calculated_value);
-            json.put("xDrip_age_adjusted_raw_value", record.age_adjusted_raw_value);
-            json.put("xDrip_calculated_current_slope", record.currentSlope());
+            if(nightWatchproMode) {
+	            json.put("xDrip_raw", record.raw_data);
+	            json.put("xDrip_filtered", record.filtered_data);
+	            json.put("xDrip_calculated_value", record.calculated_value);
+	            json.put("xDrip_age_adjusted_raw_value", record.age_adjusted_raw_value);
+	            json.put("xDrip_calculated_current_slope", record.currentSlope());
+            }
             json.put("sysTime", format.format(record.timestamp));
             array.put(json);
         }
@@ -232,7 +234,7 @@ public class NightscoutUploader {
             return RequestBody.create(MediaType.parse("application/json"), json.toString());
         }
 
-        private void populateV1APIMeterReadingEntry(JSONArray array, Calibration record) throws Exception {
+        private void populateV1APIMeterReadingEntry(JSONArray array, Calibration record, boolean nightWatchproMode) throws Exception {
             JSONObject json = new JSONObject();
             SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ", Locale.US);
             format.setTimeZone(TimeZone.getDefault());
@@ -241,12 +243,14 @@ public class NightscoutUploader {
             json.put("date", record.timestamp);
             json.put("dateString", format.format(record.timestamp));
             json.put("mbg", record.bg);
-            json.put("xDrip_slope", record.slope);
-            json.put("xDrip_intercept", record.intercept);
-            json.put("xDrip_estimate_raw_at_time_of_calibration", record.estimate_raw_at_time_of_calibration);
-            json.put("xDrip_slope_confidence", record.slope_confidence);
-            json.put("xDrip_sensor_confidence", record.sensor_confidence);
-            json.put("xDrip_raw_timestamp", record.raw_timestamp);
+            if(nightWatchproMode) {
+	            json.put("xDrip_slope", record.slope);
+	            json.put("xDrip_intercept", record.intercept);
+	            json.put("xDrip_estimate_raw_at_time_of_calibration", record.estimate_raw_at_time_of_calibration);
+	            json.put("xDrip_slope_confidence", record.slope_confidence);
+	            json.put("xDrip_sensor_confidence", record.sensor_confidence);
+	            json.put("xDrip_raw_timestamp", record.raw_timestamp);
+            }
             json.put("sysTime", format.format(record.timestamp));
             array.put(json);
         }
@@ -285,7 +289,7 @@ public class NightscoutUploader {
         }
 
         private boolean doMongoUpload(SharedPreferences prefs, List<BgReading> glucoseDataSets,
-                                      List<Calibration> meterRecords,  List<Calibration> calRecords) {
+                                      List<Calibration> meterRecords,  List<Calibration> calRecords, boolean nightWatchproMode) {
             SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ", Locale.US);
             format.setTimeZone(TimeZone.getDefault());
 
@@ -322,12 +326,13 @@ public class NightscoutUploader {
                             testData.put("unfiltered", record.usedRaw() * 1000);
                             testData.put("rssi", 100);
                             testData.put("noise", record.noiseValue());
-                            testData.put("xDrip_raw", record.raw_data);
-                            testData.put("xDrip_filtered", record.filtered_data);
-                            testData.put("xDrip_calculated_value", record.calculated_value);
-                            testData.put("xDrip_calculated_current_slope", record.currentSlope());
-                            testData.put("xDrip_age_adjusted_raw_value", record.age_adjusted_raw_value);
-                            
+                            if(nightWatchproMode) {
+	                            testData.put("xDrip_raw", record.raw_data);
+	                            testData.put("xDrip_filtered", record.filtered_data);
+	                            testData.put("xDrip_calculated_value", record.calculated_value);
+	                            testData.put("xDrip_calculated_current_slope", record.currentSlope());
+	                            testData.put("xDrip_age_adjusted_raw_value", record.age_adjusted_raw_value);
+                            }
                             testData.put("sysTime", format.format(record.timestamp));
                             BasicDBObject query = new BasicDBObject("type", "sgv").append("sysTime", format.format(record.timestamp));
                             dexcomData.update(query, testData, true, false,  WriteConcern.UNACKNOWLEDGED);
@@ -362,14 +367,15 @@ public class NightscoutUploader {
                                 testData.put("intercept", (long) ((calRecord.intercept * -1000) / (calRecord.slope * 1000)));
                                 testData.put("scale", 1);
                             }
-                            testData.put("xDrip_slope", calRecord.slope);
-                            testData.put("xDrip_intercept", calRecord.intercept);
-                            testData.put("xDrip_estimate_raw_at_time_of_calibration", calRecord.estimate_raw_at_time_of_calibration);
-                            testData.put("xDrip_slope_confidence", calRecord.slope_confidence);
-                            testData.put("xDrip_sensor_confidence", calRecord.sensor_confidence);
-                            testData.put("xDrip_raw_timestamp", calRecord.raw_timestamp);
-                            testData.put("type", "cal");
-
+                            if(nightWatchproMode) {
+	                            testData.put("xDrip_slope", calRecord.slope);
+	                            testData.put("xDrip_intercept", calRecord.intercept);
+	                            testData.put("xDrip_estimate_raw_at_time_of_calibration", calRecord.estimate_raw_at_time_of_calibration);
+	                            testData.put("xDrip_slope_confidence", calRecord.slope_confidence);
+	                            testData.put("xDrip_sensor_confidence", calRecord.sensor_confidence);
+	                            testData.put("xDrip_raw_timestamp", calRecord.raw_timestamp);
+	                            testData.put("type", "cal");
+                            }
                             
                             testData.put("sysTime", format.format(calRecord.timestamp));
                             BasicDBObject query = new BasicDBObject("type", "cal").append("sysTime", format.format(calRecord.timestamp));
