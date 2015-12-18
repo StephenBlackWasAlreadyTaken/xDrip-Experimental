@@ -38,6 +38,7 @@ public class PebbleSync extends Service {
     public static final int TREND_END_KEY = 9;
     public static final int MESSAGE_KEY = 10;
     public static final int VIBE_KEY = 11;
+    public static final int SYNC_KEY = 0xd1abada5;
 
     public static final int CHUNK_SIZE = 100;
 
@@ -107,22 +108,18 @@ public class PebbleSync extends Service {
             @Override
             public void receiveData(final Context context, final int transactionId, final PebbleDictionary data) {
                 Log.d(TAG, "receiveData: transactionId is " + String.valueOf(transactionId));
-                PebbleKit.sendAckToPebble(context, transactionId);
-                //if ((lastTransactionId == 0 || transactionId != lastTransactionId) && !sendingData) {
-                //if(!sendingData || (sendingData && sendStep == 0)){
                 lastTransactionId = transactionId;
-                Log.d(TAG, "Received Query. data: " + data.size() + ". sending ACK and data");
-                transactionFailed = false;
-                transactionOk = false;
-                messageInTransit = false;
-                sendingData = false;
-                sendStep = 5;
-                sendData();
-                /*} else {
-                    Log.d(TAG, "receiveData: lastTransactionId is " + String.valueOf(lastTransactionId) + ", sending NACK");
-                    PebbleKit.sendNackToPebble(context, transactionId);
-                }*/
-                //sendStep = 5;
+                Log.d(TAG, "Received Query. data: " + data.size() + ".");
+                if(data.getInteger(SYNC_KEY)!=null) {
+                    Log.d(TAG, "Received SYNC_KEY, sending ack and data to Pebble");
+                    PebbleKit.sendAckToPebble(context, transactionId);
+                    transactionFailed = false;
+                    transactionOk = false;
+                    messageInTransit = false;
+                    sendingData = false;
+                    sendStep = 5;
+                    sendData();
+                }
             }
         });
 
@@ -176,7 +173,11 @@ public class PebbleSync extends Service {
             dictionary.addString(ICON_KEY, slopeOrdinal());
             dictionary.addString(BG_KEY, bgReading());
             dictionary.addUint32(RECORD_TIME_KEY, (int) (((mBgReading.timestamp + offsetFromUTC) / 1000)));
-            dictionary.addString(BG_DELTA_KEY, bgDelta());
+            if(PreferenceManager.getDefaultSharedPreferences(mContext).getBoolean("pebble_show_delta", false)) {
+                dictionary.addString(BG_DELTA_KEY, bgDelta());
+            }else {
+                dictionary.addString(BG_DELTA_KEY, "");
+            }
             String msg = PreferenceManager.getDefaultSharedPreferences(mContext).getString("pebble_special_value","");
             if(bgReading().compareTo(msg)==0) {
                 dictionary.addString(MESSAGE_KEY, PreferenceManager.getDefaultSharedPreferences(mContext).getString("pebble_special_text", "BAZINGA!"));

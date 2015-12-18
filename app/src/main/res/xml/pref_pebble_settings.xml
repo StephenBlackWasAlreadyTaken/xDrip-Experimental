@@ -35,6 +35,12 @@
             android:entryValues="@array/PebbleTrendPeriodValues"
             android:defaultValue="3">
         </ListPreference>
+        <SwitchPreference
+            android:title="Display Delta"
+            android:key="pebble_show_delta"
+            android:summary="Displays the Delta value"
+            android:defaultValue="true" >
+        </SwitchPreference>
         <EditTextPreference
             android:key="pebble_special_value"
             android:title="Special Value"
