@@ -11,6 +11,7 @@ import com.activeandroid.annotation.Table;
 import com.activeandroid.query.Select;
 import com.eveningoutpost.dexdrip.Models.Calibration;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -28,13 +29,26 @@ public class CalibrationSendQueue extends Model {
     @Column(name = "mongo_success", index = true)
     public boolean mongo_success;
 
-    public static List<CalibrationSendQueue> mongoQueue() {
-        return new Select()
+    public static List<CalibrationSendQueue> mongoQueue(boolean nightWatchproMode) {
+    	List<CalibrationSendQueue> values =  new Select()
                 .from(CalibrationSendQueue.class)
                 .where("mongo_success = ?", false)
-                .orderBy("_ID asc")
-                .limit(2)
+                .orderBy("_ID desc")
+                .limit(4)
                 .execute();
+        
+    	if (!nightWatchproMode) {
+    		return values;
+    	}
+    	// swap the order of objects
+    	ArrayList<CalibrationSendQueue> ret = new ArrayList<CalibrationSendQueue>(values.size());	
+
+		int location = values.size() - 1;
+		for(CalibrationSendQueue value : values) {
+			ret.set(location, value);
+			location--;
+		}
+		return ret;
     }
     public static void addToQueue(Calibration calibration, Context context) {
         CalibrationSendQueue calibrationSendQueue = new CalibrationSendQueue();
