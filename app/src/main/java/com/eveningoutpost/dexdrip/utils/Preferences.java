@@ -327,6 +327,7 @@ public class Preferences extends PreferenceActivity {
             final Preference pebbleHighLine = findPreference("pebble_high_line");
             final Preference pebbleLowLine = findPreference("pebble_low_line");
             final Preference pebbleTrendPeriod = findPreference("pebble_trend_period");
+            final Preference pebbleDelta = findPreference("pebble_show_delta");
             final EditTextPreference pebbleSpecialValue = (EditTextPreference) findPreference("pebble_special_value");
             bindPreferenceSummaryToValueAndEnsureNumeric(pebbleSpecialValue);
             final Preference pebbleSpecialText = findPreference("pebble_special_text");
@@ -456,6 +457,7 @@ public class Preferences extends PreferenceActivity {
                         pebbleCategory.addPreference(pebbleTrend);
                         pebbleCategory.addPreference(pebbleHighLine);
                         pebbleCategory.addPreference(pebbleLowLine);
+                        pebbleCategory.addPreference(pebbleDelta);
                         pebbleCategory.addPreference(pebbleTrendPeriod);
                         pebbleCategory.addPreference(pebbleSpecialValue);
                         pebbleCategory.addPreference(pebbleSpecialText);
@@ -464,6 +466,7 @@ public class Preferences extends PreferenceActivity {
                         pebbleCategory.removePreference(pebbleTrend);
                         pebbleCategory.removePreference(pebbleHighLine);
                         pebbleCategory.removePreference(pebbleLowLine);
+                        pebbleCategory.addPreference(pebbleDelta);
                         pebbleCategory.removePreference(pebbleTrendPeriod);
                         pebbleCategory.removePreference(pebbleSpecialValue);
                         pebbleCategory.removePreference(pebbleSpecialText);
@@ -498,6 +501,14 @@ public class Preferences extends PreferenceActivity {
                    Context context = preference.getContext();
                    context.startService(new Intent(context, PebbleSync.class));
                    return true;
+                }
+            });
+            pebbleDelta.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
+                @Override
+                public boolean onPreferenceChange(Preference preference, Object newValue){
+                    Context context = preference.getContext();
+                    context.startService(new Intent(context, PebbleSync.class));
+                    return true;
                 }
             });
 
