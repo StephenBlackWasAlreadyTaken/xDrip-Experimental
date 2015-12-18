@@ -110,7 +110,7 @@ public class PebbleSync extends Service {
                 Log.d(TAG, "receiveData: transactionId is " + String.valueOf(transactionId));
                 lastTransactionId = transactionId;
                 Log.d(TAG, "Received Query. data: " + data.size() + ".");
-                if(data.getInteger(SYNC_KEY)!=null) {
+//                if(data.getInteger(SYNC_KEY)!=null) {
                     Log.d(TAG, "Received SYNC_KEY, sending ack and data to Pebble");
                     PebbleKit.sendAckToPebble(context, transactionId);
                     transactionFailed = false;
@@ -119,7 +119,10 @@ public class PebbleSync extends Service {
                     sendingData = false;
                     sendStep = 5;
                     sendData();
-                }
+//                } else {
+                    Log.d(TAG, "PebbleSync: SYNC_KEY not found");
+//                }
+
             }
         });
 
@@ -170,7 +173,12 @@ public class PebbleSync extends Service {
         }
         if(mBgReading != null) {
             Log.v(TAG, "buildDictionary: slopeOrdinal-" + slopeOrdinal() + " bgReading-" + bgReading() + " now-" + (int) now.getTime() / 1000 + " bgTime-" + (int) (mBgReading.timestamp / 1000) + " phoneTime-" + (int) (new Date().getTime() / 1000) + " bgDelta-" + bgDelta());
-            dictionary.addString(ICON_KEY, slopeOrdinal());
+            if(!PreferenceManager.getDefaultSharedPreferences(mContext).getBoolean("pebble_show_arrows", false)) {
+                dictionary.addString(ICON_KEY, "0");
+            } else {
+                dictionary.addString(ICON_KEY, slopeOrdinal());
+            }
+
             dictionary.addString(BG_KEY, bgReading());
             dictionary.addUint32(RECORD_TIME_KEY, (int) (((mBgReading.timestamp + offsetFromUTC) / 1000)));
             if(PreferenceManager.getDefaultSharedPreferences(mContext).getBoolean("pebble_show_delta", false)) {
