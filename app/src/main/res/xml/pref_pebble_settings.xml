@@ -41,6 +41,12 @@
             android:summary="Displays the Delta value"
             android:defaultValue="true" >
         </SwitchPreference>
+        <SwitchPreference
+            android:title="Display Slope Arrows"
+            android:key="pebble_show_arrows"
+            android:summary="Displays the Slope Arrows"
+            android:defaultValue="true" >
+        </SwitchPreference>
         <EditTextPreference
             android:key="pebble_special_value"
             android:title="Special Value"
