@@ -37,18 +37,10 @@ public class CalibrationSendQueue extends Model {
                 .limit(4)
                 .execute();
         
-    	if (!nightWatchproMode) {
-    		return values;
+    	if (nightWatchproMode) {
+   		 	java.util.Collections.reverse(values);
     	}
-    	// swap the order of objects
-    	ArrayList<CalibrationSendQueue> ret = new ArrayList<CalibrationSendQueue>(values.size());	
-
-		int location = values.size() - 1;
-		for(CalibrationSendQueue value : values) {
-			ret.set(location, value);
-			location--;
-		}
-		return ret;
+    	return values;
     }
     public static void addToQueue(Calibration calibration, Context context) {
         CalibrationSendQueue calibrationSendQueue = new CalibrationSendQueue();
