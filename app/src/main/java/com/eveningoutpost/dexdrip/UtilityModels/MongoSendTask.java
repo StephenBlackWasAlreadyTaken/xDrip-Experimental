@@ -48,7 +48,7 @@ public class MongoSendTask extends AsyncTask<String, Void, Void> {
         
         private boolean sendData() {
         	SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
-        	boolean nightWatchproMode = prefs.getBoolean("nightwatchpro_upload_mode", false);
+        	boolean nightWatchproMode = prefs.getBoolean("xDripViewer_upload_mode", false);
             List<CalibrationSendQueue>calibrationsQueue = CalibrationSendQueue.mongoQueue(nightWatchproMode);
             List<BgSendQueue> bgsQueue = BgSendQueue.mongoQueue( nightWatchproMode);
 
