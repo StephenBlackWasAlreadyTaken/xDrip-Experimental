@@ -1,8 +1,10 @@
 package com.eveningoutpost.dexdrip.UtilityModels;
 
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.os.AsyncTask;
 import android.os.PowerManager;
+import android.preference.PreferenceManager;
 
 import com.eveningoutpost.dexdrip.Models.UserError.Log;
 import com.eveningoutpost.dexdrip.Models.BgReading;
@@ -17,8 +19,6 @@ import java.util.List;
  */
 public class MongoSendTask extends AsyncTask<String, Void, Void> {
         private Context context;
-        //public List<BgSendQueue> bgsQueue = new ArrayList<BgSendQueue>();
-        public List<CalibrationSendQueue> calibrationsQueue = new ArrayList<CalibrationSendQueue>();
 
         PowerManager.WakeLock wakeLock;
         private static int lockCounter = 0;
@@ -47,7 +47,8 @@ public class MongoSendTask extends AsyncTask<String, Void, Void> {
         }
         
         private boolean sendData() {
-        	boolean nightWatchproMode = false;//???????
+        	SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
+        	boolean nightWatchproMode = prefs.getBoolean("nightwatchpro_upload_mode", false);
             List<CalibrationSendQueue>calibrationsQueue = CalibrationSendQueue.mongoQueue(nightWatchproMode);
             List<BgSendQueue> bgsQueue = BgSendQueue.mongoQueue( nightWatchproMode);
 
