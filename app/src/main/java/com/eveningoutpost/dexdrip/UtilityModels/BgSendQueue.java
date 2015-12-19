@@ -56,18 +56,10 @@ public class BgSendQueue extends Model {
                 .orderBy("_ID desc")
                 .limit(nightWatchproMode ? 500 : 30)
                 .execute();
-    	if (!nightWatchproMode) {
-    		return values;
+    	if (nightWatchproMode) {
+    		 java.util.Collections.reverse(values);
     	}
-    	// swap the order of objects
-    	ArrayList<BgSendQueue> ret = new ArrayList<BgSendQueue>(values.size());	
-
-		int location = values.size() - 1;
-		for(BgSendQueue value : values) {
-			ret.set(location, value);
-			location--;
-		}
-		return ret;
+    	return values;
     	
     }
 
