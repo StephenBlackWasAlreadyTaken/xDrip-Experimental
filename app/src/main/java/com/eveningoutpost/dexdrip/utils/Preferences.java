@@ -24,7 +24,7 @@ import android.text.TextUtils;
 import android.widget.Toast;
 
 import com.eveningoutpost.dexdrip.Models.UserError.Log;
-
+import com.eveningoutpost.dexdrip.Services.MissedReadingService;
 import com.eveningoutpost.dexdrip.R;
 import com.eveningoutpost.dexdrip.UtilityModels.CollectionServiceStarter;
 import com.eveningoutpost.dexdrip.UtilityModels.PebbleSync;
@@ -268,6 +268,7 @@ public class Preferences extends PreferenceActivity {
             addPreferencesFromResource(R.xml.pref_community_help);
 
             bindTTSListener();
+            bindBgMissedAlertsListener();
             final Preference collectionMethod = findPreference("dex_collection_method");
             final Preference runInForeground = findPreference("run_service_in_foreground");
             final Preference wifiRecievers = findPreference("wifi_recievers_addresses");
@@ -467,6 +468,18 @@ public class Preferences extends PreferenceActivity {
                     return true;
                 }
             });
+        }
+        
+        private void bindBgMissedAlertsListener(){
+        	findPreference("bg_missed_alerts").setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
+        
+	            @Override
+	            public boolean onPreferenceChange(Preference preference, Object newValue) {
+	            	Context context = preference.getContext();
+	            	context.startService(new Intent(context, MissedReadingService.class));
+	            	return true;
+	            }
+        	});
         }
 
     }

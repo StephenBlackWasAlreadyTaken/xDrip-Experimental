@@ -48,11 +48,9 @@ public class MissedReadingService extends IntentService {
         otherAlertSnooze =  Integer.parseInt(prefs.getString("other_alerts_snooze", "20"));
 
         long now = new Date().getTime();
-        
+        Log.d(TAG, "MissedReadingService onHandleIntent");
         if (!bg_missed_alerts) {
-        	// we should not do anything in this case. Until there is a listener on UI changes, try again in 5 minutes
-            Log.d(TAG, "Setting timer to  5 minutes from now" );
-            checkBackAfterMissedTime(now + 5 * 60 *1000);
+        	// we should not do anything in this case. if the ui, changes will be called again
         	return;
         }
 
@@ -64,14 +62,14 @@ public class MissedReadingService extends IntentService {
             
             long disabletime = prefs.getLong("alerts_disabled_until", 0) - now;
             
-            long missedTime = Long.parseLong(prefs.getString("bg_missed_minutes", "30"))* 1000 * 60 - BgReading.getTimeSinceLastReading();
+            long missedTime = bg_missed_minutes* 1000 * 60 - BgReading.getTimeSinceLastReading();
             long alarmIn = Math.max(disabletime, missedTime);
-            Log.d(TAG, "Setting timer to  " + alarmIn / 60000 + " minutes from now" );
             checkBackAfterMissedTime(alarmIn);
         }
     }
 
     public void checkBackAfterSnoozeTime() {
+    	// This is not 100% acurate, need to take in account also the time of when this alert was snoozed.
         setAlarm(otherAlertSnooze * 1000 * 60);
     }
 
@@ -80,6 +78,7 @@ public class MissedReadingService extends IntentService {
     }
 
     public void setAlarm(long alarmIn) {
+    	Log.d(TAG, "Setting timer to  " + alarmIn / 60000 + " minutes from now" );
         Calendar calendar = Calendar.getInstance();
         AlarmManager alarm = (AlarmManager) getSystemService(ALARM_SERVICE);
         long wakeTime = calendar.getTimeInMillis() + alarmIn;
