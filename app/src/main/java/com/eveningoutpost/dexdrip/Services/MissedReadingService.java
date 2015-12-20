@@ -16,6 +16,7 @@ import android.preference.PreferenceManager;
 import com.eveningoutpost.dexdrip.Models.UserError.Log;
 import com.eveningoutpost.dexdrip.ImportedLibraries.dexcom.ReadDataShare;
 import com.eveningoutpost.dexdrip.Models.BgReading;
+import com.eveningoutpost.dexdrip.Models.UserNotification;
 import com.eveningoutpost.dexdrip.Sensor;
 import com.eveningoutpost.dexdrip.UtilityModels.AlertPlayer;
 import com.eveningoutpost.dexdrip.UtilityModels.CollectionServiceStarter;
@@ -27,7 +28,7 @@ import java.util.Date;
 
 public class MissedReadingService extends IntentService {
     int otherAlertSnooze;
-    private final static String TAG = AlertPlayer.class.getSimpleName();
+    private final static String TAG = MissedReadingService.class.getSimpleName();
 
     public MissedReadingService() {
         super("MissedReadingService");
@@ -57,7 +58,7 @@ public class MissedReadingService extends IntentService {
         if (BgReading.getTimeSinceLastReading() >= (bg_missed_minutes * 1000 * 60) &&
                 prefs.getLong("alerts_disabled_until", 0) <= now) {
             Notifications.bgMissedAlert(context);
-            checkBackAfterSnoozeTime();
+            checkBackAfterSnoozeTime(now);
         } else  {
             
             long disabletime = prefs.getLong("alerts_disabled_until", 0) - now;
@@ -68,9 +69,15 @@ public class MissedReadingService extends IntentService {
         }
     }
 
-    public void checkBackAfterSnoozeTime() {
+    public void checkBackAfterSnoozeTime(long now) {
     	// This is not 100% acurate, need to take in account also the time of when this alert was snoozed.
-        setAlarm(otherAlertSnooze * 1000 * 60);
+        UserNotification userNotification = UserNotification.GetNotificationByType("bg_missed_alerts");
+        if(userNotification == null) {
+            setAlarm(otherAlertSnooze * 1000 * 60);
+        } else {
+            // we have an alert that is snoozed until userNotification.timestamp
+            setAlarm((long)userNotification.timestamp - now + otherAlertSnooze * 1000 * 60);
+        }
     }
 
     public void checkBackAfterMissedTime(long alarmIn) {
