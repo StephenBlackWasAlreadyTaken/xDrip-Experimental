@@ -2,6 +2,10 @@ package com.eveningoutpost.dexdrip;
 
 import android.app.Application;
 import android.preference.PreferenceManager;
+import android.content.Context;
+import android.content.Intent;
+
+import com.eveningoutpost.dexdrip.Services.MissedReadingService;
 
 import com.crashlytics.android.Crashlytics;
 import com.eveningoutpost.dexdrip.UtilityModels.CollectionServiceStarter;
@@ -19,12 +23,14 @@ public class xdrip extends Application {
     public void onCreate() {
         super.onCreate();
         Fabric.with(this, new Crashlytics());
-        CollectionServiceStarter collectionServiceStarter = new CollectionServiceStarter(getApplicationContext());
+        Context context = getApplicationContext();
+        CollectionServiceStarter collectionServiceStarter = new CollectionServiceStarter(context);
         collectionServiceStarter.start(getApplicationContext());
         PreferenceManager.setDefaultValues(this, R.xml.pref_general, false);
         PreferenceManager.setDefaultValues(this, R.xml.pref_data_sync, false);
         PreferenceManager.setDefaultValues(this, R.xml.pref_notifications, false);
         PreferenceManager.setDefaultValues(this, R.xml.pref_data_source, false);
+        context.startService(new Intent(context, MissedReadingService.class));	
         new IdempotentMigrations(getApplicationContext()).performAll();
     }
 }
