@@ -347,6 +347,14 @@ public class NightscoutUploader {
                             testData.put("date", meterRecord.timestamp);
                             testData.put("dateString", format.format(meterRecord.timestamp));
                             testData.put("mbg", meterRecord.bg);
+                            if(nightWatchproMode) {
+	                            testData.put("xDrip_slope", calRecord.slope);
+	                            testData.put("xDrip_intercept", calRecord.intercept);
+	                            testData.put("xDrip_estimate_raw_at_time_of_calibration", calRecord.estimate_raw_at_time_of_calibration);
+	                            testData.put("xDrip_slope_confidence", calRecord.slope_confidence);
+	                            testData.put("xDrip_sensor_confidence", calRecord.sensor_confidence);
+	                            testData.put("xDrip_raw_timestamp", calRecord.raw_timestamp);
+                            }               
                             testData.put("sysTime", format.format(meterRecord.timestamp));
                             BasicDBObject query = new BasicDBObject("type", "mbg").append("sysTime", format.format(meterRecord.timestamp));
                             dexcomData.update(query, testData, true, false,  WriteConcern.UNACKNOWLEDGED);
@@ -367,15 +375,8 @@ public class NightscoutUploader {
                                 testData.put("intercept", (long) ((calRecord.intercept * -1000) / (calRecord.slope * 1000)));
                                 testData.put("scale", 1);
                             }
-                            if(nightWatchproMode) {
-	                            testData.put("xDrip_slope", calRecord.slope);
-	                            testData.put("xDrip_intercept", calRecord.intercept);
-	                            testData.put("xDrip_estimate_raw_at_time_of_calibration", calRecord.estimate_raw_at_time_of_calibration);
-	                            testData.put("xDrip_slope_confidence", calRecord.slope_confidence);
-	                            testData.put("xDrip_sensor_confidence", calRecord.sensor_confidence);
-	                            testData.put("xDrip_raw_timestamp", calRecord.raw_timestamp);
-	                            testData.put("type", "cal");
-                            }
+
+                            testData.put("type", "cal");
                             
                             testData.put("sysTime", format.format(calRecord.timestamp));
                             BasicDBObject query = new BasicDBObject("type", "cal").append("sysTime", format.format(calRecord.timestamp));
