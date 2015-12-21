@@ -48,15 +48,15 @@ public class BgSendQueue extends Model {
     @Column(name = "operation_type")
     public String operation_type;
 
-    public static List<BgSendQueue> mongoQueue(boolean nightWatchproMode) {
+    public static List<BgSendQueue> mongoQueue(boolean xDripViewerMode) {
     	List<BgSendQueue> values = new Select()
                 .from(BgSendQueue.class)
                 .where("mongo_success = ?", false)
                 .where("operation_type = ?", "create")
                 .orderBy("_ID desc")
-                .limit(nightWatchproMode ? 500 : 30)
+                .limit(xDripViewerMode ? 500 : 30)
                 .execute();
-    	if (nightWatchproMode) {
+    	if (xDripViewerMode) {
     		 java.util.Collections.reverse(values);
     	}
     	return values;

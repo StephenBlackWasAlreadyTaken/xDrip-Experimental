@@ -29,7 +29,7 @@ public class CalibrationSendQueue extends Model {
     @Column(name = "mongo_success", index = true)
     public boolean mongo_success;
 
-    public static List<CalibrationSendQueue> mongoQueue(boolean nightWatchproMode) {
+    public static List<CalibrationSendQueue> mongoQueue(boolean xDripViewerMode) {
     	List<CalibrationSendQueue> values =  new Select()
                 .from(CalibrationSendQueue.class)
                 .where("mongo_success = ?", false)
@@ -37,7 +37,7 @@ public class CalibrationSendQueue extends Model {
                 .limit(4)
                 .execute();
         
-    	if (nightWatchproMode) {
+    	if (xDripViewerMode) {
    		 	java.util.Collections.reverse(values);
     	}
     	return values;
