@@ -48,9 +48,9 @@ public class MongoSendTask extends AsyncTask<String, Void, Void> {
         
         private boolean sendData() {
         	SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
-        	boolean nightWatchproMode = prefs.getBoolean("xDripViewer_upload_mode", false);
-            List<CalibrationSendQueue>calibrationsQueue = CalibrationSendQueue.mongoQueue(nightWatchproMode);
-            List<BgSendQueue> bgsQueue = BgSendQueue.mongoQueue( nightWatchproMode);
+        	boolean xDripViewerMode = prefs.getBoolean("xDripViewer_upload_mode", false);
+            List<CalibrationSendQueue>calibrationsQueue = CalibrationSendQueue.mongoQueue(xDripViewerMode);
+            List<BgSendQueue> bgsQueue = BgSendQueue.mongoQueue( xDripViewerMode);
 
             try {
                 List<BgReading> bgReadings = new ArrayList<BgReading>();
@@ -65,7 +65,7 @@ public class MongoSendTask extends AsyncTask<String, Void, Void> {
                 if(bgReadings.size() + calibrations.size() > 0) {
                 	Log.i(TAG, "uoader.upload called " + bgReadings.size());
                     NightscoutUploader uploader = new NightscoutUploader(context);
-                    boolean uploadStatus = uploader.upload(bgReadings, calibrations, calibrations, nightWatchproMode);
+                    boolean uploadStatus = uploader.upload(bgReadings, calibrations, calibrations, xDripViewerMode);
                     if (uploadStatus) {
                     	Log.i(TAG, "Starting to delete objects from queue " + bgsQueue.size() + calibrationsQueue.size());
                         for (CalibrationSendQueue calibration : calibrationsQueue) {
