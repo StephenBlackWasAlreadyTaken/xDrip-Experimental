@@ -27,6 +27,7 @@ import com.eveningoutpost.dexdrip.ShareModels.BgUploader;
 import com.eveningoutpost.dexdrip.WidgetUpdateService;
 import com.eveningoutpost.dexdrip.xDripWidget;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -47,24 +48,19 @@ public class BgSendQueue extends Model {
     @Column(name = "operation_type")
     public String operation_type;
 
-/*
-    public static List<BgSendQueue> queue() {
-        return new Select()
-                .from(BgSendQueue.class)
-                .where("success = ?", false)
-                .orderBy("_ID asc")
-                .limit(20)
-                .execute();
-    }
-*/
-    public static List<BgSendQueue> mongoQueue() {
-        return new Select()
+    public static List<BgSendQueue> mongoQueue(boolean xDripViewerMode) {
+    	List<BgSendQueue> values = new Select()
                 .from(BgSendQueue.class)
                 .where("mongo_success = ?", false)
                 .where("operation_type = ?", "create")
                 .orderBy("_ID desc")
-                .limit(30)
+                .limit(xDripViewerMode ? 500 : 30)
                 .execute();
+    	if (xDripViewerMode) {
+    		 java.util.Collections.reverse(values);
+    	}
+    	return values;
+    	
     }
 
     private static void addToQueue(BgReading bgReading, String operation_type) {
@@ -83,7 +79,8 @@ public class BgSendQueue extends Model {
                 "sendQueue");
         wakeLock.acquire();
         try {
-            addToQueue(bgReading, operation_type);
+        	
+       		addToQueue(bgReading, operation_type);
 
             SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
 
@@ -172,10 +169,9 @@ public class BgSendQueue extends Model {
             wakeLock.release();
         }
     }
-
-    public void markMongoSuccess() {
-        mongo_success = true;
-        save();
+    
+    public void deleteThis() {
+        this.delete();
     }
 
     public static int getBatteryLevel(Context context) {

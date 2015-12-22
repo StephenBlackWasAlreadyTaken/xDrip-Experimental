@@ -11,6 +11,7 @@ import com.activeandroid.annotation.Table;
 import com.activeandroid.query.Select;
 import com.eveningoutpost.dexdrip.Models.Calibration;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -28,22 +29,18 @@ public class CalibrationSendQueue extends Model {
     @Column(name = "mongo_success", index = true)
     public boolean mongo_success;
 
-    /*
-    public static List<CalibrationSendQueue> queue() {
-        return new Select()
-                .from(CalibrationSendQueue.class)
-                .where("success = ?", false)
-                .orderBy("_ID asc")
-                .execute();
-    }
-    */
-    public static List<CalibrationSendQueue> mongoQueue() {
-        return new Select()
+    public static List<CalibrationSendQueue> mongoQueue(boolean xDripViewerMode) {
+    	List<CalibrationSendQueue> values =  new Select()
                 .from(CalibrationSendQueue.class)
                 .where("mongo_success = ?", false)
                 .orderBy("_ID desc")
-                .limit(20)
+                .limit(4)
                 .execute();
+        
+    	if (xDripViewerMode) {
+   		 	java.util.Collections.reverse(values);
+    	}
+    	return values;
     }
     public static void addToQueue(Calibration calibration, Context context) {
         CalibrationSendQueue calibrationSendQueue = new CalibrationSendQueue();
@@ -52,9 +49,8 @@ public class CalibrationSendQueue extends Model {
         calibrationSendQueue.mongo_success = false;
         calibrationSendQueue.save();
     }
-
-    public void markMongoSuccess() {
-        mongo_success = true;
-        save();
+    
+    public void deleteThis() {
+        this.delete();
     }
 }
