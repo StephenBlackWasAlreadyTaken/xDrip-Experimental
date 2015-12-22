@@ -424,7 +424,7 @@ public class BgReading extends Model implements ShareUploadableBg{
             bgReading.save();
             bgReading.perform_calculations();
             context.startService(new Intent(context, Notifications.class));
-            BgSendQueue.addToQueue(bgReading, "create", context);
+            BgSendQueue.handleNewBgReading(bgReading, "create", context);
         }
 
         Log.i("BG GSON: ",bgReading.toS());
