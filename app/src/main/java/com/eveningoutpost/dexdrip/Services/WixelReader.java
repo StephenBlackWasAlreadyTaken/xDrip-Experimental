@@ -21,7 +21,7 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.squareup.okhttp.OkHttpClient;
 import com.squareup.okhttp.Request;
-//import com.squareup.okhttp.Response;
+import com.squareup.okhttp.Response;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -40,15 +40,6 @@ import java.util.ListIterator;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-
-import retrofit.Call;
-import retrofit.Response;
-import retrofit.http.GET;
-import retrofit.http.Query;
-import retrofit.Retrofit;
-import retrofit.http.Headers;
-import retrofit.http.Header;
-import retrofit.GsonConverterFactory;
 
 import com.squareup.okhttp.Interceptor;
 import com.squareup.okhttp.logging.HttpLoggingInterceptor;
