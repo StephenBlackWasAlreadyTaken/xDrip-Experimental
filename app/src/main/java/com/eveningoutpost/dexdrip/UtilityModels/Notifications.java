@@ -34,6 +34,8 @@ import com.eveningoutpost.dexdrip.Models.BgReading;
 import com.eveningoutpost.dexdrip.Models.Calibration;
 import com.eveningoutpost.dexdrip.Models.CalibrationRequest;
 import com.eveningoutpost.dexdrip.Models.UserNotification;
+import com.eveningoutpost.dexdrip.Services.MissedReadingService;
+
 import com.eveningoutpost.dexdrip.R;
 import com.eveningoutpost.dexdrip.Sensor;
 
@@ -97,9 +99,11 @@ public class Notifications extends IntentService {
         PowerManager.WakeLock wl = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "NotificationsIntent");
         wl.acquire();
         Log.d("Notifications", "Running Notifications Intent Service");
-        ReadPerfs(getApplicationContext());
-        notificationSetter(getApplicationContext());
-        ArmTimer(getApplicationContext());
+        Context context =getApplicationContext(); 
+        ReadPerfs(context);
+        notificationSetter(context);
+        ArmTimer(context);
+        context.startService(new Intent(context, MissedReadingService.class));
         wl.release();
     }
 
@@ -237,8 +241,7 @@ public class Notifications extends IntentService {
  * *****************************************************************************************************************
  */
 
-    // only function that is really called from outside...
-    public void notificationSetter(Context context) {
+    private void notificationSetter(Context context) {
         ReadPerfs(context);
         BgGraphBuilder bgGraphBuilder = new BgGraphBuilder(context);
         if (bg_ongoing && (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN)) {
@@ -326,30 +329,30 @@ public class Notifications extends IntentService {
 
       // check when the first alert should be fired. take care of that ???
       
-      
-      return wakeTime - now;
+      Log.d("Notifications" , "calcuatleArmTime returning: "+ new Date(wakeTime) +" in " +  (wakeTime - now)/60000d + " minutes");
+      return wakeTime;
     }
     
     private void ArmTimer(Context ctx) {
         Calendar calendar = Calendar.getInstance();
         final long now = calendar.getTimeInMillis();
-        Log.d(TAG, "ArmTimer called");
+        Log.d("Notifications", "ArmTimer called");
 
         long wakeTime = calcuatleArmTime(ctx, now);
         if(wakeTime == Long.MAX_VALUE) {
-          Log.d(TAG , "ArmTimer timer will not br armed");
+          Log.d("Notifications" , "ArmTimer timer will not br armed");
           return;
         }
         
         if(wakeTime < now ) {
-          Log.e(TAG , "ArmTimer recieved a negative time, will fire in 6 minutes");
+          Log.e("Notifications" , "ArmTimer recieved a negative time, will fire in 6 minutes");
           wakeTime = now + 6 * 60000;
         }
         
         AlarmManager alarm = (AlarmManager) getSystemService(ALARM_SERVICE);
 
         
-        Log.d(TAG , "ArmTimer waking at: "+ new Date(wakeTime ) +" in " +
+        Log.d("Notifications" , "ArmTimer waking at: "+ new Date(wakeTime ) +" in " +
             (wakeTime - now) /60000d + " minutes");
         if (wakeIntent != null)
             alarm.cancel(wakeIntent);
