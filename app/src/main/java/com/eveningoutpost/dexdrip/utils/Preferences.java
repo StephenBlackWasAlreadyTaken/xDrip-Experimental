@@ -273,6 +273,7 @@ public class Preferences extends PreferenceActivity {
             final Preference displayBridgeBatt = findPreference("display_bridge_battery");
             final Preference runInForeground = findPreference("run_service_in_foreground");
             final Preference wifiRecievers = findPreference("wifi_recievers_addresses");
+            final Preference xDripViewerNsAdresses = findPreference("xdrip_viewer_ns_addresses");
             final Preference predictiveBG = findPreference("predictive_bg");
             final Preference interpretRaw = findPreference("interpret_raw");
             final Preference shareKey = findPreference("share_key");
@@ -342,6 +343,7 @@ public class Preferences extends PreferenceActivity {
             bindPreferenceSummaryToValue(collectionMethod);
             bindPreferenceSummaryToValue(shareKey);
             bindPreferenceSummaryToValue(wifiRecievers);
+            bindPreferenceSummaryToValue(xDripViewerNsAdresses);
             bindPreferenceSummaryToValue(transmitterId);
             transmitterId.getEditText().setFilters(new InputFilter[]{new InputFilter.AllCaps()});
             collectionMethod.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
