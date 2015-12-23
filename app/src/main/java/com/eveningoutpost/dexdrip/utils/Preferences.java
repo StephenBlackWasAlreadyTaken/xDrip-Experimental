@@ -27,7 +27,6 @@ import com.eveningoutpost.dexdrip.Models.UserError.Log;
 import com.eveningoutpost.dexdrip.Services.MissedReadingService;
 import com.eveningoutpost.dexdrip.R;
 import com.eveningoutpost.dexdrip.UtilityModels.CollectionServiceStarter;
-import com.eveningoutpost.dexdrip.UtilityModels.Notifications;
 import com.eveningoutpost.dexdrip.UtilityModels.PebbleSync;
 import com.google.zxing.integration.android.IntentIntegrator;
 import com.google.zxing.integration.android.IntentResult;
@@ -471,25 +470,20 @@ public class Preferences extends PreferenceActivity {
             });
         }
 
-        private static Preference.OnPreferenceChangeListener sAlertsPreferanceHandler = new Preference.OnPreferenceChangeListener() {
+        private static Preference.OnPreferenceChangeListener sBgMissedAlertsHandler = new Preference.OnPreferenceChangeListener() {
             @Override
             public boolean onPreferenceChange(Preference preference, Object newValue) {
-            	// some of the alerts parameters have changed, let's make sure that we don't need to alert.
                 Context context = preference.getContext();
                 context.startService(new Intent(context, MissedReadingService.class));
-                context.startService(new Intent(context, Notifications.class));
                 return true;
             }
         };
 
         
         private void bindBgMissedAlertsListener(){
-          findPreference("bg_missed_alerts").setOnPreferenceChangeListener(sAlertsPreferanceHandler);
-          findPreference("bg_missed_minutes").setOnPreferenceChangeListener(sAlertsPreferanceHandler);
-          findPreference("other_alerts_snooze").setOnPreferenceChangeListener(sAlertsPreferanceHandler);
-          findPreference("alerts_disabled_until").setOnPreferenceChangeListener(sAlertsPreferanceHandler);
-          findPreference("high_alerts_disabled_until").setOnPreferenceChangeListener(sAlertsPreferanceHandler);
-          findPreference("low_alerts_disabled_until").setOnPreferenceChangeListener(sAlertsPreferanceHandler);
+          findPreference("bg_missed_alerts").setOnPreferenceChangeListener(sBgMissedAlertsHandler);
+          findPreference("bg_missed_minutes").setOnPreferenceChangeListener(sBgMissedAlertsHandler);
+          findPreference("other_alerts_snooze").setOnPreferenceChangeListener(sBgMissedAlertsHandler);
         }
 
     }
