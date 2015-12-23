@@ -295,29 +295,73 @@ public class Notifications extends IntentService {
         }
     }
 
-    private void ArmTimer(Context ctx) {
-        Log.d(TAG, "ArmTimer called");
-        ActiveBgAlert activeBgAlert = ActiveBgAlert.getOnly();
-        if (activeBgAlert != null) {
-            AlertType alert = AlertType.get_alert(activeBgAlert.alert_uuid);
-            if (alert != null) {
-                Calendar calendar = Calendar.getInstance();
-                AlarmManager alarm = (AlarmManager) getSystemService(ALARM_SERVICE);
-                // sleep longer if the alert is snoozed.
-                long wakeTime = activeBgAlert.next_alert_at;
-                Log.d(TAG , "ArmTimer waking at: "+ new Date(wakeTime) +" in " +  (wakeTime - calendar.getTimeInMillis())/60000d + " minutes");
-                if (wakeIntent != null)
-                    alarm.cancel(wakeIntent);
-                wakeIntent = PendingIntent.getService(this, 0, new Intent(this, this.getClass()), 0);
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                    alarm.setAlarmClock(new AlarmManager.AlarmClockInfo(wakeTime, wakeIntent), wakeIntent);
-                } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
-                    alarm.setExact(AlarmManager.RTC_WAKEUP, wakeTime, wakeIntent);
-                } else
-                    alarm.set(AlarmManager.RTC_WAKEUP, wakeTime, wakeIntent);
-            }
-        }
+    private long calcuatleArmTime(Context ctx, long now) {
+
+      Long wakeTime = Long.MAX_VALUE; // This is the absalute time, not time from now.
+      ActiveBgAlert activeBgAlert = ActiveBgAlert.getOnly();
+      if (activeBgAlert != null) {
+          AlertType alert = AlertType.get_alert(activeBgAlert.alert_uuid);
+          if (alert != null) {
+              wakeTime = activeBgAlert.next_alert_at ;
+              Log.d(TAG , "ArmTimer waking at: "+ new Date(wakeTime) +" in " +  (wakeTime - now)/60000d + " minutes");
+          }
+      }
+      
+      // check snooze ending values
+      long alerts_disabled_until = prefs.getLong("alerts_disabled_until", 0);
+      if (alerts_disabled_until != 0) {
+        wakeTime = Math.min(wakeTime, alerts_disabled_until);
+      }
+      long high_alerts_disabled_until = prefs.getLong("high_alerts_disabled_until", 0);
+      if (high_alerts_disabled_until != 0) {
+        wakeTime = Math.min(wakeTime, high_alerts_disabled_until);
+      }
+
+      long low_alerts_disabled_until = prefs.getLong("low_alerts_disabled_until", 0);
+      if (low_alerts_disabled_until != 0) {
+        wakeTime = Math.min(wakeTime, low_alerts_disabled_until);
+      }
+      
+      // All this requires listeners on snooze changes...
+
+      // check when the first alert should be fired. take care of that ???
+      
+      
+      return wakeTime - now;
     }
+    
+    private void ArmTimer(Context ctx) {
+        Calendar calendar = Calendar.getInstance();
+        final long now = calendar.getTimeInMillis();
+        Log.d(TAG, "ArmTimer called");
+
+        long wakeTime = calcuatleArmTime(ctx, now);
+        if(wakeTime == Long.MAX_VALUE) {
+          Log.d(TAG , "ArmTimer timer will not br armed");
+          return;
+        }
+        
+        if(wakeTime < now ) {
+          Log.e(TAG , "ArmTimer recieved a negative time, will fire in 6 minutes");
+          wakeTime = now + 6 * 60000;
+        }
+        
+        AlarmManager alarm = (AlarmManager) getSystemService(ALARM_SERVICE);
+
+        
+        Log.d(TAG , "ArmTimer waking at: "+ new Date(wakeTime ) +" in " +
+            (wakeTime - now) /60000d + " minutes");
+        if (wakeIntent != null)
+            alarm.cancel(wakeIntent);
+        wakeIntent = PendingIntent.getService(this, 0, new Intent(this, this.getClass()), 0);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            alarm.setAlarmClock(new AlarmManager.AlarmClockInfo(wakeTime, wakeIntent), wakeIntent);
+        } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+            alarm.setExact(AlarmManager.RTC_WAKEUP, wakeTime, wakeIntent);
+        } else {
+            alarm.set(AlarmManager.RTC_WAKEUP, wakeTime, wakeIntent);
+        }
+    }   
 
     private Bitmap createWearBitmap(long start, long end) {
         return new BgSparklineBuilder(mContext)
