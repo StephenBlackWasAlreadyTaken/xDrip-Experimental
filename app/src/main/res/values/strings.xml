@@ -100,6 +100,10 @@
     <string name="wifi_recievers_dialog_message">Comma separated list of ip:port (for example 37.142.132.220:50005,37.142.132.220:50010,mongodb://user:pass@ds053958.mongolab.com:53958/db/collection)</string>
     <string name="wifi_recievers_dialog_title">Enter ip addresses and ports of receivers (including mongodb addresses if needed)</string>
 
+    <!-- xDrip Viewer Settings -->
+    <string name="xdrip_viewer_ns_message_message">Enter nighscout site name and key</string>
+    <string name="xdrip_viewer_ns_dialog_title">Nightscout rest api parameters, and secret key. For example https://yourpassphrase@{YOUR-SITE}.azurewebsites.net</string>
+    
     <!-- Location Settings -->
     <string name="location_not_found_title">Location Is Not Enabled</string>
     <string name="location_not_found_message">For Bluetooth discovery to work on newer devices, location must be enabled. xDrip does not track your location and it can be disabled after pairing is successful.</string>

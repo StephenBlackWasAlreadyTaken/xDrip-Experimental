@@ -17,22 +17,21 @@ public interface INsRestApi {
     // gets all sgvs
     @GET("/api/v1/entries.json?find[type][$eq]=sgv")
     Call<List<NightscoutBg>> getSgv(
-            @Header("Accept") String Accept,
+            @Header("api-secret") String key,
             @Query("find[date][$gt]") long date,
             @Query("count") long count
     );
     
     @GET("/api/v1/entries.json?find[type][$eq]=cal")
     Call<List<NightscoutBg>> getCal(
-            @Header("Accept") String Accept,
+            @Header("api-secret") String key,
             @Query("find[date][$gt]") long date,
             @Query("count") long count
     );
     
     @GET("/api/v1/entries.json?find[type][$eq]=mbg")
     Call<List<NightscoutMbg>> getMbg(
-            //@Header("Authorization") String authorization
-            @Header("Accept") String Accept,
+            @Header("api-secret") String key,
             @Query("find[date][$gt]") long date,
             @Query("count") long count
     );
