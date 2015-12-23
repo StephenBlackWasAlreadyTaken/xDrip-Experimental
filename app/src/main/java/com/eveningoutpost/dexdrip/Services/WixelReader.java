@@ -21,6 +21,9 @@ import com.squareup.okhttp.OkHttpClient;
 import com.squareup.okhttp.Request;
 import com.squareup.okhttp.Response;
 
+import com.google.common.base.Charsets;
+import com.google.common.hash.Hashing;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -28,6 +31,7 @@ import java.io.PrintWriter;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.SocketTimeoutException;
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.LinkedList;
@@ -38,7 +42,6 @@ import java.util.ListIterator;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-
 import com.squareup.okhttp.Interceptor;
 import com.squareup.okhttp.logging.HttpLoggingInterceptor;
 import com.squareup.okhttp.OkHttpClient;
@@ -556,14 +559,34 @@ public class WixelReader extends AsyncTask<String, Void, Void > {
     
 
     public void readData() {
-        final String API_KEY = "application/json api-secret: 6aaafe81264eb79d079caa91bbf25dba379ff6e2"; // probably we can do without the josn. if url contains it
-        final String API_URL = "https://snirdar3.azurewebsites.net";
+        try {
         
-        
-        verifySensor();
-        readCalData(API_URL, API_KEY);
-        readBgData(API_URL, API_KEY);
-        
+            SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(mContext);
+            String rest_addresses = prefs.getString("xdrip_viewer_ns_addresses", "");
+            
+            URI uri = new URI(rest_addresses);
+            String baseURL;
+            String secret = uri.getUserInfo();
+            if ((secret == null || secret.isEmpty())) {
+                Log.e(TAG,"No secret returning");
+                return;
+            } 
+            baseURL = rest_addresses.replaceFirst("//[^@]+@", "//");
+            if ((baseURL == null || baseURL.isEmpty())) {
+                Log.e(TAG,"No baseURL returning");
+                return;
+            } 
+            
+            Log.e(TAG, "readData baseURL= "+ baseURL +" secret = (is a secret, don't print)" + secret);
+            String hashedSecret = Hashing.sha1().hashBytes(secret.getBytes(Charsets.UTF_8)).toString();
+            
+            verifySensor();
+            readCalData(baseURL, hashedSecret);
+            readBgData(baseURL, hashedSecret);
+        } catch (Exception e) {
+            Log.e(TAG, "readData cought exception in xDrip viewer mode ", e);
+            e.printStackTrace();
+        }
     }
     
     void verifySensor() {
