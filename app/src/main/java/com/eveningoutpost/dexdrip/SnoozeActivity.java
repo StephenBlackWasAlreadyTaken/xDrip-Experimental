@@ -229,6 +229,18 @@ public class SnoozeActivity extends ActivityWithMenu {
                                 :
                                  + (SnoozeActivity.getTimeFromSnoozeValue(snoozeValue.getValue()))) * 1000 * 60;
                         prefs.edit().putLong(disableType, disableUntil).apply();
+                        //check if active bg alert exists and delete it depending on type of alert
+                        ActiveBgAlert aba = ActiveBgAlert.getOnly();
+                        if (aba != null) {
+                            AlertType activeBgAlert = ActiveBgAlert.alertTypegetOnly();
+                            if (disableType.equalsIgnoreCase("alerts_disabled_until")
+                                    || (activeBgAlert.above && disableType.equalsIgnoreCase("high_alerts_disabled_until"))
+                                    || (!activeBgAlert.above && disableType.equalsIgnoreCase("low_alerts_disabled_until"))
+                                    ) {
+                                //active bg alert exists which is a type that is being disabled so let's remove it completely from the database
+                                ActiveBgAlert.ClearData();
+                            }
+                        }
 
                         if (disableType.equalsIgnoreCase("alerts_disabled_until")) {
                             //disabling all , after the Snooze time set, all alarms will be re-enabled, inclusive low and high bg alarms
