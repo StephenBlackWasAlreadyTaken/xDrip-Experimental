@@ -307,9 +307,21 @@ public class Notifications extends IntentService {
           if (alert != null) {
               wakeTime = activeBgAlert.next_alert_at ;
               Log.d(TAG , "ArmTimer waking at: "+ new Date(wakeTime) +" in " +  (wakeTime - now)/60000d + " minutes");
+              if (wakeTime < now + 60000) {
+                  // next alert should be at least one minute from now.
+                  wakeTime = now + 60000;
+                  Log.w(TAG , "setting next alert to 1 minute from now (no problem right now, but needs a fix someplace else)");
+              }
+              
           }
+      } else {
+          // no active alert exists
+          wakeTime = now + 5 * 60000;
       }
-      
+/*
+ * 
+ *       leaving this code here since this is a code for a more correct calculation
+ *       I guess that we will have to return to this once.
       // check snooze ending values
       long alerts_disabled_until = prefs.getLong("alerts_disabled_until", 0);
       if (alerts_disabled_until != 0) {
@@ -328,7 +340,7 @@ public class Notifications extends IntentService {
       // All this requires listeners on snooze changes...
 
       // check when the first alert should be fired. take care of that ???
-      
+  */    
       Log.d("Notifications" , "calcuatleArmTime returning: "+ new Date(wakeTime) +" in " +  (wakeTime - now)/60000d + " minutes");
       return wakeTime;
     }
