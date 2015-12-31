@@ -316,7 +316,7 @@ public class Notifications extends IntentService {
           }
       } else {
           // no active alert exists
-          wakeTime = now + 5 * 60000;
+          wakeTime = now + 6 * 60000;
       }
 /*
  * 
