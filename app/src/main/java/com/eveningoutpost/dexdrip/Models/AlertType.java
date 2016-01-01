@@ -106,8 +106,6 @@ public class AlertType extends Model {
             return null;
         }
 
-        checkIfMissedReadingAlert(context);
-
         if (bg <= 14) { // Special dexcom codes should not set off low alarms
             return null;
         }
@@ -134,12 +132,6 @@ public class AlertType extends Model {
         }
         return at;
     }
-
-    public static void checkIfMissedReadingAlert(Context context){
-        context.startService(new Intent(context, MissedReadingService.class));
-    }
-
-
 
     // bg_minute is the estimatin of the bg change rate
     private static AlertType get_highest_active_alert_helper(double bg, SharedPreferences prefs) {
