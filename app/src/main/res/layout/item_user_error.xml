@@ -12,6 +12,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:id="@+id/errorShort"
+            android:textColor="#000"
             android:textSize="14dp"/>
         <TextView
             android:layout_width="fill_parent"
@@ -19,6 +20,7 @@
             android:layout_gravity="right"
             android:gravity="right"
             android:id="@+id/errorTimestamp"
+            android:textColor="#000"
             android:textSize="12dp"/>
     </LinearLayout>
 
@@ -26,5 +28,6 @@
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
         android:id="@+id/errorLong"
+        android:textColor="#000"
         android:textSize="10dp"/>
 </LinearLayout>
