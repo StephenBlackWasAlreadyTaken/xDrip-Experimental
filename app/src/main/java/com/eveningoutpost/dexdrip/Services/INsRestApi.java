@@ -32,7 +32,7 @@ public interface INsRestApi {
     @GET("/api/v1/entries.json?find[type][$eq]=mbg")
     Call<List<NightscoutMbg>> getMbg(
             @Header("api-secret") String key,
-            @Query("find[date][$gt]") long date,
+            @Query("find[date][$gte]") long date,
             @Query("count") long count
     );
 }    
