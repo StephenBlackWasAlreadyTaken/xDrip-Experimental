@@ -23,9 +23,11 @@ public class NsRestApiReader {
 
 	class NightscoutBg {
 	    double xDrip_raw; // raw_data
+	    double xDrip_age_adjusted_raw_value;
 	    double xDrip_filtered; // filtered_data;
 	    Long date; // timestamp
 	    double sgv; // calculated_bg
+	    double xDrip_calculated_value;
 	}
 
 	class NightscoutMbg {
@@ -36,7 +38,7 @@ public class NsRestApiReader {
 	    double xDrip_estimate_raw_at_time_of_calibration;
 	    double xDrip_slope_confidence;
 	    double xDrip_sensor_confidence;
-	    double xDrip_raw_timestamp;
+	    long xDrip_raw_timestamp;
 	}
 	
 	
