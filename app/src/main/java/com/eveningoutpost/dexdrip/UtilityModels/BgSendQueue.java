@@ -174,7 +174,7 @@ public class BgSendQueue extends Model {
         this.delete();
     }
 
-    public static int getBatteryLevel(Context context) {
+    private static int getBatteryLevel(Context context) {
         Intent batteryIntent = context.registerReceiver(null, new IntentFilter(Intent.ACTION_BATTERY_CHANGED));
         int level = batteryIntent.getIntExtra(BatteryManager.EXTRA_LEVEL, -1);
         int scale = batteryIntent.getIntExtra(BatteryManager.EXTRA_SCALE, -1);

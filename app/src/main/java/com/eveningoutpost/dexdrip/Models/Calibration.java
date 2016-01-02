@@ -327,6 +327,15 @@ public class Calibration extends Model {
                 .executeSingle();
     }
 
+    public static Calibration getByTimestamp(double timestamp) {
+        Sensor sensor = Sensor.currentSensor();
+        return new Select()
+                .from(Calibration.class)
+                .where("Sensor = ? ", sensor.getId())
+                .where("timestamp = ?", timestamp)
+                .executeSingle();
+    }
+
     public static Calibration create(double bg, Context context) {
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
         String unit = prefs.getString("units", "mgdl");
@@ -381,27 +390,36 @@ public class Calibration extends Model {
         return Calibration.last();
     }
 
-    public static void create(Context context, double bg, long timeStamp, double intercept, double slope, 
+    public static void createUpdate(Context context, double bg, long timeStamp, double intercept, double slope, 
             double estimate_raw_at_time_of_calibration, double slope_confidence , double sensor_confidence, 
-            double raw_timestamp) {
-        Calibration calibration = new Calibration();
+            long raw_timestamp) {
         Sensor sensor = Sensor.currentSensor();
 
-        if (sensor != null) {
-            calibration.sensor = sensor;
-            calibration.bg = bg;
-            calibration.timestamp = timeStamp;
-            calibration.sensor_uuid = sensor.uuid;
-            calibration.uuid = UUID.randomUUID().toString();
-            calibration.intercept = intercept;
-            calibration.slope = slope;
-            calibration.estimate_raw_at_time_of_calibration = estimate_raw_at_time_of_calibration;
-            calibration.slope_confidence = slope_confidence;
-            calibration.sensor_confidence = sensor_confidence;
-            calibration.raw_timestamp = raw_timestamp;
-            calibration.check_in = true;
-            calibration.save();
+        if (sensor == null) {
+            return;
         }
+        
+        Calibration calibration = getByTimestamp(timeStamp);
+        if (calibration != null) {
+            Log.d("CALIBRATION", "updatinga an existing calibration");
+        } else {
+            Log.d("CALIBRATION", "creating a new calibration");
+            calibration = new Calibration();
+        }
+
+        calibration.sensor = sensor;
+        calibration.bg = bg;
+        calibration.timestamp = timeStamp;
+        calibration.sensor_uuid = sensor.uuid;
+        calibration.uuid = UUID.randomUUID().toString();
+        calibration.intercept = intercept;
+        calibration.slope = slope;
+        calibration.estimate_raw_at_time_of_calibration = estimate_raw_at_time_of_calibration;
+        calibration.slope_confidence = slope_confidence;
+        calibration.sensor_confidence = sensor_confidence;
+        calibration.raw_timestamp = raw_timestamp;
+        calibration.check_in = true;
+        calibration.save();
     }
     
     public static List<Calibration> allForSensorInLastFiveDays() {
@@ -703,6 +721,6 @@ public class Calibration extends Model {
                 .where("timestamp > " + timestamp)
                 .orderBy("timestamp desc")
                 .execute();
-    }
+     }
 
 }

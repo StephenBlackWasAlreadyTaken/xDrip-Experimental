@@ -371,7 +371,7 @@ public class BgReading extends Model implements ShareUploadableBg{
         return bgReading;
     }
     
-    public static void create(Context context, double raw_data, double filtered_data, Long timestamp, double calculated_bg) {
+    public static void create(Context context, double raw_data, double age_adjusted_raw_value, double filtered_data, Long timestamp, double calculated_bg) {
         BgReading bgReading = new BgReading();
         Sensor sensor = Sensor.currentSensor();
         if (sensor == null) {
@@ -385,6 +385,7 @@ public class BgReading extends Model implements ShareUploadableBg{
             bgReading.sensor = sensor;
             bgReading.sensor_uuid = sensor.uuid;
             bgReading.raw_data = (raw_data / 1000);
+            bgReading.age_adjusted_raw_value = age_adjusted_raw_value;
             bgReading.filtered_data = (filtered_data / 1000);
             bgReading.timestamp = timestamp;
             bgReading.uuid = UUID.randomUUID().toString();
@@ -392,8 +393,6 @@ public class BgReading extends Model implements ShareUploadableBg{
             //bgReading.time_since_sensor_started = bgReading.timestamp - sensor.started_at;
             //bgReading.synced = false;
             //bgReading.calibration_flag = false;
-
-            bgReading.calculateAgeAdjustedRawValue();
 
             bgReading.save();
             bgReading.perform_calculations();
@@ -404,14 +403,13 @@ public class BgReading extends Model implements ShareUploadableBg{
             bgReading.calibration = calibration;
             bgReading.calibration_uuid = calibration.uuid;
             bgReading.raw_data = (raw_data/1000);
+            bgReading.age_adjusted_raw_value = age_adjusted_raw_value;
             bgReading.filtered_data = (filtered_data/1000);
             bgReading.timestamp = timestamp;
             bgReading.uuid = UUID.randomUUID().toString();
             bgReading.calculated_value = calculated_bg;
             //bgReading.time_since_sensor_started = bgReading.timestamp - sensor.started_at;
             //bgReading.synced = false;
-
-            bgReading.calculateAgeAdjustedRawValue();
 
             if (bgReading.calculated_value < 10) {
                 bgReading.calculated_value = 9;

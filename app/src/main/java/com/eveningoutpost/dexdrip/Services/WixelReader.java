@@ -622,15 +622,11 @@ public class WixelReader extends AsyncTask<String, Void, Void > {
       while(li.hasPrevious()) {
           NightscoutMbg nightscoutMbg = li.previous();
           Log.e(TAG, "NightscoutMbg " + nightscoutMbg.mbg + " " + nightscoutMbg.date);
-          if(nightscoutMbg.date == lastInserted) {
-            Log.w(TAG, "not inserting calibration, since it seems duplicate ");
-            continue;
-          }
           if(nightscoutMbg.date < lastInserted) {
             Log.e(TAG, "not inserting calibratoin, since order is wrong. ");
             continue;
           }
-          Calibration.create(mContext, nightscoutMbg.mbg, nightscoutMbg.date, nightscoutMbg.xDrip_intercept, nightscoutMbg.xDrip_slope, nightscoutMbg.xDrip_estimate_raw_at_time_of_calibration,
+          Calibration.createUpdate(mContext, nightscoutMbg.mbg, nightscoutMbg.date, nightscoutMbg.xDrip_intercept, nightscoutMbg.xDrip_slope, nightscoutMbg.xDrip_estimate_raw_at_time_of_calibration,
                   nightscoutMbg.xDrip_slope_confidence , nightscoutMbg.xDrip_sensor_confidence, nightscoutMbg.xDrip_raw_timestamp);
           lastInserted = nightscoutMbg.date;
       }
@@ -667,7 +663,12 @@ public class WixelReader extends AsyncTask<String, Void, Void > {
               Log.e(TAG, "not inserting packet, since order is wrong. ");
               continue;
             }
-            BgReading.create(mContext, nightscoutBg.xDrip_raw * 1000, nightscoutBg.xDrip_filtered * 1000, nightscoutBg.date, nightscoutBg.sgv);
+            BgReading.create(mContext, 
+                    nightscoutBg.xDrip_raw * 1000,
+                    nightscoutBg.xDrip_age_adjusted_raw_value,
+                    nightscoutBg.xDrip_filtered * 1000,
+                    nightscoutBg.date, 
+                    nightscoutBg.xDrip_calculated_value != 0 ? nightscoutBg.xDrip_calculated_value : nightscoutBg.sgv);
             TransmitterData.create((int)nightscoutBg.xDrip_raw, 100 /* ??????? */, nightscoutBg.date);
             lastInserted = nightscoutBg.date;
         }
