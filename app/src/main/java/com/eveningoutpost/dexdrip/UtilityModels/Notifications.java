@@ -307,7 +307,7 @@ public class Notifications extends IntentService {
           if (alert != null) {
               wakeTime = activeBgAlert.next_alert_at ;
               Log.d(TAG , "ArmTimer waking at: "+ new Date(wakeTime) +" in " +  (wakeTime - now)/60000d + " minutes");
-              if (wakeTime < now + 60000) {
+              if (wakeTime < now) {
                   // next alert should be at least one minute from now.
                   wakeTime = now + 60000;
                   Log.w(TAG , "setting next alert to 1 minute from now (no problem right now, but needs a fix someplace else)");
