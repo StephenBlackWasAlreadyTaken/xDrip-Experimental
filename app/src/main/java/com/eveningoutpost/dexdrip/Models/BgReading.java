@@ -506,12 +506,10 @@ public class BgReading extends Model implements ShareUploadableBg{
                 .execute();
     }
 
-    public static List<BgReading> latestForGraph(int number, double startTime) {
-        DecimalFormat df = new DecimalFormat("#");
-        df.setMaximumFractionDigits(1);
+    public static List<BgReading> latestForGraph(int number, long startTime) {
         return new Select()
                 .from(BgReading.class)
-                .where("timestamp >= " + df.format(startTime))
+                .where("timestamp >= " + (startTime >= 0 ? startTime : 0))
                 .where("calculated_value != 0")
                 .where("raw_data != 0")
                 .orderBy("timestamp desc")
@@ -520,7 +518,7 @@ public class BgReading extends Model implements ShareUploadableBg{
     }
 
     public static List<BgReading> last30Minutes() {
-        double timestamp = (new Date().getTime()) - (60000 * 30);
+        long timestamp = (new Date().getTime()) - (60000 * 30);
         return new Select()
                 .from(BgReading.class)
                 .where("timestamp >= " + timestamp)

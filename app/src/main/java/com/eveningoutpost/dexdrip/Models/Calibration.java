@@ -24,10 +24,8 @@ import com.google.gson.annotations.Expose;
 import com.google.gson.internal.bind.DateTypeAdapter;
 
 import java.text.DecimalFormat;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.UUID;
+import java.text.NumberFormat;
+import java.util.*;
 
 /**
  * Created by stephenblack on 10/29/14.
@@ -637,12 +635,10 @@ public class Calibration extends Model {
                 .execute();
     }
 
-    public static List<Calibration> latestForGraph(int number, double startTime) {
-        DecimalFormat df = new DecimalFormat("#");
-        df.setMaximumFractionDigits(1);
+    public static List<Calibration> latestForGraph(int number, long startTime) {
         return new Select()
                 .from(Calibration.class)
-                .where("timestamp >= " + df.format(startTime))
+                .where("timestamp >= " + ((startTime >= 0) ? startTime : 0))
                 .orderBy("timestamp desc")
                 .limit(number)
                 .execute();
