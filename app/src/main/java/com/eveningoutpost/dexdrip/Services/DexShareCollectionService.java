@@ -535,7 +535,7 @@ public class DexShareCollectionService extends Service {
             Log.d(TAG, "Writing: " + writePackets.get(index) + " index: " + index);
             if(mSendDataCharacteristic != null && writePackets != null) {
                 mSendDataCharacteristic.setValue(writePackets.get(index));
-                if (mBluetoothGatt.writeCharacteristic(mSendDataCharacteristic)) {
+                if (mBluetoothGatt != null && mBluetoothGatt.writeCharacteristic(mSendDataCharacteristic)) {
                     Log.d(TAG, "Wrote Successfully");
                 }
             }
