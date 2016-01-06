@@ -37,8 +37,8 @@ import lecho.lib.hellocharts.view.Chart;
  */
 public class BgGraphBuilder {
     public static final int FUZZER = (1000 * 30 * 5);
-    public double  end_time = (new Date().getTime() + (60000 * 10)) / FUZZER;
-    public double  start_time = end_time - ((60000 * 60 * 24)) / FUZZER;
+    public long  end_time = (new Date().getTime() + (60000 * 10)) / FUZZER;
+    public long  start_time = end_time - ((60000 * 60 * 24)) / FUZZER;
     public Context context;
     public SharedPreferences prefs;
     public double highMark;
