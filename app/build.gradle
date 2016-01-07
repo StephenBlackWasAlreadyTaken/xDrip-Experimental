@@ -92,6 +92,7 @@ android {
 
 dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
+    wearApp project(':wear')
     testCompile 'com.squareup.okhttp:mockwebserver:2.5.0'
     compile 'com.nispok:snackbar:2.10.8'
     compile 'com.android.support:appcompat-v7:23.1.0'
@@ -102,7 +103,7 @@ dependencies {
     compile 'com.getpebble:pebblekit:3.0.0'
     compile 'io.reactivex:rxjava:1.0.0'
     compile 'com.github.lecho:hellocharts-android:v1.5.5'
-
+    compile 'com.google.android.gms:play-services:7.5.0'
     compile 'com.google.guava:guava:18.0'
 
     compile('com.github.nightscout:android-uploader:CORE_FOR_XDRIP') {
