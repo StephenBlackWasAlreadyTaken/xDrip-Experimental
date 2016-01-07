@@ -131,7 +131,7 @@ public class WatchUpdaterService extends WearableListenerService implements
         if (bg != null) {
             if(googleApiClient != null && !googleApiClient.isConnected() && !googleApiClient.isConnecting()) { googleApiConnect(); }
             if (wear_integration) {
-                new SendToDataLayerThread(WEARABLE_DATA_PATH, googleApiClient).execute(dataMap(bg, mPrefs));
+                new SendToDataLayerThread(WEARABLE_DATA_PATH, googleApiClient).execute(dataMap(bg, mPrefs, new BgGraphBuilder(getApplicationContext())));
             }
         }
     }
@@ -141,11 +141,12 @@ public class WatchUpdaterService extends WearableListenerService implements
         long startTime = new Date().getTime() - (60000 * 60 * 24);
         BgReading last_bg = BgReading.last();
         List<BgReading> graph_bgs = BgReading.latestForGraph(60, startTime);
+        BgGraphBuilder bgGraphBuilder = new BgGraphBuilder(getApplicationContext());
         if (!graph_bgs.isEmpty()) {
-            DataMap entries = dataMap(last_bg, mPrefs);
+            DataMap entries = dataMap(last_bg, mPrefs, bgGraphBuilder);
             final ArrayList<DataMap> dataMaps = new ArrayList<>(graph_bgs.size());
             for (BgReading bg : graph_bgs) {
-                dataMaps.add(dataMap(bg, mPrefs));
+                dataMaps.add(dataMap(bg, mPrefs, bgGraphBuilder));
             }
             entries.putDataMapArrayList("entries", dataMaps);
 
@@ -167,12 +168,10 @@ public class WatchUpdaterService extends WearableListenerService implements
         }
     }
 
-    private DataMap dataMap(BgReading bg, SharedPreferences sPrefs) {
+    private DataMap dataMap(BgReading bg, SharedPreferences sPrefs, BgGraphBuilder bgGraphBuilder) {
         Double highMark = Double.parseDouble(sPrefs.getString("highValue", "170"));
         Double lowMark = Double.parseDouble(sPrefs.getString("lowValue", "70"));
         DataMap dataMap = new DataMap();
-
-        BgGraphBuilder bgGraphBuilder = new BgGraphBuilder(getApplicationContext());
 
         int battery = BgSendQueue.getBatteryLevel(getApplicationContext());
 
