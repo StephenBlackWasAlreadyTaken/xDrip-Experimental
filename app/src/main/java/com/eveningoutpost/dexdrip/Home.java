@@ -463,7 +463,7 @@ public class Home extends ActivityWithMenu {
         getMenuInflater().inflate(R.menu.menu_home, menu);
 
         //wear integration
-        if (!prefs.getBoolean("watch_sync", false)) {
+        if (!prefs.getBoolean("wear_sync", false)) {
             menu.removeItem(R.id.action_open_watch_settings);
             menu.removeItem(R.id.action_resend_last_bg);
         }
