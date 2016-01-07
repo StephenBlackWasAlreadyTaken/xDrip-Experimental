@@ -56,8 +56,7 @@ public class WatchUpdaterService extends WearableListenerService implements
     }
 
     public void setSettings() {
-        wear_integration = mPrefs.getBoolean("watch_sync", false);
-        pebble_integration = mPrefs.getBoolean("pebble_sync", false);
+        wear_integration = mPrefs.getBoolean("wear_sync", false);
         if (wear_integration) {
             googleApiConnect();
         }

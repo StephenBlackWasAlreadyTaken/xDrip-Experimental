@@ -1,5 +1,22 @@
 <?xml version="1.0" encoding="utf-8"?>
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <PreferenceCategory
+        android:title="Watch Integration"
+        android:key="watch_integration">
+        <CheckBoxPreference
+            android:key="wear_sync"
+            android:title="Android Wear Integration"
+            android:summary="Send data to Android Wear Watchface."
+            android:defaultValue="false" />
+        <SwitchPreference
+            android:title="Send to Pebble"
+            android:key="broadcast_to_pebble"
+            android:summary="If you have a pebble watch you can send bg data straight to it"
+            android:defaultValue="false">
+        </SwitchPreference>
+    </PreferenceCategory>
+
     <PreferenceCategory
         android:key="other_category"
         android:title="Other Settings">
@@ -8,12 +25,6 @@
             android:key="broadcast_data_through_intents"
             android:summary="@string/pref_summary_broadcast_enabled"
             android:defaultValue="false" >
-        </SwitchPreference>
-        <SwitchPreference
-            android:title="Send to Pebble"
-            android:key="broadcast_to_pebble"
-            android:summary="If you have a pebble watch you can send bg data straight to it"
-            android:defaultValue="false">
         </SwitchPreference>
         <CheckBoxPreference
             android:key="predictive_bg"

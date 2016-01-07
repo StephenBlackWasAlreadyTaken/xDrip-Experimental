@@ -41,6 +41,7 @@ import com.eveningoutpost.dexdrip.UtilityModels.CollectionServiceStarter;
 import com.eveningoutpost.dexdrip.UtilityModels.Intents;
 import com.eveningoutpost.dexdrip.utils.ActivityWithMenu;
 import com.eveningoutpost.dexdrip.utils.DatabaseUtil;
+import com.eveningoutpost.dexdrip.wearintegration.WatchUpdaterService;
 import com.nispok.snackbar.Snackbar;
 import com.nispok.snackbar.SnackbarManager;
 import com.nispok.snackbar.enums.SnackbarType;
@@ -460,6 +461,14 @@ public class Home extends ActivityWithMenu {
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.menu_home, menu);
+
+        //wear integration
+        if (!prefs.getBoolean("watch_sync", false)) {
+            menu.removeItem(R.id.action_open_watch_settings);
+            menu.removeItem(R.id.action_resend_last_bg);
+        }
+
+        //speak readings
         MenuItem menuItem =  menu.findItem(R.id.action_toggle_speakreadings);
         if(prefs.getBoolean("bg_to_speech_shortcut", false)){
             menuItem.setVisible(true);
@@ -476,6 +485,15 @@ public class Home extends ActivityWithMenu {
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
+
+        switch (item.getItemId()) {
+            case R.id.action_resend_last_bg:
+                startService(new Intent(this, WatchUpdaterService.class).setAction(WatchUpdaterService.ACTION_RESEND));
+                break;
+            case R.id.action_open_watch_settings:
+                startService(new Intent(this, WatchUpdaterService.class).setAction(WatchUpdaterService.ACTION_OPEN_SETTINGS));
+        }
+
         if (item.getItemId() == R.id.action_export_database) {
             new AsyncTask<Void, Void, String>() {
                 @Override
