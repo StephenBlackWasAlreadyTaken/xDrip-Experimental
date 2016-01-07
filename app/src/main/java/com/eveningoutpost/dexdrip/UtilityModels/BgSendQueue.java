@@ -20,11 +20,13 @@ import com.activeandroid.annotation.Column;
 import com.activeandroid.annotation.Table;
 import com.activeandroid.query.Select;
 import com.eveningoutpost.dexdrip.Models.BgReading;
+import com.eveningoutpost.dexdrip.R;
 import com.eveningoutpost.dexdrip.Services.SyncService;
 import com.eveningoutpost.dexdrip.ShareModels.Models.ShareUploadPayload;
 import com.eveningoutpost.dexdrip.utils.BgToSpeech;
 import com.eveningoutpost.dexdrip.ShareModels.BgUploader;
 import com.eveningoutpost.dexdrip.WidgetUpdateService;
+import com.eveningoutpost.dexdrip.wearintegration.WatchUpdaterService;
 import com.eveningoutpost.dexdrip.xDripWidget;
 
 import java.util.ArrayList;
@@ -148,9 +150,24 @@ public class BgSendQueue extends Model {
 
             }
 
+            // send to wear
+            if (prefs.getBoolean("wear_sync", false)) {
+
+                /*By integrating the watch part of Nightwatch we inherited the same wakelock
+                    problems NW had - so adding the same quick fix for now.
+                    TODO: properly "wakelock" the wear (and probably pebble) services
+                 */
+                context.startService(new Intent(context, WatchUpdaterService.class));
+                powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK,
+                        "quickFix3").acquire(15000);
+            }
+
+            // send to pebble
             if(prefs.getBoolean("broadcast_to_pebble", false)) {
                 context.startService(new Intent(context, PebbleSync.class));
             }
+
+
 
             if (prefs.getBoolean("share_upload", false)) {
                 Log.d("ShareRest", "About to call ShareRest!!");
