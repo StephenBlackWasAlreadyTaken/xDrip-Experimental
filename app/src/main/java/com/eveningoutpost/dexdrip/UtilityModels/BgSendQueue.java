@@ -6,28 +6,29 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
+import android.content.pm.ResolveInfo;
 import android.os.BatteryManager;
 import android.os.Bundle;
 import android.os.PowerManager;
 import android.preference.PreferenceManager;
 import android.provider.BaseColumns;
 
-import com.eveningoutpost.dexdrip.Models.Calibration;
-import com.eveningoutpost.dexdrip.Models.UserError.Log;
-
 import com.activeandroid.Model;
 import com.activeandroid.annotation.Column;
 import com.activeandroid.annotation.Table;
 import com.activeandroid.query.Select;
 import com.eveningoutpost.dexdrip.Models.BgReading;
+import com.eveningoutpost.dexdrip.Models.Calibration;
+import com.eveningoutpost.dexdrip.Models.UserError.Log;
 import com.eveningoutpost.dexdrip.Services.SyncService;
-import com.eveningoutpost.dexdrip.ShareModels.Models.ShareUploadPayload;
-import com.eveningoutpost.dexdrip.utils.BgToSpeech;
 import com.eveningoutpost.dexdrip.ShareModels.BgUploader;
+import com.eveningoutpost.dexdrip.ShareModels.Models.ShareUploadPayload;
 import com.eveningoutpost.dexdrip.WidgetUpdateService;
+import com.eveningoutpost.dexdrip.utils.BgToSpeech;
 import com.eveningoutpost.dexdrip.wearintegration.WatchUpdaterService;
 import com.eveningoutpost.dexdrip.xDripWidget;
 
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -132,6 +133,7 @@ public class BgSendQueue extends Model {
                 powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK,
                         "quickFix3").acquire(15000);
             }
+            sendToBroadcastReceiverToDanaApp(context);
 
             // send to pebble
             if(prefs.getBoolean("broadcast_to_pebble", false)) {
@@ -158,6 +160,67 @@ public class BgSendQueue extends Model {
         }
     }
 
+    private static void sendToBroadcastReceiverToDanaApp(Context context) {
+
+
+        Intent intent = new Intent("danaR.action.BG_DATA");
+        List<BgReading> latest6bgReadings = BgReading.latest(6);
+        Collections.reverse(latest6bgReadings);
+
+        int sizeRecords = latest6bgReadings.size();
+        double deltaAvg30min = 0d;
+        double deltaAvg15min = 0d;
+        double avg30min = 0d;
+        double avg15min = 0d;
+
+        boolean notGood = false;
+
+        if(sizeRecords >6) {
+            for(int i = sizeRecords-6;i<sizeRecords ;i++) {
+                short glucoseValueBeeingProcessed = (short) latest6bgReadings.get(i).calculated_value;
+                if(glucoseValueBeeingProcessed < 40) {
+                    notGood = true;
+                    Log.i("sendToBroadcastReceiverToDanaApp", "sendToBroadcastReceiverToDanaApp data not good "+ latest6bgReadings.get(i).timestamp);
+                }
+                deltaAvg30min+= glucoseValueBeeingProcessed - latest6bgReadings.get(i-1).calculated_value;
+                avg30min+=glucoseValueBeeingProcessed;
+                if(i>=sizeRecords-3) {
+                    avg15min += glucoseValueBeeingProcessed;
+                    deltaAvg15min += glucoseValueBeeingProcessed - latest6bgReadings.get(i-1).calculated_value;
+                }
+            }
+            deltaAvg30min/=6d;
+            deltaAvg15min/=3d;
+            avg30min/=6d;
+            avg15min/=3d;
+        }
+
+        if(notGood) {
+            Log.i("sendToBroadcastReceiverToDanaApp","sendToBroadcastReceiverToDanaApp data not good");
+            return;
+        }
+        Bundle bundle = new Bundle();
+        BgReading timeMatechedRecordCurrent = latest6bgReadings.get(sizeRecords - 1);
+        bundle.putLong("time", timeMatechedRecordCurrent.timestamp);
+        bundle.putInt("value", (int) timeMatechedRecordCurrent.calculated_value);
+        bundle.putInt("delta", (int) (timeMatechedRecordCurrent.calculated_value - latest6bgReadings.get(sizeRecords - 2).calculated_value));
+        bundle.putDouble("deltaAvg30min", deltaAvg30min);
+        bundle.putDouble("deltaAvg15min", deltaAvg15min);
+        bundle.putDouble("avg30min", avg30min);
+        bundle.putDouble("avg15min", avg15min);
+
+        intent.putExtras(bundle);
+
+        List<ResolveInfo> x = context.getPackageManager().queryBroadcastReceivers(intent, 0);
+        Log.i("sendToBroadcastReceiverToDanaApp","sendToBroadcastReceiverToDanaApp.queryBroadcastReceivers "+x.size() +" "+x );
+
+
+        context.sendBroadcast(intent);
+    }
+
+
+
+
     public void deleteThis() {
         this.delete();
     }
@@ -172,3 +235,5 @@ public class BgSendQueue extends Model {
         return (int)(((float)level / (float)scale) * 100.0f);
     }
 }
+
+
