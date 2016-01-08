@@ -41,6 +41,7 @@ public class StopSensor extends ActivityWithMenu {
 
         button.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
+/*                
                 Sensor sensor = Sensor.currentSensor();
                 sensor.stopped_at = new Date().getTime();
                 Log.i("NEW SENSOR", "Sensor stopped at " + sensor.stopped_at);
@@ -50,6 +51,8 @@ public class StopSensor extends ActivityWithMenu {
                     Log.i("NEW SENSOR", "Sensor stopped at " + sensor.stopped_at);
                     sensor.save();
                 }
+*/
+                Sensor.stopSensor();
                 AlertPlayer.getPlayer().stopAlert(getApplicationContext(),true, false);
 
                 Toast.makeText(getApplicationContext(), "Sensor stopped", Toast.LENGTH_LONG).show();
