@@ -7,6 +7,7 @@ import com.activeandroid.annotation.Column;
 import com.activeandroid.annotation.Table;
 import com.activeandroid.query.Select;
 import com.eveningoutpost.dexdrip.Sensor;
+import com.eveningoutpost.dexdrip.Models.UserError.Log;
 
 import java.util.List;
 
@@ -22,23 +23,18 @@ public class SensorSendQueue extends Model {
     @Column(name = "success", index = true)
     public boolean success;
 
-
-    public static SensorSendQueue nextSensorJob() {
-        SensorSendQueue job = new Select()
+    
+    public static List<SensorSendQueue> mongoQueue(boolean xDripViewerMode) {
+        List<SensorSendQueue> values = new Select()
                 .from(SensorSendQueue.class)
-                .where("success =", false)
                 .orderBy("_ID desc")
-                .limit(1)
-                .executeSingle();
-        return job;
-    }
-
-    public static List<SensorSendQueue> queue() {
-        return new Select()
-                .from(SensorSendQueue.class)
-                .where("success = ?", false)
-                .orderBy("_ID desc")
+                .limit(xDripViewerMode ? 100 : 0)
                 .execute();
+        if (xDripViewerMode) {
+             java.util.Collections.reverse(values);
+        }
+        return values;
+        
     }
 
     public static void addToQueue(Sensor sensor) {
@@ -46,5 +42,10 @@ public class SensorSendQueue extends Model {
         sensorSendQueue.sensor = sensor;
         sensorSendQueue.success = false;
         sensorSendQueue.save();
+        Log.d("SensorQueue", "New value added to queue!");
+    }
+    
+    public void deleteThis() {
+        this.delete();
     }
 }
