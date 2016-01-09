@@ -25,9 +25,9 @@ import com.eveningoutpost.dexdrip.ShareModels.Models.ShareUploadPayload;
 import com.eveningoutpost.dexdrip.utils.BgToSpeech;
 import com.eveningoutpost.dexdrip.ShareModels.BgUploader;
 import com.eveningoutpost.dexdrip.WidgetUpdateService;
+import com.eveningoutpost.dexdrip.wearintegration.WatchUpdaterService;
 import com.eveningoutpost.dexdrip.xDripWidget;
 
-import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -107,38 +107,11 @@ public class BgSendQueue extends Model {
                 bundle.putInt(Intents.EXTRA_SENSOR_BATTERY, getBatteryLevel(context));
                 bundle.putLong(Intents.EXTRA_TIMESTAMP, bgReading.timestamp);
 
-                //raw value
-                double slope = 0, intercept = 0, scale = 0, filtered = 0, unfiltered = 0, raw = 0;
                 Calibration cal = Calibration.last();
-                if (cal != null){
-                    // slope/intercept/scale like uploaded to NightScout (NightScoutUploader.java)
-                    if(cal.check_in) {
-                        slope = cal.first_slope;
-                        intercept= cal.first_intercept;
-                        scale =  cal.first_scale;
-                    } else {
-                        slope = 1000/cal.slope;
-                        intercept=  (cal.intercept * -1000) / (cal.slope);
-                        scale = 1;
-                    }
-                    unfiltered= bgReading.usedRaw()*1000;
-                    filtered = bgReading.ageAdjustedFiltered()*1000;
-                }
-                //raw logic from https://github.com/nightscout/cgm-remote-monitor/blob/master/lib/plugins/rawbg.js#L59
-                if (slope != 0 && intercept != 0 && scale != 0) {
-                    if (filtered == 0 || bgReading.calculated_value < 40) {
-                        raw = scale * (unfiltered - intercept) / slope;
-                    } else {
-                        double ratio = scale * (filtered - intercept) / slope / bgReading.calculated_value;
-                        raw = scale * (unfiltered - intercept) / slope / ratio;
-                    }
-                }
-                bundle.putDouble(Intents.EXTRA_RAW, raw);
+                bundle.putDouble(Intents.EXTRA_RAW, NightscoutUploader.getNightscoutRaw(bgReading, cal));
                 Intent intent = new Intent(Intents.ACTION_NEW_BG_ESTIMATE);
                 intent.putExtras(bundle);
                 intent.addFlags(Intent.FLAG_INCLUDE_STOPPED_PACKAGES);
-
-
                 context.sendBroadcast(intent, Intents.RECEIVER_PERMISSION);
 
                 //just keep it alive for 3 more seconds to allow the watch to be updated
@@ -148,9 +121,24 @@ public class BgSendQueue extends Model {
 
             }
 
+            // send to wear
+            if (prefs.getBoolean("wear_sync", false)) {
+
+                /*By integrating the watch part of Nightwatch we inherited the same wakelock
+                    problems NW had - so adding the same quick fix for now.
+                    TODO: properly "wakelock" the wear (and probably pebble) services
+                 */
+                context.startService(new Intent(context, WatchUpdaterService.class));
+                powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK,
+                        "quickFix3").acquire(15000);
+            }
+
+            // send to pebble
             if(prefs.getBoolean("broadcast_to_pebble", false)) {
                 context.startService(new Intent(context, PebbleSync.class));
             }
+
+
 
             if (prefs.getBoolean("share_upload", false)) {
                 Log.d("ShareRest", "About to call ShareRest!!");
@@ -169,7 +157,7 @@ public class BgSendQueue extends Model {
             wakeLock.release();
         }
     }
-    
+
     public void deleteThis() {
         this.delete();
     }

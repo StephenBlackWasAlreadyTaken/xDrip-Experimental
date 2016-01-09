@@ -61,7 +61,9 @@ public class NightscoutUploader {
         private SharedPreferences prefs;
         private OkHttpClient client;
 
-        public interface NightscoutService {
+
+
+    public interface NightscoutService {
             @POST("entries")
             Call<ResponseBody> upload(@Header("api-secret") String secret, @Body RequestBody body);
 
@@ -267,15 +269,9 @@ public class NightscoutUploader {
             json.put("type", "cal");
             json.put("date", record.timestamp);
             json.put("dateString", format.format(record.timestamp));
-            if(record.check_in) {
-                json.put("slope", (record.first_slope));
-                json.put("intercept", ((record.first_intercept)));
-                json.put("scale", record.first_scale);
-            } else {
-                json.put("slope", (1000/record.slope));
-                json.put("intercept", ((record.intercept * -1000) / (record.slope)));
-                json.put("scale", 1);
-            }
+            json.put("slope", getNightscoutSlope(record));
+            json.put("intercept", getNightscoutIntercept(record));
+            json.put("scale", getNightscoutScale(record));
             json.put("sysTime", format.format(record.timestamp));
             array.put(json);
         }
@@ -372,15 +368,9 @@ public class NightscoutUploader {
                             testData.put("device", "xDrip-" + prefs.getString("dex_collection_method", "BluetoothWixel"));
                             testData.put("date", calRecord.timestamp);
                             testData.put("dateString", format.format(calRecord.timestamp));
-                            if (calRecord.check_in) {
-                                testData.put("slope", (calRecord.first_slope));
-                                testData.put("intercept", ((calRecord.first_intercept)));
-                                testData.put("scale", calRecord.first_scale);
-                            } else {
-                                testData.put("slope",  (1000/calRecord.slope));
-                                testData.put("intercept", ((calRecord.intercept * -1000) / (calRecord.slope)));
-                                testData.put("scale", 1);
-                            }
+                            testData.put("slope", getNightscoutSlope(calRecord));
+                            testData.put("intercept", getNightscoutIntercept(calRecord));
+                            testData.put("scale", getNightscoutScale(calRecord));
 
                             testData.put("type", "cal");
                             
@@ -422,4 +412,50 @@ public class NightscoutUploader {
             return (int) (((float) level / (float) scale) * 100.0f);
         } else return 50;
     }
+    public static double getNightscoutRaw(BgReading bgReading, Calibration cal) {
+        double slope = 0, intercept = 0, scale = 0, filtered = 0, unfiltered = 0, nightscoutRaw = 0;
+        if (cal != null){
+            // slope/intercept/scale like uploaded to NightScout (NightScoutUploader.java)
+            slope = getNightscoutSlope(cal);
+            intercept = getNightscoutIntercept(cal);
+            scale = getNightscoutScale(cal);
+            unfiltered= bgReading.usedRaw()*1000;
+            filtered = bgReading.ageAdjustedFiltered()*1000;
+        }
+        //nightscoutRaw logic from https://github.com/nightscout/cgm-remote-monitor/blob/master/lib/plugins/rawbg.js#L59
+        if (slope != 0 && intercept != 0 && scale != 0) {
+            if (filtered == 0 || bgReading.calculated_value < 40) {
+                nightscoutRaw = scale * (unfiltered - intercept) / slope;
+            } else {
+                double ratio = scale * (filtered - intercept) / slope / bgReading.calculated_value;
+                nightscoutRaw = scale * (unfiltered - intercept) / slope / ratio;
+            }
+        }
+        return nightscoutRaw;
+    }
+
+    public static double getNightscoutScale(Calibration cal) {
+        if(cal.check_in) {
+            return  cal.first_scale;
+        } else {
+            return 1;
+        }
+    }
+
+    public static double getNightscoutIntercept(Calibration cal) {
+        if(cal.check_in) {
+            return cal.first_intercept;
+        } else {
+            return (cal.intercept * -1000) / (cal.slope);
+        }
+    }
+
+    public static double getNightscoutSlope(Calibration cal) {
+        if(cal.check_in) {
+            return cal.first_slope;
+        } else {
+            return 1000/cal.slope;
+        }
+    }
+    
 }
