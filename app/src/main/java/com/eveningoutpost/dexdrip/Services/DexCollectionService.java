@@ -507,9 +507,7 @@ public class DexCollectionService extends Service {
             return;
         }
 
-        sensor.latest_battery_level = (sensor.latest_battery_level!=0)?Math.min(sensor.latest_battery_level, transmitterData.sensor_battery_level):transmitterData.sensor_battery_level;
-        sensor.save();
-
+        Sensor.updateBatteryLevel(sensor, transmitterData.sensor_battery_level);
         BgReading.create(transmitterData.raw_data, transmitterData.filtered_data, this, timestamp);
     }
 }

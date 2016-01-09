@@ -505,9 +505,8 @@ public class WixelReader extends AsyncTask<String, Void, Void > {
         if (transmitterData != null) {
             Sensor sensor = Sensor.currentSensor();
             if (sensor != null) {
+                Sensor.updateBatteryLevel(sensor, transmitterData.sensor_battery_level);
                 BgReading bgReading = BgReading.create(transmitterData.raw_data, filtered_data, mContext, CaptureTime);
-                sensor.latest_battery_level = (sensor.latest_battery_level!=0)?Math.min(sensor.latest_battery_level, transmitterData.sensor_battery_level):transmitterData.sensor_battery_level;;
-                sensor.save();
             } else {
                 Log.d(TAG, "No Active Sensor, Data only stored in Transmitter Data");
             }
