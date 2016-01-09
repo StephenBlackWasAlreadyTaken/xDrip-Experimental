@@ -27,12 +27,9 @@ public class SensorSendQueue extends Model {
     public static List<SensorSendQueue> mongoQueue(boolean xDripViewerMode) {
         List<SensorSendQueue> values = new Select()
                 .from(SensorSendQueue.class)
-                .orderBy("_ID desc")
-                .limit(xDripViewerMode ? 100 : 0)
+                .orderBy("_ID asc")
+                .limit(100 )
                 .execute();
-        if (xDripViewerMode) {
-             java.util.Collections.reverse(values);
-        }
         return values;
         
     }
