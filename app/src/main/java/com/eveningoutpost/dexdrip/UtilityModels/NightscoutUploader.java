@@ -8,7 +8,7 @@ import android.os.BatteryManager;
 import android.preference.PreferenceManager;
 
 import com.activeandroid.annotation.Column;
-import com.eveningoutpost.dexdrip.Sensor;
+import com.eveningoutpost.dexdrip.Models.Sensor;
 import com.eveningoutpost.dexdrip.Models.BgReading;
 import com.eveningoutpost.dexdrip.Models.Calibration;
 import com.eveningoutpost.dexdrip.Models.UserError.Log;

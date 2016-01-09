@@ -16,7 +16,7 @@ import android.widget.Toast;
 import com.eveningoutpost.dexdrip.Home;
 import com.eveningoutpost.dexdrip.ImportedLibraries.dexcom.SyncingService;
 import com.eveningoutpost.dexdrip.R;
-import com.eveningoutpost.dexdrip.Sensor;
+import com.eveningoutpost.dexdrip.Models.Sensor;
 import com.eveningoutpost.dexdrip.utils.ActivityWithMenu;
 
 public class CalibrationCheckInActivity extends ActivityWithMenu {
