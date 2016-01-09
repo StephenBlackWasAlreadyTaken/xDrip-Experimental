@@ -184,14 +184,14 @@ public class NightscoutUploader {
             for (BgReading record : glucoseDataSets) {
                 populateV1APIBGEntry(array, record, xDripViewerMode);
             }
+            for (Sensor record : sensors) {
+                populateV1APISensorEntry(array, record);
+            }
             for (Calibration record : meterRecords) {
                 populateV1APIMeterReadingEntry(array, record, xDripViewerMode);
             }
             for (Calibration record : calRecords) {
                 populateV1APICalibrationEntry(array, record);
-            }
-            for (Sensor record : sensors) {
-                populateV1APISensorEntry(array, record);
             }
 
             RequestBody body = RequestBody.create(MediaType.parse("application/json"), array.toString());
@@ -359,6 +359,20 @@ public class NightscoutUploader {
                             dexcomData.update(query, testData, true, false,  WriteConcern.UNACKNOWLEDGED);
                         }
 
+                        Log.i(TAG, "The number of sensor records being sent to MongoDB is " + meterRecords.size());
+                        for (Sensor sensor : sensors) {
+                            // make db object
+                            BasicDBObject testData = new BasicDBObject();
+                            testData.put("type", "sensor");
+                            testData.put("xDrip_started_at", sensor.started_at);
+                            testData.put("xDrip_stopped_at", sensor.stopped_at);
+                            testData.put("xDrip_latest_battery_level", sensor.latest_battery_level);
+                            testData.put("xDrip_uuid", sensor.uuid);
+                            testData.put("sysTime", format.format(sensor.started_at));
+                            BasicDBObject query = new BasicDBObject("type", "sensor").append("sysTime", format.format(sensor.started_at));
+                            dexcomData.update(query, testData, true, false,  WriteConcern.UNACKNOWLEDGED);
+                        }
+
                         Log.i(TAG, "The number of MBG records being sent to MongoDB is " + meterRecords.size());
                         for (Calibration meterRecord : meterRecords) {
                             // make db object
@@ -405,19 +419,6 @@ public class NightscoutUploader {
                             dexcomData.update(query, testData, true, false,  WriteConcern.UNACKNOWLEDGED);
                         }
                         
-                        Log.i(TAG, "The number of sensor records being sent to MongoDB is " + meterRecords.size());
-                        for (Sensor sensor : sensors) {
-                            // make db object
-                            BasicDBObject testData = new BasicDBObject();
-                            testData.put("type", "sensor");
-                            testData.put("xDrip_started_at", sensor.started_at);
-                            testData.put("xDrip_stopped_at", sensor.stopped_at);
-                            testData.put("xDrip_latest_battery_level", sensor.latest_battery_level);
-                            testData.put("xDrip_uuid", sensor.uuid);
-                            testData.put("sysTime", format.format(sensor.started_at));
-                            BasicDBObject query = new BasicDBObject("type", "sensor").append("sysTime", format.format(sensor.started_at));
-                            dexcomData.update(query, testData, true, false,  WriteConcern.UNACKNOWLEDGED);
-                        }
 
                         // TODO: quick port from original code, revisit before release
                         DBCollection dsCollection = db.getCollection(dsCollectionName);
