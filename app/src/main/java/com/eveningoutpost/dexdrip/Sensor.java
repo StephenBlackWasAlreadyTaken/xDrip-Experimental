@@ -9,6 +9,7 @@ import com.activeandroid.query.Select;
 import com.eveningoutpost.dexdrip.Models.UserError.Log;
 import com.eveningoutpost.dexdrip.UtilityModels.SensorSendQueue;
 
+import java.util.Date;
 import java.util.UUID;
 
 /**
@@ -48,6 +49,18 @@ public class Sensor extends Model {
         SensorSendQueue.addToQueue(sensor);
         Log.d("SENSOR MODEL:", sensor.toString());
         return sensor;
+    }
+    
+    public static void stopSensor() {
+        Sensor sensor = currentSensor();
+        if(sensor == null) {
+            return;
+        }
+        sensor.stopped_at = new Date().getTime();
+        Log.i("NEW SENSOR", "Sensor stopped at " + sensor.stopped_at);
+        sensor.save();
+        SensorSendQueue.addToQueue(sensor);
+        
     }
 
     public static Sensor currentSensor() {
