@@ -1,5 +1,6 @@
 package com.eveningoutpost.dexdrip;
 
+import android.graphics.Color;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.widget.TextView;
@@ -72,12 +73,14 @@ public class CalibrationGraph extends ActivityWithMenu {
 
             //calibration values
             List<Calibration> calibrations = Calibration.allForSensor();
+            Line greyLine = getCalibrationsLine(calibrations, Color.parseColor("#66FFFFFF"));
+            calibrations = Calibration.allForSensorInLastFourDays();
             Line blueLine = getCalibrationsLine(calibrations, ChartUtils.COLOR_BLUE);
 
             //add lines in order
-            lines.add(calibrationLine);
+            lines.add(greyLine);
             lines.add(blueLine);
-
+            lines.add(calibrationLine);
 
         }
         Axis axisX = new Axis();
