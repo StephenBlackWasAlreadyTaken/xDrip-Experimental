@@ -135,7 +135,7 @@ public class PebbleSync extends Service {
     }
 
     public String bgDelta() {
-        return new BgGraphBuilder(mContext).unitizedDeltaString(false, false);
+        return new BgGraphBuilder(mContext).unitizedDeltaString(true, true);
     }
 
     public String phoneBattery() {
