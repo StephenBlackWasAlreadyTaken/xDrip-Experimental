@@ -270,6 +270,7 @@ public class Preferences extends PreferenceActivity {
             bindTTSListener();
             bindBgMissedAlertsListener();
             final Preference collectionMethod = findPreference("dex_collection_method");
+            final Preference displayBridgeBatt = findPreference("display_bridge_battery");
             final Preference runInForeground = findPreference("run_service_in_foreground");
             final Preference wifiRecievers = findPreference("wifi_recievers_addresses");
             final Preference predictiveBG = findPreference("predictive_bg");
@@ -324,6 +325,7 @@ public class Preferences extends PreferenceActivity {
 
             if(prefs.getString("dex_collection_method", "BluetoothWixel").compareTo("DexbridgeWixel") != 0) {
                 collectionCategory.removePreference(transmitterId);
+                collectionCategory.removePreference(displayBridgeBatt);
             }
             pebbleSync.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
                 @Override
@@ -385,8 +387,10 @@ public class Preferences extends PreferenceActivity {
 
                     if(((String) newValue).compareTo("DexbridgeWixel") != 0) {
                         collectionCategory.removePreference(transmitterId);
+                        collectionCategory.removePreference(displayBridgeBatt);
                     } else {
                         collectionCategory.addPreference(transmitterId);
+                        collectionCategory.addPreference(displayBridgeBatt);
                     }
 
                     String stringValue = newValue.toString();
