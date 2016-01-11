@@ -23,6 +23,7 @@ import android.preference.PreferenceManager;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.app.NotificationManagerCompat;
 import com.eveningoutpost.dexdrip.Models.UserError.Log;
+import com.eveningoutpost.dexdrip.Models.Sensor;
 
 import com.eveningoutpost.dexdrip.AddCalibration;
 import com.eveningoutpost.dexdrip.DoubleCalibrationActivity;
@@ -37,7 +38,6 @@ import com.eveningoutpost.dexdrip.Models.UserNotification;
 import com.eveningoutpost.dexdrip.Services.MissedReadingService;
 
 import com.eveningoutpost.dexdrip.R;
-import com.eveningoutpost.dexdrip.Sensor;
 
 import java.util.Calendar;
 import java.util.Date;
@@ -307,7 +307,7 @@ public class Notifications extends IntentService {
           if (alert != null) {
               wakeTime = activeBgAlert.next_alert_at ;
               Log.d(TAG , "ArmTimer waking at: "+ new Date(wakeTime) +" in " +  (wakeTime - now)/60000d + " minutes");
-              if (wakeTime < now + 60000) {
+              if (wakeTime < now) {
                   // next alert should be at least one minute from now.
                   wakeTime = now + 60000;
                   Log.w(TAG , "setting next alert to 1 minute from now (no problem right now, but needs a fix someplace else)");
