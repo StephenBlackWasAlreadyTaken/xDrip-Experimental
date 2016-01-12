@@ -10,7 +10,7 @@ import android.os.IBinder;
 import android.preference.PreferenceManager;
 import com.eveningoutpost.dexdrip.Models.UserError.Log;
 import com.eveningoutpost.dexdrip.Models.BgReading;
-import com.eveningoutpost.dexdrip.Sensor;
+import com.eveningoutpost.dexdrip.Models.Sensor;
 import com.getpebble.android.kit.PebbleKit;
 import com.getpebble.android.kit.util.PebbleDictionary;
 
