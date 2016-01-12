@@ -59,6 +59,7 @@ public class PebbleSync extends Service {
     private static ByteBuffer buff = null;
     private static ByteArrayOutputStream stream = null;
     public static int retries = 0;
+    private boolean no_signal = false;
 
     private static short sendStep = 5;
     private PebbleDictionary dictionary = new PebbleDictionary();
@@ -173,17 +174,27 @@ public class PebbleSync extends Service {
         }
         if(mBgReading != null) {
             Log.v(TAG, "buildDictionary: slopeOrdinal-" + slopeOrdinal() + " bgReading-" + bgReading() + " now-" + (int) now.getTime() / 1000 + " bgTime-" + (int) (mBgReading.timestamp / 1000) + " phoneTime-" + (int) (new Date().getTime() / 1000) + " bgDelta-" + bgDelta());
+            no_signal = ((new Date().getTime()) - (60000 * 11) - mBgReading.timestamp >0);
             if(!PreferenceManager.getDefaultSharedPreferences(mContext).getBoolean("pebble_show_arrows", false)) {
                 dictionary.addString(ICON_KEY, "0");
             } else {
                 dictionary.addString(ICON_KEY, slopeOrdinal());
             }
-
-            dictionary.addString(BG_KEY, bgReading());
+            if(no_signal){
+                dictionary.addString(BG_KEY, "?RF");
+                dictionary.addInt8(VIBE_KEY, (byte) 0x01);
+            } else {
+                dictionary.addString(BG_KEY, bgReading());
+                dictionary.addInt8(VIBE_KEY, (byte) 0x00);
+            }
             dictionary.addUint32(RECORD_TIME_KEY, (int) (((mBgReading.timestamp + offsetFromUTC) / 1000)));
             if(PreferenceManager.getDefaultSharedPreferences(mContext).getBoolean("pebble_show_delta", false)) {
-                dictionary.addString(BG_DELTA_KEY, bgDelta());
-            }else {
+                if (no_signal) {
+                    dictionary.addString(BG_DELTA_KEY, "No Signal");
+                } else {
+                   dictionary.addString(BG_DELTA_KEY, bgDelta());
+                }
+            } else {
                 dictionary.addString(BG_DELTA_KEY, "");
             }
             String msg = PreferenceManager.getDefaultSharedPreferences(mContext).getString("pebble_special_value","");
@@ -199,7 +210,6 @@ public class PebbleSync extends Service {
             dictionary.addUint32(RECORD_TIME_KEY, (int) ((new Date().getTime() + offsetFromUTC / 1000)));
             dictionary.addString(BG_DELTA_KEY, "No Sensor");
             dictionary.addString(MESSAGE_KEY, "");
-
         }
         dictionary.addUint32(PHONE_TIME_KEY, (int) ((new Date().getTime() + offsetFromUTC) / 1000));
         if(PreferenceManager.getDefaultSharedPreferences(mContext).getString("dex_collection_method", "DexbridgeWixel").compareTo("DexbridgeWixel")==0 &&
@@ -339,6 +349,7 @@ public class PebbleSync extends Service {
     }
 
     public String bridgeBatteryString() {
+        //if(no_signal) return ("--");
         return String.format("%d", PreferenceManager.getDefaultSharedPreferences(mContext).getInt("bridge_battery", 0));
     }
 
@@ -391,7 +402,6 @@ public class PebbleSync extends Service {
     }
 
     public String bgReading() {
-        if((new Date().getTime()) - (60000 * 11) - mBgReading.timestamp >0) return "?RF";
         if(PreferenceManager.getDefaultSharedPreferences(mContext).getString("dex_collection_method", "DexbridgeWixel").compareTo("DexbridgeWixel")==0 && !(new Sensor().isActive())) return "?SN";
         return bgGraphBuilder.unitized_string(mBgReading.calculated_value);
     }
