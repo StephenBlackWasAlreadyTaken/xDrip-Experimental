@@ -491,7 +491,7 @@ public class Preferences extends PreferenceActivity {
 
            pebbleLowLine.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
                @Override
-               public boolean onPreferenceChange(Preference preference, Object newValue){
+               public boolean onPreferenceChange(Preference preference, Object newValue) {
                    Context context = preference.getContext();
                    context.startService(new Intent(context, PebbleSync.class));
                    return true;
@@ -756,6 +756,9 @@ public class Preferences extends PreferenceActivity {
 
         
         private void bindBgMissedAlertsListener(){
+          findPreference("other_alerts_snooze").setOnPreferenceChangeListener(sBgMissedAlertsHandler);
+          findPreference("bg_missed_alerts").setOnPreferenceChangeListener(sBgMissedAlertsHandler);
+          findPreference("bg_missed_minutes").setOnPreferenceChangeListener(sBgMissedAlertsHandler);
           findPreference("other_alerts_snooze").setOnPreferenceChangeListener(sBgMissedAlertsHandler);
         }
 
