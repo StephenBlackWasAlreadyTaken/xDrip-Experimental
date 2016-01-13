@@ -185,13 +185,19 @@ public class ShareRest {
                     } else
                         return params[0];
                 } catch (IOException e) {
-                    return new ShareException("Error retrieving Share session id: " +e.getMessage(), e);                }
+                    return new ShareException("Error retrieving Share session id. " +e.getMessage(), e);
+                } catch (ShareException e) {
+                    return e;
+                }
             }
 
-            private String updateAuthenticationParams() throws IOException {
+            private String updateAuthenticationParams() throws IOException, ShareException {
                 sessionId = dexcomShareApi.getSessionId(new ShareAuthenticationBody(password, username).toMap()).execute().body();
                 if (serialNumber == null || serialNumber.equals("")) {
-                    throw new ShareException("No receiver serial number specified");
+                    throw new ShareException("No receiver serial number specified.");
+                }
+                if (sessionId == null) {
+                    throw new ShareException("Unable to retrieve Share session ID.  Check username and password.");
                 }
                 dexcomShareApi.authenticatePublisherAccount(sessionId, serialNumber, new ShareAuthenticationBody(password, username).toMap()).execute().body();
                 dexcomShareApi.StartRemoteMonitoringSession(sessionId, serialNumber).execute();
@@ -212,7 +218,7 @@ public class ShareRest {
                 }
                 sessionId = (String) result;
             } catch (InterruptedException | ExecutionException | ShareException e) {
-                throw new ShareException("Unable to start Share session: "+e.getMessage(), e);
+                throw new ShareException("Unable to start Share session.  "+e.getMessage(), e);
             }
         return sessionId;
     }
