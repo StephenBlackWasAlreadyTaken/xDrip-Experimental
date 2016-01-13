@@ -80,7 +80,7 @@ public class FollowerManagementActivity extends ActivityWithMenu {
 
             @Override
             public void onFailure(Throwable t) {
-                Toast.makeText(FollowerManagementActivity.this, "Failed to retrieve follower list: " + t.getMessage(), Toast.LENGTH_SHORT).show();
+                Toast.makeText(FollowerManagementActivity.this, "Failed to retrieve follower list: " + t.getMessage(), Toast.LENGTH_LONG).show();
                 // If it fails, don't show followers.
             }
         };
