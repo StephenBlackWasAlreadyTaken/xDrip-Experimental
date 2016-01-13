@@ -202,7 +202,7 @@ public class ShareRest {
                 dexcomShareApi.authenticatePublisherAccount(sessionId, serialNumber, new ShareAuthenticationBody(password, username).toMap()).execute().body();
                 dexcomShareApi.StartRemoteMonitoringSession(sessionId, serialNumber).execute();
                 String assignment = dexcomShareApi.checkMonitorAssignment(sessionId, serialNumber).execute().body();
-                if (assignment != null && !assignment.equals("AssignedToYou")) {
+                if (!"AssignedToYou".equals(assignment)) {
                     dexcomShareApi.updateMonitorAssignment(sessionId, serialNumber).execute();
                 }
                 return sessionId;
