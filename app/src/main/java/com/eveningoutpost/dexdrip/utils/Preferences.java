@@ -235,6 +235,8 @@ public class Preferences extends PreferenceActivity {
         @Override
         public void onCreate(Bundle savedInstanceState) {
             super.onCreate(savedInstanceState);
+            final SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getActivity());
+
             addPreferencesFromResource(R.xml.pref_license);
             addPreferencesFromResource(R.xml.pref_general);
             bindPreferenceSummaryToValueAndEnsureNumeric(findPreference("highValue"));
@@ -275,7 +277,29 @@ public class Preferences extends PreferenceActivity {
             final Preference wifiRecievers = findPreference("wifi_recievers_addresses");
             final Preference predictiveBG = findPreference("predictive_bg");
             final Preference interpretRaw = findPreference("interpret_raw");
+
             final Preference shareKey = findPreference("share_key");
+            shareKey.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
+                @Override
+                public boolean onPreferenceClick(Preference preference) {
+                    prefs.edit().remove("dexcom_share_session_id").apply();
+                    return true;
+                }
+            });
+
+            Preference.OnPreferenceChangeListener shareTokenResettingListener = new Preference.OnPreferenceChangeListener() {
+                @Override
+                public boolean onPreferenceChange(Preference preference, Object newValue) {
+                    prefs.edit().remove("dexcom_share_session_id").apply();
+                    return true;
+                }
+            };
+
+            final Preference sharePassword = findPreference("dexcom_account_password");
+            sharePassword.setOnPreferenceChangeListener(shareTokenResettingListener);
+            final Preference shareAccountName = findPreference("dexcom_account_name");
+            shareAccountName.setOnPreferenceChangeListener(shareTokenResettingListener);
+
             final Preference scanShare = findPreference("scan_share2_barcode");
             final EditTextPreference transmitterId = (EditTextPreference) findPreference("dex_txid");
             final Preference pebbleSync = findPreference("broadcast_to_pebble");
@@ -283,7 +307,6 @@ public class Preferences extends PreferenceActivity {
             final PreferenceCategory otherCategory = (PreferenceCategory) findPreference("other_category");
             final PreferenceScreen calibrationAlertsScreen = (PreferenceScreen) findPreference("calibration_alerts_screen");
             final PreferenceCategory alertsCategory = (PreferenceCategory) findPreference("alerts_category");
-            final SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getActivity());
             final Preference disableAlertsStaleDataMinutes = findPreference("disable_alerts_stale_data_minutes");
             disableAlertsStaleDataMinutes.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
                 @Override

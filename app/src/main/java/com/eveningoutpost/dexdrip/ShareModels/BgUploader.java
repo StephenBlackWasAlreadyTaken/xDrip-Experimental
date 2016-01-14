@@ -2,6 +2,7 @@ package com.eveningoutpost.dexdrip.ShareModels;
 
 import android.content.Context;
 
+import com.eveningoutpost.dexdrip.Models.UserError;
 import com.eveningoutpost.dexdrip.ShareModels.Models.ShareUploadPayload;
 import com.squareup.okhttp.ResponseBody;
 
@@ -31,7 +32,7 @@ public class BgUploader {
 
             @Override
             public void onFailure(Throwable t) {
-                // TODO add error handling in a refactoring pass
+                UserError.Log.d(TAG, "Error uploading Share records: "+ t.getMessage());
             }
         });
     }
