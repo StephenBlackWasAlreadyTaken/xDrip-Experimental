@@ -85,6 +85,7 @@ android {
         targetSdkVersion 23
         versionCode 2
         versionName generateVersionName()
+        multiDexEnabled true
     }
     buildTypes {
     }
@@ -105,7 +106,7 @@ dependencies {
     compile 'com.github.lecho:hellocharts-android:v1.5.5'
     compile 'com.google.android.gms:play-services-wearable:7.5.0'
     compile 'com.google.guava:guava:18.0'
-
+    compile 'com.android.support:multidex:1.0.1'
     compile('com.github.nightscout:android-uploader:CORE_FOR_XDRIP') {
         transitive = false;
     }
