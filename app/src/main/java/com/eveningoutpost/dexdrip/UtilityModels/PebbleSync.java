@@ -112,16 +112,21 @@ public class PebbleSync extends Service {
                 lastTransactionId = transactionId;
                 Log.d(TAG, "Received Query. data: " + data.size() + ".");
 //                if(data.getInteger(SYNC_KEY)!=null) {
-                    Log.d(TAG, "Received SYNC_KEY, sending ack and data to Pebble");
-                    PebbleKit.sendAckToPebble(context, transactionId);
-                    transactionFailed = false;
-                    transactionOk = false;
-                    messageInTransit = false;
-                    sendingData = false;
-                    sendStep = 5;
+//                  Log.d(TAG, "Received SYNC_KEY, sending ack and data to Pebble");
+                PebbleKit.sendAckToPebble(context, transactionId);
+                transactionFailed = false;
+                transactionOk = false;
+                messageInTransit = false;
+                //sendingData = false;
+                sendStep = 5;
+                if(!sendingData) {
                     sendData();
+                }
+                else {
+                    Log.d(TAG, "PebbleSync: Already sending data, aborting");
+                }
 //                } else {
-                    Log.d(TAG, "PebbleSync: SYNC_KEY not found");
+                    //Log.d(TAG, "PebbleSync: SYNC_KEY not found");
 //                }
 
             }
