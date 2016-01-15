@@ -390,12 +390,13 @@ public class Calibration extends Model {
         return Calibration.last();
     }
 
-    public static void createUpdate(Context context, double bg, long timeStamp, double intercept, double slope, 
+    public static void createUpdate(String xDrip_sensor_uuid, double bg, long timeStamp, double intercept, double slope, 
             double estimate_raw_at_time_of_calibration, double slope_confidence , double sensor_confidence, 
             long raw_timestamp) {
-        Sensor sensor = Sensor.currentSensor();
+        Sensor sensor = Sensor.getByUuid(xDrip_sensor_uuid);
 
         if (sensor == null) {
+            Log.d("CALIBRATION", "No sensor found, ignoring cailbration");
             return;
         }
         
