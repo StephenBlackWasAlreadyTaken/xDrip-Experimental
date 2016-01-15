@@ -13,13 +13,13 @@ import com.eveningoutpost.dexdrip.Models.UserError.Log;
 import com.eveningoutpost.dexdrip.Models.Sensor;
 import com.eveningoutpost.dexdrip.Services.NsRestApiReader.NightscoutBg;
 import com.eveningoutpost.dexdrip.Services.NsRestApiReader.NightscoutMbg;
+import com.eveningoutpost.dexdrip.Services.NsRestApiReader.NightscoutSensor;
 import com.eveningoutpost.dexdrip.utils.BgToSpeech;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.squareup.okhttp.OkHttpClient;
 import com.squareup.okhttp.Request;
 import com.squareup.okhttp.Response;
-
 import com.google.common.base.Charsets;
 import com.google.common.hash.Hashing;
 
@@ -37,7 +37,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.ListIterator;
-
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -578,7 +577,7 @@ public class WixelReader extends AsyncTask<String, Void, Void > {
             Log.e(TAG, "readData baseURL= "+ baseURL +" secret = (is a secret, don't print)" + secret);
             String hashedSecret = Hashing.sha1().hashBytes(secret.getBytes(Charsets.UTF_8)).toString();
             
-            verifySensor();
+            readSensorData(baseURL, hashedSecret);
             readCalData(baseURL, hashedSecret);
             readBgData(baseURL, hashedSecret);
         } catch (Exception e) {
@@ -586,49 +585,72 @@ public class WixelReader extends AsyncTask<String, Void, Void > {
             e.printStackTrace();
         }
     }
-    
-    void verifySensor() {
-        Sensor sensor = Sensor.currentSensor();
-        if(sensor != null) {
+
+
+    private void readSensorData(String baseUrl, String key) {
+
+        NsRestApiReader nsRestApiReader = new NsRestApiReader();
+        Long LastReportedTime = 0L;
+
+        Sensor lastSensor = Sensor.last();
+
+        if(lastSensor != null) {
+            LastReportedTime = (long)lastSensor.started_at;
+        }
+        Log.e(TAG, "readSensorData  LastReportedTime = " + LastReportedTime);
+
+        List<NightscoutSensor> nightscoutSensors = nsRestApiReader.readSensorDataFromNs(baseUrl, key, LastReportedTime, 10 );
+        if(nightscoutSensors == null) {
+            Log.e(TAG, "readBgDataFromNs returned null");
             return;
         }
-        Sensor.create(new Date().getTime());
-    }
-    
 
+        ListIterator<NightscoutSensor> li = nightscoutSensors.listIterator(nightscoutSensors.size());
+        long lastInserted = 0;
+        while(li.hasPrevious()) {
+            NightscoutSensor nightscoutSensor = li.previous();
+            Log.e(TAG, "nightscoutSensor " + nightscoutSensor.xDrip_uuid + " " + nightscoutSensor.xDrip_started_at);
+            if(nightscoutSensor.xDrip_started_at < lastInserted) {
+                Log.e(TAG, "not inserting Sensor, since order is wrong. ");
+                continue;
+            }
+            Sensor.createUpdate(nightscoutSensor.xDrip_started_at, nightscoutSensor.xDrip_stopped_at, nightscoutSensor.xDrip_latest_battery_level, nightscoutSensor.xDrip_uuid);
+            lastInserted = nightscoutSensor.xDrip_started_at;
+        }
+    }  
 
     private void readCalData(String baseUrl, String key) {
 
-    	NsRestApiReader nsRestApiReader = new NsRestApiReader();
-      Long LastReportedTime = 0L;
-      
-      Calibration lastCalibration = Calibration.last();
-      
-      if(lastCalibration != null) {
-          LastReportedTime = (long)lastCalibration.timestamp;
-      }
-      Log.e(TAG, "readBgData  LastReportedTime = " + LastReportedTime);
-      
-      List<NightscoutMbg> nightscoutMbgs = nsRestApiReader.readCalDataFromNs(baseUrl, key, LastReportedTime, 10 );
-      if(nightscoutMbgs == null) {
-          Log.e(TAG, "readBgDataFromNs returned null");
-          return;
-      }
-      
-      ListIterator<NightscoutMbg> li = nightscoutMbgs.listIterator(nightscoutMbgs.size());
-      long lastInserted = 0;
-      while(li.hasPrevious()) {
-          NightscoutMbg nightscoutMbg = li.previous();
-          Log.e(TAG, "NightscoutMbg " + nightscoutMbg.mbg + " " + nightscoutMbg.date);
-          if(nightscoutMbg.date < lastInserted) {
-            Log.e(TAG, "not inserting calibratoin, since order is wrong. ");
-            continue;
-          }
-          Calibration.createUpdate(mContext, nightscoutMbg.mbg, nightscoutMbg.date, nightscoutMbg.xDrip_intercept, nightscoutMbg.xDrip_slope, nightscoutMbg.xDrip_estimate_raw_at_time_of_calibration,
-                  nightscoutMbg.xDrip_slope_confidence , nightscoutMbg.xDrip_sensor_confidence, nightscoutMbg.xDrip_raw_timestamp);
-          lastInserted = nightscoutMbg.date;
-      }
-  }    
+        NsRestApiReader nsRestApiReader = new NsRestApiReader();
+        Long LastReportedTime = 0L;
+
+        Calibration lastCalibration = Calibration.last();
+
+        if(lastCalibration != null) {
+            LastReportedTime = (long)lastCalibration.timestamp;
+        }
+        Log.e(TAG, "readCalData  LastReportedTime = " + LastReportedTime);
+
+        List<NightscoutMbg> nightscoutMbgs = nsRestApiReader.readCalDataFromNs(baseUrl, key, LastReportedTime, 10 );
+        if(nightscoutMbgs == null) {
+            Log.e(TAG, "readCalDataFromNs returned null");
+            return;
+        }
+
+        ListIterator<NightscoutMbg> li = nightscoutMbgs.listIterator(nightscoutMbgs.size());
+        long lastInserted = 0;
+        while(li.hasPrevious()) {
+            NightscoutMbg nightscoutMbg = li.previous();
+            Log.e(TAG, "NightscoutMbg " + nightscoutMbg.mbg + " " + nightscoutMbg.date);
+            if(nightscoutMbg.date < lastInserted) {
+                Log.e(TAG, "not inserting calibratoin, since order is wrong. ");
+                continue;
+            }
+            Calibration.createUpdate(nightscoutMbg.xDrip_sensor_uuid, nightscoutMbg.mbg, nightscoutMbg.date, nightscoutMbg.xDrip_intercept, nightscoutMbg.xDrip_slope, nightscoutMbg.xDrip_estimate_raw_at_time_of_calibration,
+                    nightscoutMbg.xDrip_slope_confidence , nightscoutMbg.xDrip_sensor_confidence, nightscoutMbg.xDrip_raw_timestamp);
+            lastInserted = nightscoutMbg.date;
+        }
+    }    
     
     
     private void readBgData(String baseUrl, String key) {
