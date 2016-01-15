@@ -97,14 +97,17 @@ public class Notifications extends IntentService {
     protected void onHandleIntent(Intent intent) {
         PowerManager pm = (PowerManager) getApplicationContext().getSystemService(Context.POWER_SERVICE);
         PowerManager.WakeLock wl = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "NotificationsIntent");
-        wl.acquire();
-        Log.d("Notifications", "Running Notifications Intent Service");
-        Context context =getApplicationContext(); 
-        ReadPerfs(context);
-        notificationSetter(context);
-        ArmTimer(context);
-        context.startService(new Intent(context, MissedReadingService.class));
-        wl.release();
+        try {
+            wl.acquire();
+            Log.d("Notifications", "Running Notifications Intent Service");
+            Context context =getApplicationContext();
+            ReadPerfs(context);
+            notificationSetter(context);
+            ArmTimer(context);
+            context.startService(new Intent(context, MissedReadingService.class));
+        } finally {
+            if (wl.isHeld()) wl.release();
+        }
     }
 
     public void ReadPerfs(Context context) {
