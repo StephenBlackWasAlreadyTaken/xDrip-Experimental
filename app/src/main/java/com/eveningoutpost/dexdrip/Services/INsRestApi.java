@@ -8,9 +8,9 @@ import retrofit.http.Query;
 import retrofit.http.Headers;
 import retrofit.http.Header;
 
-
 import com.eveningoutpost.dexdrip.Services.NsRestApiReader.NightscoutBg;
 import com.eveningoutpost.dexdrip.Services.NsRestApiReader.NightscoutMbg;
+import com.eveningoutpost.dexdrip.Services.NsRestApiReader.NightscoutSensor;
 
 public interface INsRestApi {
     
@@ -31,6 +31,13 @@ public interface INsRestApi {
     
     @GET("/api/v1/entries.json?find[type][$eq]=mbg")
     Call<List<NightscoutMbg>> getMbg(
+            @Header("api-secret") String key,
+            @Query("find[date][$gte]") long date,
+            @Query("count") long count
+    );
+    
+    @GET("/api/v1/entries.json?find[type][$eq]=sensor")
+    Call<List<NightscoutSensor>> getSensor(
             @Header("api-secret") String key,
             @Query("find[date][$gte]") long date,
             @Query("count") long count
