@@ -39,8 +39,15 @@ public class NsRestApiReader {
 	    double xDrip_slope_confidence;
 	    double xDrip_sensor_confidence;
 	    long xDrip_raw_timestamp;
+	    String xDrip_sensor_uuid;
 	}
 	
+   class NightscoutSensor {
+       Long xDrip_started_at;
+       Long xDrip_stopped_at;
+       int xDrip_latest_battery_level;
+       String xDrip_uuid;
+   }
 	
     private final static String TAG = NsRestApiReader.class.getName();
 
@@ -69,7 +76,36 @@ public class NsRestApiReader {
     }
     
     
-
+    public List<NightscoutSensor> readSensorDataFromNs(String baseUrl, String key, long startTime, long maxCount) {
+        INsRestApi methods = CreateNsMethods(baseUrl);
+        List<NightscoutSensor> nightscoutSensors = null;
+        try {
+        
+            Call<List<NightscoutSensor>> call = methods.getSensor(key,startTime, maxCount); 
+            
+            Response<List<NightscoutSensor>> response = call.execute();
+            if(response == null) {
+                Log.e(TAG,"readSensorDataFromNs  call.execute returned null");
+                return null;
+            }
+            // http://stackoverflow.com/questions/32517114/how-is-error-handling-done-in-retrofit-2-i-can-not-find-the-retrofiterror-clas
+            if(!response.isSuccess() && response.errorBody() != null) {
+                Log.e(TAG,"readSensorDataFromNs  call.execute returned with error " + response.errorBody());
+                return null;
+            }
+            nightscoutSensors = response.body();
+            //
+        } catch (IOException e ) {
+            Log.e(TAG,"RetrofitError exception was cought", e);
+            return null;
+        }
+        
+        if(nightscoutSensors == null) {
+            Log.e(TAG,"readSensorDataFromNs returned null");
+            return null;
+        }
+        return nightscoutSensors;
+    }
 
     public List<NightscoutMbg> readCalDataFromNs(String baseUrl, String key, long startTime, long maxCount) {
         INsRestApi methods = CreateNsMethods(baseUrl);
@@ -80,12 +116,12 @@ public class NsRestApiReader {
             
             Response<List<NightscoutMbg>> response = call.execute();
             if(response == null) {
-                Log.e(TAG,"readBgData  call.execute returned null");
+                Log.e(TAG,"readCalDataFromNs  call.execute returned null");
                 return null;
             }
             // http://stackoverflow.com/questions/32517114/how-is-error-handling-done-in-retrofit-2-i-can-not-find-the-retrofiterror-clas
             if(!response.isSuccess() && response.errorBody() != null) {
-                Log.e(TAG,"readBgData  call.execute returned with error " + response.errorBody());
+                Log.e(TAG,"readCalDataFromNs  call.execute returned with error " + response.errorBody());
                 return null;
             }
             nightscoutMbgs = response.body();
@@ -96,7 +132,7 @@ public class NsRestApiReader {
         }
         
         if(nightscoutMbgs == null) {
-            Log.e(TAG,"readBgData returned null");
+            Log.e(TAG,"readCalDataFromNs returned null");
             return null;
         }
         return nightscoutMbgs;
