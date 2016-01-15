@@ -252,7 +252,6 @@ public class PebbleSync extends Service {
                 Bitmap bgTrend = new BgSparklineBuilder(mContext)
                         .setBgGraphBuilder(bgGraphBuilder)
                         .setStart(System.currentTimeMillis() - 60000 * 60 * trendPeriod)
-                        //.setStart(System.currentTimeMillis() - 60000 * 60 * 3)
                         .setEnd(System.currentTimeMillis())
                         .setHeightPx(84)
                         .setWidthPx(144)
