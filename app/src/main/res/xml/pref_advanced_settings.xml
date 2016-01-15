@@ -18,6 +18,58 @@
     </PreferenceCategory>
 
     <PreferenceCategory
+        android:key="pebble_category"
+        android:title="">
+        <SwitchPreference
+            android:title="@string/pref_pebble_display_trend"
+            android:key="pebble_display_trend"
+            android:summary="@string/pref_summary_display_trend"
+            android:defaultValue="false" >
+        </SwitchPreference>
+        <SwitchPreference
+            android:title="@string/pref_pebble_display_high_line"
+            android:key="pebble_high_line"
+            android:summary="Displays the High Line"
+            android:defaultValue="false" >
+        </SwitchPreference>
+        <SwitchPreference
+            android:title="@string/pref_pebble_display_low_line"
+            android:key="pebble_low_line"
+            android:summary="Displays the Low line"
+            android:defaultValue="false" >
+        </SwitchPreference>
+        <ListPreference
+            android:title="Trend Time Period"
+            android:key="pebble_trend_period"
+            android:summary="Set the trend period to display"
+            android:entries="@array/PebbleTrendPeriods"
+            android:entryValues="@array/PebbleTrendPeriodValues"
+            android:defaultValue="3">
+        </ListPreference>
+        <SwitchPreference
+            android:title="Display Delta"
+            android:key="pebble_show_delta"
+            android:summary="Displays the Delta value"
+            android:defaultValue="true" >
+        </SwitchPreference>
+        <SwitchPreference
+            android:title="Display Slope Arrows"
+            android:key="pebble_show_arrows"
+            android:summary="Displays the Slope Arrows"
+            android:defaultValue="true" >
+        </SwitchPreference>
+        <EditTextPreference
+            android:key="pebble_special_value"
+            android:title="Special Value"
+            android:summary="Special BGL value to display the message below"
+            android:defaultValue="99"/>
+        <EditTextPreference
+            android:key="pebble_special_text"
+            android:title="Text to display"
+            android:summary="Message to display when BGL hits the special value above"
+            android:defaultValue="BAZINGA!" />
+    </PreferenceCategory>
+    <PreferenceCategory
         android:key="other_category"
         android:title="Other Settings">
         <SwitchPreference
