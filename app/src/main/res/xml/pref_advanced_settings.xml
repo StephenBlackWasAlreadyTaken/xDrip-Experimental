@@ -15,11 +15,6 @@
             android:summary="If you have a pebble watch you can send bg data straight to it"
             android:defaultValue="false">
         </SwitchPreference>
-    </PreferenceCategory>
-
-    <PreferenceCategory
-        android:key="pebble_category"
-        android:title="">
         <SwitchPreference
             android:title="@string/pref_pebble_display_trend"
             android:key="pebble_display_trend"
@@ -50,6 +45,12 @@
             android:title="Display Delta"
             android:key="pebble_show_delta"
             android:summary="Displays the Delta value"
+            android:defaultValue="true" >
+        </SwitchPreference>
+        <SwitchPreference
+            android:title="Display Delta Units"
+            android:key="pebble_show_delta_units"
+            android:summary="Displays the Delta units"
             android:defaultValue="true" >
         </SwitchPreference>
         <SwitchPreference
