@@ -329,13 +329,14 @@ public class Preferences extends PreferenceActivity {
             final Preference pebbleLowLine = findPreference("pebble_low_line");
             final Preference pebbleTrendPeriod = findPreference("pebble_trend_period");
             final Preference pebbleDelta = findPreference("pebble_show_delta");
+            final Preference pebbleDeltaUnits = findPreference("pebble_show_delta_units");
             final Preference pebbleShowArrows = findPreference("pebble_show_arrows");
             final EditTextPreference pebbleSpecialValue = (EditTextPreference) findPreference("pebble_special_value");
             bindPreferenceSummaryToValueAndEnsureNumeric(pebbleSpecialValue);
             final Preference pebbleSpecialText = findPreference("pebble_special_text");
             bindPreferenceSummaryToValue(pebbleSpecialText);
             final SwitchPreference broadcastLocally = (SwitchPreference) findPreference("broadcast_data_through_intents");
-            final PreferenceCategory pebbleCategory = (PreferenceCategory) findPreference("pebble_category");
+            final PreferenceCategory watchCategory = (PreferenceCategory) findPreference("watch_integration");
             final PreferenceCategory collectionCategory = (PreferenceCategory) findPreference("collection_category");
             final PreferenceCategory otherCategory = (PreferenceCategory) findPreference("other_category");
             final PreferenceScreen calibrationAlertsScreen = (PreferenceScreen) findPreference("calibration_alerts_screen");
@@ -390,16 +391,16 @@ public class Preferences extends PreferenceActivity {
             }
 
             if(!prefs.getBoolean(pebbleSync.getKey(),false)){
-                pebbleCategory.removeAll();
-            /*    pebbleCategory.removePreference(pebbleTrend);
-                pebbleCategory.removePreference(pebbleHighLine);
-                pebbleCategory.removePreference(pebbleLowLine);
-                pebbleCategory.removePreference(pebbleTrendPeriod);
-                pebbleCategory.removePreference(pebbleSpecialValue);
-                pebbleCategory.removePreference(pebbleSpecialText);
-                pebbleCategory.removePreference(pebbleDelta);
-                pebbleCategory.removePreference(pebbleShowArrows);
-                */
+                //watchCategory.removeAll();
+                watchCategory.removePreference(pebbleTrend);
+                watchCategory.removePreference(pebbleHighLine);
+                watchCategory.removePreference(pebbleLowLine);
+                watchCategory.removePreference(pebbleTrendPeriod);
+                watchCategory.removePreference(pebbleSpecialValue);
+                watchCategory.removePreference(pebbleSpecialText);
+                watchCategory.removePreference(pebbleDelta);
+                watchCategory.removePreference(pebbleDeltaUnits);
+                watchCategory.removePreference(pebbleShowArrows);
             }
            if(prefs.getString("units", "mgdl").compareTo("mmol")!=0) {
                df = new DecimalFormat("#.#");
@@ -460,26 +461,27 @@ public class Preferences extends PreferenceActivity {
                     if ((Boolean) newValue) {
                         context.startService(new Intent(context, PebbleSync.class));
                         broadcastLocally.setChecked((boolean) newValue);
-                        pebbleCategory.addPreference(pebbleTrend);
-                        pebbleCategory.addPreference(pebbleHighLine);
-                        pebbleCategory.addPreference(pebbleLowLine);
-                        pebbleCategory.addPreference(pebbleDelta);
-                        pebbleCategory.addPreference(pebbleShowArrows);
-                        pebbleCategory.addPreference(pebbleTrendPeriod);
-                        pebbleCategory.addPreference(pebbleSpecialValue);
-                        pebbleCategory.addPreference(pebbleSpecialText);
+                        watchCategory.addPreference(pebbleTrend);
+                        watchCategory.addPreference(pebbleHighLine);
+                        watchCategory.addPreference(pebbleLowLine);
+                        watchCategory.addPreference(pebbleDelta);
+                        watchCategory.addPreference(pebbleDeltaUnits);
+                        watchCategory.addPreference(pebbleShowArrows);
+                        watchCategory.addPreference(pebbleTrendPeriod);
+                        watchCategory.addPreference(pebbleSpecialValue);
+                        watchCategory.addPreference(pebbleSpecialText);
                     } else {
                         context.stopService(new Intent(context, PebbleSync.class));
-                        pebbleCategory.removeAll();
-                        /*pebbleCategory.removePreference(pebbleTrend);
-                        pebbleCategory.removePreference(pebbleHighLine);
-                        pebbleCategory.removePreference(pebbleLowLine);
-                        pebbleCategory.removePreference(pebbleDelta);
-                        pebbleCategory.removePreference(pebbleShowArrows);
-                        pebbleCategory.removePreference(pebbleTrendPeriod);
-                        pebbleCategory.removePreference(pebbleSpecialValue);
-                        pebbleCategory.removePreference(pebbleSpecialText);
-                        */
+                        //watchCategory.removeAll();
+                        watchCategory.removePreference(pebbleTrend);
+                        watchCategory.removePreference(pebbleHighLine);
+                        watchCategory.removePreference(pebbleLowLine);
+                        watchCategory.removePreference(pebbleDelta);
+                        watchCategory.removePreference(pebbleDeltaUnits);
+                        watchCategory.removePreference(pebbleShowArrows);
+                        watchCategory.removePreference(pebbleTrendPeriod);
+                        watchCategory.removePreference(pebbleSpecialValue);
+                        watchCategory.removePreference(pebbleSpecialText);
                     }
                     return true;
                 }
@@ -487,7 +489,15 @@ public class Preferences extends PreferenceActivity {
 
             bindWidgetUpdater();
 
-           pebbleHighLine.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
+            pebbleTrend.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
+                @Override
+                public boolean onPreferenceChange(Preference preference, Object newValue){
+                    Context context = preference.getContext();
+                    context.startService(new Intent(context, PebbleSync.class));
+                    return true;
+                }
+            });
+            pebbleHighLine.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
                @Override
                public boolean onPreferenceChange(Preference preference, Object newValue){
                    Context context = preference.getContext();
@@ -521,6 +531,14 @@ public class Preferences extends PreferenceActivity {
                     return true;
                 }
             });
+            pebbleDeltaUnits.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
+                @Override
+                public boolean onPreferenceChange(Preference preference, Object newValue){
+                    Context context = preference.getContext();
+                    context.startService(new Intent(context, PebbleSync.class));
+                    return true;
+                }
+            });
             pebbleShowArrows.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
                 @Override
                 public boolean onPreferenceChange(Preference preference, Object newValue){
@@ -535,16 +553,14 @@ public class Preferences extends PreferenceActivity {
                public boolean onPreferenceChange(Preference preference, Object newValue){
                    if(!(Boolean) newValue) {
                        pebbleSync.setChecked((Boolean) newValue);
-                       pebbleCategory.removeAll();
-                       /*pebbleCategory.removePreference(pebbleTrend);
-                       pebbleCategory.removePreference(pebbleHighLine);
-                       pebbleCategory.removePreference(pebbleLowLine);
-                       pebbleCategory.removePreference(pebbleTrendPeriod);
-                       pebbleCategory.removePreference(pebbleDelta);
-                       pebbleCategory.removePreference(pebbleShowArrows);
-                       pebbleCategory.removePreference(pebbleSpecialValue);
-                       pebbleCategory.removePreference(pebbleSpecialText);
-                       */
+                       watchCategory.removePreference(pebbleTrend);
+                       watchCategory.removePreference(pebbleHighLine);
+                       watchCategory.removePreference(pebbleLowLine);
+                       watchCategory.removePreference(pebbleTrendPeriod);
+                       watchCategory.removePreference(pebbleDelta);
+                       watchCategory.removePreference(pebbleShowArrows);
+                       watchCategory.removePreference(pebbleSpecialValue);
+                       watchCategory.removePreference(pebbleSpecialText);
                    }
                    return true;
                }

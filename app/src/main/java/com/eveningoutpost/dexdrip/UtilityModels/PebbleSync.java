@@ -119,16 +119,16 @@ public class PebbleSync extends Service {
                 messageInTransit = false;
                 //sendingData = false;
                 sendStep = 5;
-                if(!sendingData) {
+//                if(!sendingData) {
                     sendData();
-                }
+/*                }
                 else {
                     Log.d(TAG, "PebbleSync: Already sending data, aborting");
                 }
 //                } else {
                     //Log.d(TAG, "PebbleSync: SYNC_KEY not found");
 //                }
-
+*/
             }
         });
 
@@ -247,6 +247,7 @@ public class PebbleSync extends Service {
                 boolean highLine = PreferenceManager.getDefaultSharedPreferences(mContext).getBoolean("pebble_high_line", false);
                 boolean lowLine = PreferenceManager.getDefaultSharedPreferences(mContext).getBoolean("pebble_low_line", false);
                 String trendPeriodString = PreferenceManager.getDefaultSharedPreferences(mContext).getString("pebble_trend_period", "3");
+                //Log.d(TAG,"sendTrendToPebble: highLine="+highLine+", lowLine="+lowLine+", trendPeriodString="+trendPeriodString);
                 Integer trendPeriod = Integer.parseInt(trendPeriodString);
                 Log.d(TAG,"sendTrendToPebble: highLine is " + highLine + ", lowLine is "+ lowLine +",trendPeriod is "+ trendPeriod);
                 Bitmap bgTrend = new BgSparklineBuilder(mContext)
@@ -411,7 +412,8 @@ public class PebbleSync extends Service {
     }
 
     public String bgDelta() {
-        return new BgGraphBuilder(mContext).unitizedDeltaString(true, true);
+        //return new BgGraphBuilder(mContext).unitizedDeltaString(true, true);
+        return new BgGraphBuilder(mContext).unitizedDeltaString(PreferenceManager.getDefaultSharedPreferences(mContext).getBoolean("pebble_show_delta_units", false), true);
     }
 
     public String phoneBattery() {
