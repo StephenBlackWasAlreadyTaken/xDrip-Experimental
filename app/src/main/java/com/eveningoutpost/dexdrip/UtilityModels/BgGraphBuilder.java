@@ -200,22 +200,24 @@ public class BgGraphBuilder {
         return highLine;
     }
 
-    public Line lowLine(){ return lowLine(true);}
+    public Line lowLine(){ return lowLine(true, false);}
 
-    public Line lowLine(boolean show) {
+    public Line lowLine(boolean show, boolean line_only) {
         List<PointValue> lowLineValues = new ArrayList<PointValue>();
         lowLineValues.add(new PointValue((float)start_time, (float)lowMark));
         lowLineValues.add(new PointValue((float) end_time, (float) lowMark));
         Line lowLine = new Line(lowLineValues);
         lowLine.setHasPoints(false);
-        lowLine.setAreaTransparency(50);
+        if(!line_only) {
+            lowLine.setAreaTransparency(50);
+            lowLine.setFilled(true);
+        }
+        lowLine.setStrokeWidth(1);
         if(show){
             lowLine.setColor(Color.parseColor("#C30909"));
         } else {
             lowLine.setColor(Color.TRANSPARENT);
         }
-        lowLine.setStrokeWidth(1);
-        lowLine.setFilled(true);
         return lowLine;
     }
 
