@@ -289,6 +289,7 @@ public class NightscoutUploader {
             SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ", Locale.US);
             format.setTimeZone(TimeZone.getDefault());
             json.put("type", "sensor");
+            json.put("date", record.started_at);
             json.put("xDrip_started_at", record.started_at);
             json.put("xDrip_stopped_at", record.stopped_at);
             json.put("xDrip_latest_battery_level", record.latest_battery_level);
@@ -364,6 +365,7 @@ public class NightscoutUploader {
                             // make db object
                             BasicDBObject testData = new BasicDBObject();
                             testData.put("type", "sensor");
+                            testData.put("date", sensor.started_at);
                             testData.put("xDrip_started_at", sensor.started_at);
                             testData.put("xDrip_stopped_at", sensor.stopped_at);
                             testData.put("xDrip_latest_battery_level", sensor.latest_battery_level);

@@ -559,6 +559,18 @@ public class Calibration extends Model {
         }
 
     }
+    
+    public static void clearLastCalibration(Context context) {
+    
+        Calibration last_calibration = Calibration.last();
+        if(last_calibration == null) {
+            return;
+        }
+        last_calibration.sensor_confidence = 0;
+        last_calibration.slope_confidence = 0;
+        last_calibration.save();
+        CalibrationSendQueue.addToQueue(last_calibration, context);
+    }
 
     public String toS() {
         Gson gson = new GsonBuilder()
