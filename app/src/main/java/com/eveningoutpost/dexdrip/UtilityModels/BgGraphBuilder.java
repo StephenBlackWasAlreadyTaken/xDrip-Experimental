@@ -299,6 +299,9 @@ public class BgGraphBuilder {
     static public boolean isXLargeTablet(Context context) {
         return (context.getResources().getConfiguration().screenLayout & Configuration.SCREENLAYOUT_SIZE_MASK) >= Configuration.SCREENLAYOUT_SIZE_XLARGE;
     }
+    static public boolean isLargeTablet(Context context) {
+        return (context.getResources().getConfiguration().screenLayout & Configuration.SCREENLAYOUT_SIZE_MASK) >= Configuration.SCREENLAYOUT_SIZE_LARGE;
+    }
 
     public Axis previewXAxis(){
         List<AxisValue> previewXaxisValues = new ArrayList<AxisValue>();
