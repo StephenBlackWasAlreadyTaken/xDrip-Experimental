@@ -60,6 +60,8 @@ public class BgGraphBuilder {
     private List<PointValue> lowValues = new ArrayList<PointValue>();
     private List<PointValue> rawInterpretedValues = new ArrayList<PointValue>();
     private List<PointValue> calibrationValues = new ArrayList<PointValue>();
+    static final boolean LINE_VISIBLE = true;
+    static final boolean FILL_UNDER_LINE = false;
     public Viewport viewport;
 
 
@@ -183,27 +185,41 @@ public class BgGraphBuilder {
         }
     }
 
-    public Line highLine() {
+    public Line highLine(){ return highLine(LINE_VISIBLE);}
+
+    public Line highLine(boolean show) {
         List<PointValue> highLineValues = new ArrayList<PointValue>();
         highLineValues.add(new PointValue((float) start_time, (float) highMark));
         highLineValues.add(new PointValue((float) end_time, (float) highMark));
         Line highLine = new Line(highLineValues);
         highLine.setHasPoints(false);
         highLine.setStrokeWidth(1);
-        highLine.setColor(ChartUtils.COLOR_ORANGE);
+        if(show) {
+            highLine.setColor(ChartUtils.COLOR_ORANGE);
+        } else {
+            highLine.setColor(Color.TRANSPARENT);
+        }
         return highLine;
     }
 
-    public Line lowLine() {
+    public Line lowLine(){ return lowLine(LINE_VISIBLE, FILL_UNDER_LINE);}
+
+    public Line lowLine(boolean show, boolean line_only) {
         List<PointValue> lowLineValues = new ArrayList<PointValue>();
         lowLineValues.add(new PointValue((float)start_time, (float)lowMark));
-        lowLineValues.add(new PointValue((float)end_time, (float)lowMark));
+        lowLineValues.add(new PointValue((float) end_time, (float) lowMark));
         Line lowLine = new Line(lowLineValues);
         lowLine.setHasPoints(false);
-        lowLine.setAreaTransparency(50);
-        lowLine.setColor(Color.parseColor("#C30909"));
+        if(!line_only) {
+            lowLine.setAreaTransparency(50);
+            lowLine.setFilled(true);
+        }
         lowLine.setStrokeWidth(1);
-        lowLine.setFilled(true);
+        if(show){
+            lowLine.setColor(Color.parseColor("#C30909"));
+        } else {
+            lowLine.setColor(Color.TRANSPARENT);
+        }
         return lowLine;
     }
 
