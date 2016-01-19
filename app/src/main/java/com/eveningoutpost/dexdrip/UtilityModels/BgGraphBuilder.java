@@ -60,6 +60,8 @@ public class BgGraphBuilder {
     private List<PointValue> lowValues = new ArrayList<PointValue>();
     private List<PointValue> rawInterpretedValues = new ArrayList<PointValue>();
     private List<PointValue> calibrationValues = new ArrayList<PointValue>();
+    static final boolean LINE_VISIBLE = true;
+    static final boolean FILL_UNDER_LINE = false;
     public Viewport viewport;
 
 
@@ -183,7 +185,7 @@ public class BgGraphBuilder {
         }
     }
 
-    public Line highLine(){ return highLine(true);}
+    public Line highLine(){ return highLine(LINE_VISIBLE);}
 
     public Line highLine(boolean show) {
         List<PointValue> highLineValues = new ArrayList<PointValue>();
@@ -200,7 +202,7 @@ public class BgGraphBuilder {
         return highLine;
     }
 
-    public Line lowLine(){ return lowLine(true, false);}
+    public Line lowLine(){ return lowLine(LINE_VISIBLE, FILL_UNDER_LINE);}
 
     public Line lowLine(boolean show, boolean line_only) {
         List<PointValue> lowLineValues = new ArrayList<PointValue>();
