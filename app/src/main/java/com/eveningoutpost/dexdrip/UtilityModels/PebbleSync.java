@@ -46,8 +46,8 @@ public class PebbleSync extends Service {
     private Context mContext;
     private BgGraphBuilder bgGraphBuilder;
     private BgReading mBgReading;
-    private static int lastTransactionId;
-    private static int currentTransactionId;
+    private static int lastTransactionId=0;
+    private static int currentTransactionId=0;
     private static boolean messageInTransit = false;
     private static boolean transactionFailed = false;
     private static boolean transactionOk = false;
@@ -111,24 +111,12 @@ public class PebbleSync extends Service {
                 Log.d(TAG, "receiveData: transactionId is " + String.valueOf(transactionId));
                 lastTransactionId = transactionId;
                 Log.d(TAG, "Received Query. data: " + data.size() + ".");
-//                if(data.getInteger(SYNC_KEY)!=null) {
-//                  Log.d(TAG, "Received SYNC_KEY, sending ack and data to Pebble");
                 PebbleKit.sendAckToPebble(context, transactionId);
                 transactionFailed = false;
                 transactionOk = false;
                 messageInTransit = false;
-                //sendingData = false;
                 sendStep = 5;
-//                if(!sendingData) {
-                    sendData();
-/*                }
-                else {
-                    Log.d(TAG, "PebbleSync: Already sending data, aborting");
-                }
-//                } else {
-                    //Log.d(TAG, "PebbleSync: SYNC_KEY not found");
-//                }
-*/
+                sendData();
             }
         });
 
@@ -159,7 +147,6 @@ public class PebbleSync extends Service {
                     Log.i(TAG, "recieveNAck: exceeded retries.  Giving Up");
                     transactionFailed = false;
                     transactionOk = false;
-                    //dictionary = null;
                     messageInTransit = false;
                     sendStep = 4;
                     retries = 0;
@@ -228,9 +215,6 @@ public class PebbleSync extends Service {
     }
 
     public void sendTrendToPebble () {
-/*        if (!PebbleKit.isWatchConnected(mContext)){
-            return;
-        } */
         //create a sparkline bitmap to send to the pebble
         Log.i(TAG, "sendTrendToPebble called: sendStep= " + sendStep + ", messageInTransit= " + messageInTransit + ", transactionFailed= " + transactionFailed + ", sendStep= " + sendStep);
         if(!done && (sendStep == 1 && ((!messageInTransit && !transactionOk && !transactionFailed) || (messageInTransit && !transactionOk && transactionFailed)))) {
@@ -247,7 +231,6 @@ public class PebbleSync extends Service {
                 boolean highLine = PreferenceManager.getDefaultSharedPreferences(mContext).getBoolean("pebble_high_line", false);
                 boolean lowLine = PreferenceManager.getDefaultSharedPreferences(mContext).getBoolean("pebble_low_line", false);
                 String trendPeriodString = PreferenceManager.getDefaultSharedPreferences(mContext).getString("pebble_trend_period", "3");
-                //Log.d(TAG,"sendTrendToPebble: highLine="+highLine+", lowLine="+lowLine+", trendPeriodString="+trendPeriodString);
                 Integer trendPeriod = Integer.parseInt(trendPeriodString);
                 Log.d(TAG,"sendTrendToPebble: highLine is " + highLine + ", lowLine is "+ lowLine +",trendPeriod is "+ trendPeriod);
                 Bitmap bgTrend = new BgSparklineBuilder(mContext)
@@ -282,7 +265,6 @@ public class PebbleSync extends Service {
             transactionFailed = false;
             transactionOk=false;
             messageInTransit = true;
-            //PebbleKit.sendDataToPebbleWithTransactionId(mContext, PEBBLEAPP_UUID, dictionary, currentTransactionId);
             PebbleKit.sendDataToPebble(mContext, PEBBLEAPP_UUID, dictionary);
         }
         if(sendStep == 1 && !done && !messageInTransit && transactionOk && !transactionFailed){
@@ -313,11 +295,9 @@ public class PebbleSync extends Service {
                 }
             }
             Log.d(TAG, "sendTrendToPebble: Sending TREND_DATA_KEY to pebble, current_size is " + current_size);
-            //PebbleKit.sendDataToPebble(mContext, PEBBLEAPP_UUID, dictionary);
             transactionFailed = false;
             transactionOk = false;
             messageInTransit = true;
-            //PebbleKit.sendDataToPebbleWithTransactionId(mContext, PEBBLEAPP_UUID, dictionary, currentTransactionId);
             PebbleKit.sendDataToPebble(mContext, PEBBLEAPP_UUID, dictionary);
         }
         if(sendStep == 3 && !done && !messageInTransit && transactionOk && !transactionFailed){
@@ -333,12 +313,10 @@ public class PebbleSync extends Service {
                 // prepare the TREND_END_KEY dictionary and send it.
                 dictionary.addUint8(TREND_END_KEY, (byte) 0);
                 Log.d(TAG, "sendTrendToPebble: Sending TREND_END_KEY to pebble.");
-                //PebbleKit.sendDataToPebble(mContext, PEBBLEAPP_UUID, dictionary);
             }
             transactionFailed = false;
             transactionOk = false;
             messageInTransit = true;
-            //PebbleKit.sendDataToPebbleWithTransactionId(mContext, PEBBLEAPP_UUID, dictionary, currentTransactionId);
             PebbleKit.sendDataToPebble(mContext, PEBBLEAPP_UUID, dictionary);
         }
         if(sendStep == 4 && !done && transactionOk && !messageInTransit && !transactionFailed){
@@ -354,7 +332,6 @@ public class PebbleSync extends Service {
     }
 
     public String bridgeBatteryString() {
-        //if(no_signal) return ("--");
         return String.format("%d", PreferenceManager.getDefaultSharedPreferences(mContext).getInt("bridge_battery", 0));
     }
 
@@ -394,7 +371,6 @@ public class PebbleSync extends Service {
                     sendTrendToPebble();
              }
              if(sendStep == 5) {
-             //*/if(sendStep == 1  || sendStep == 5) {
                  sendStep = 5;
                  Log.i(TAG, "sendData: finished sending.  sendStep = " +sendStep);
                  done = true;
@@ -412,7 +388,6 @@ public class PebbleSync extends Service {
     }
 
     public String bgDelta() {
-        //return new BgGraphBuilder(mContext).unitizedDeltaString(true, true);
         return new BgGraphBuilder(mContext).unitizedDeltaString(PreferenceManager.getDefaultSharedPreferences(mContext).getBoolean("pebble_show_delta_units", false), true);
     }
 
@@ -426,16 +401,13 @@ public class PebbleSync extends Service {
 
     //public void sendDownload(PebbleDictionary dictionary) {
     public void sendDownload() {
-        //if (PebbleKit.isWatchConnected(mContext)) {
-            if (dictionary != null && mContext != null) {
-                Log.d(TAG, "sendDownload: Sending data to pebble");
-                messageInTransit = true;
-                transactionFailed = false;
-                transactionOk = false;
-                //PebbleKit.sendDataToPebbleWithTransactionId(mContext, PEBBLEAPP_UUID, dictionary, currentTransactionId);
-                PebbleKit.sendDataToPebble(mContext, PEBBLEAPP_UUID, dictionary);
-            }
-        //}
+        if (dictionary != null && mContext != null) {
+            Log.d(TAG, "sendDownload: Sending data to pebble");
+            messageInTransit = true;
+            transactionFailed = false;
+            transactionOk = false;
+            PebbleKit.sendDataToPebble(mContext, PEBBLEAPP_UUID, dictionary);
+        }
     }
 
     public int getBatteryLevel() {
