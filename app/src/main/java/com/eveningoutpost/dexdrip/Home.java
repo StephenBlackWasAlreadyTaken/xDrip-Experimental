@@ -50,6 +50,7 @@ import com.nispok.snackbar.listeners.ActionClickListener;
 
 import java.io.File;
 import java.text.DecimalFormat;
+import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
 
@@ -90,13 +91,16 @@ public class Home extends ActivityWithMenu {
 
         this.dexbridgeBattery = (TextView) findViewById(R.id.textBridgeBattery);
         this.currentBgValueText = (TextView) findViewById(R.id.currentBgValueRealTime);
-        if(BgGraphBuilder.isXLargeTablet(getApplicationContext())) {
-            this.currentBgValueText.setTextSize(100);
-        }
         this.notificationText = (TextView) findViewById(R.id.notices);
         if(BgGraphBuilder.isXLargeTablet(getApplicationContext())) {
+            this.currentBgValueText.setTextSize(100);
             this.notificationText.setTextSize(40);
         }
+        else if(BgGraphBuilder.isLargeTablet(getApplicationContext())) {
+            this.currentBgValueText.setTextSize(70);
+            this.notificationText.setTextSize(33);
+        }
+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             Intent intent = new Intent();
             String packageName = getPackageName();
@@ -247,6 +251,8 @@ public class Home extends ActivityWithMenu {
         final TextView notificationText = (TextView) findViewById(R.id.notices);
         if(BgGraphBuilder.isXLargeTablet(getApplicationContext())) {
             notificationText.setTextSize(40);
+        } else if(BgGraphBuilder.isLargeTablet(getApplicationContext())) {
+            notificationText.setTextSize(33);
         }
         notificationText.setText("");
         notificationText.setTextColor(Color.RED);
@@ -408,6 +414,21 @@ public class Home extends ActivityWithMenu {
         if (lastBgReading != null) {
             displayCurrentInfoFromReading(lastBgReading, predictive);
         }
+        
+        boolean displayExtraLine = true;//???????prefs.getBoolean("extra_status_line",false);
+        Calibration lastCalibration = Calibration.last();
+        if(displayExtraLine && lastCalibration != null) {
+            SimpleDateFormat sdf = new SimpleDateFormat("HH:mm");
+            String time = "";
+            if(BgGraphBuilder.isXLargeTablet(getApplicationContext()) || 
+               BgGraphBuilder.isLargeTablet(getApplicationContext())) {
+                time = sdf.format(new Date());
+            }
+            String Extraline = "\n slope = " + String.format("%.2f",lastCalibration.slope) + 
+                    " intercept = " + String.format("%.2f",lastCalibration.intercept) + 
+                    " " + time;
+            notificationText.append(Extraline);
+        }
     }
 
     private void displayCurrentInfoFromReading(BgReading lastBgReading, boolean predictive) {
@@ -445,7 +466,7 @@ public class Home extends ActivityWithMenu {
         List<BgReading> bgReadingList = BgReading.latest(2);
         if(bgReadingList != null && bgReadingList.size() == 2) {
             // same logic as in xDripWidget (refactor that to BGReadings to avoid redundancy / later inconsistencies)?
-            if(BgGraphBuilder.isXLargeTablet(getApplicationContext())) {
+            if(BgGraphBuilder.isXLargeTablet(getApplicationContext()) || BgGraphBuilder.isLargeTablet(getApplicationContext())) {
                 notificationText.append("  ");
             } else {
                 notificationText.append("\n");
