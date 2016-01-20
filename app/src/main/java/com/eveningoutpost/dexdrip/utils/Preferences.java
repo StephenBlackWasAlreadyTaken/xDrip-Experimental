@@ -460,7 +460,6 @@ public class Preferences extends PreferenceActivity {
                     Context context = preference.getContext();
                     if ((Boolean) newValue) {
                         context.startService(new Intent(context, PebbleSync.class));
-                        broadcastLocally.setChecked((boolean) newValue);
                         watchCategory.addPreference(pebbleTrend);
                         watchCategory.addPreference(pebbleHighLine);
                         watchCategory.addPreference(pebbleLowLine);
@@ -472,7 +471,6 @@ public class Preferences extends PreferenceActivity {
                         watchCategory.addPreference(pebbleSpecialText);
                     } else {
                         context.stopService(new Intent(context, PebbleSync.class));
-                        //watchCategory.removeAll();
                         watchCategory.removePreference(pebbleTrend);
                         watchCategory.removePreference(pebbleHighLine);
                         watchCategory.removePreference(pebbleLowLine);
@@ -548,23 +546,6 @@ public class Preferences extends PreferenceActivity {
                 }
             });
 
-           broadcastLocally.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
-               @Override
-               public boolean onPreferenceChange(Preference preference, Object newValue){
-                   if(!(Boolean) newValue) {
-                       pebbleSync.setChecked((Boolean) newValue);
-                       watchCategory.removePreference(pebbleTrend);
-                       watchCategory.removePreference(pebbleHighLine);
-                       watchCategory.removePreference(pebbleLowLine);
-                       watchCategory.removePreference(pebbleTrendPeriod);
-                       watchCategory.removePreference(pebbleDelta);
-                       watchCategory.removePreference(pebbleShowArrows);
-                       watchCategory.removePreference(pebbleSpecialValue);
-                       watchCategory.removePreference(pebbleSpecialText);
-                   }
-                   return true;
-               }
-           });
             bindPreferenceSummaryToValue(collectionMethod);
             bindPreferenceSummaryToValue(shareKey);
             bindPreferenceSummaryToValue(wifiRecievers);
