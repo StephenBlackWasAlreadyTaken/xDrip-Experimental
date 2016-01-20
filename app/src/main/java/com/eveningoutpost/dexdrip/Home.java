@@ -98,7 +98,7 @@ public class Home extends ActivityWithMenu {
         }
         else if(BgGraphBuilder.isLargeTablet(getApplicationContext())) {
             this.currentBgValueText.setTextSize(70);
-            this.notificationText.setTextSize(33);
+            this.notificationText.setTextSize(35);
         }
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
@@ -252,7 +252,7 @@ public class Home extends ActivityWithMenu {
         if(BgGraphBuilder.isXLargeTablet(getApplicationContext())) {
             notificationText.setTextSize(40);
         } else if(BgGraphBuilder.isLargeTablet(getApplicationContext())) {
-            notificationText.setTextSize(33);
+            notificationText.setTextSize(35);
         }
         notificationText.setText("");
         notificationText.setTextColor(Color.RED);
@@ -415,7 +415,7 @@ public class Home extends ActivityWithMenu {
             displayCurrentInfoFromReading(lastBgReading, predictive);
         }
         
-        boolean displayExtraLine = true;//???????prefs.getBoolean("extra_status_line",false);
+        boolean displayExtraLine = prefs.getBoolean("extra_status_line",false);
         Calibration lastCalibration = Calibration.last();
         if(displayExtraLine && lastCalibration != null) {
             SimpleDateFormat sdf = new SimpleDateFormat("HH:mm");
@@ -425,7 +425,7 @@ public class Home extends ActivityWithMenu {
                 time = sdf.format(new Date());
             }
             String Extraline = "\n slope = " + String.format("%.2f",lastCalibration.slope) + 
-                    " intercept = " + String.format("%.2f",lastCalibration.intercept) + 
+                    " inter = " + String.format("%.2f",lastCalibration.intercept) + 
                     " " + time;
             notificationText.append(Extraline);
         }
@@ -462,7 +462,13 @@ public class Home extends ActivityWithMenu {
             }
         }
         int minutes = (int)(System.currentTimeMillis() - lastBgReading.timestamp) / (60 * 1000);
-        notificationText.append("\n" + minutes + ((minutes==1)?" Minute ago":" Minutes ago"));
+        String minutesString;
+        if(BgGraphBuilder.isXLargeTablet(getApplicationContext()) || BgGraphBuilder.isLargeTablet(getApplicationContext())) {
+            minutesString = " Min ago";
+        } else {
+            minutesString = minutes==1 ?" Minute ago":" Minutes ago";
+        }
+        notificationText.append("\n" + minutes + minutesString);
         List<BgReading> bgReadingList = BgReading.latest(2);
         if(bgReadingList != null && bgReadingList.size() == 2) {
             // same logic as in xDripWidget (refactor that to BGReadings to avoid redundancy / later inconsistencies)?
