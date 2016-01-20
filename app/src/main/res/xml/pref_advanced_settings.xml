@@ -62,6 +62,11 @@
             android:summary="Disable the warning for low transmitter battery state on the home screen. (Only relevant for DIY receivers.)"
             android:defaultValue="false" />
         <CheckBoxPreference
+            android:key="extra_status_line"
+            android:title="Show advanced alogorithm paramerters"
+            android:summary="Show slope and intercept"
+            android:defaultValue="false" />
+        <CheckBoxPreference
             android:key="xDripViewer_upload_mode"
             android:title="xDripViewer upload mode"
             android:summary="Upload more fields needed for optimum xDripViewer functioning"
