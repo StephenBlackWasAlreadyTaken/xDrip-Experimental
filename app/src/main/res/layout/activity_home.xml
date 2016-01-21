@@ -63,16 +63,29 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:textAppearance="?android:attr/textAppearanceSmall"
+                    android:id="@+id/extraStatusLine"
+                    android:paddingEnd="10dp"
+                    android:paddingStart="10dp"
+                    android:gravity="left|top"
+                    android:layout_alignParentLeft="true"
+                    android:layout_alignParentStart="true"
+                    android:layout_below="@+id/notices"
+                    android:text=""
+                    android:background="@android:color/transparent"/>
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textAppearance="?android:attr/textAppearanceSmall"
                     android:text="100%"
                     android:id="@+id/textBridgeBattery"
                     android:textStyle="normal"
                     android:textSize="12sp"
                     android:inputType="none"
-                    android:layout_below="@+id/notices"
+                    android:layout_below="@+id/extraStatusLine"
                     android:layout_alignParentStart="true"
                     android:background="@android:color/transparent"/>
             </RelativeLayout>
-
+                
             <lecho.lib.hellocharts.view.PreviewLineChartView
                 android:id="@+id/chart_preview"
                 android:layout_width="wrap_content"
