@@ -79,6 +79,7 @@ public class Home extends ActivityWithMenu {
     private TextView                 dexbridgeBattery;
     private TextView                 currentBgValueText;
     private TextView                 notificationText;
+    private TextView                 extraStatusLineText;
     private boolean                  alreadyDisplayedBgInfoCommon = false;
 
     @Override
@@ -92,13 +93,16 @@ public class Home extends ActivityWithMenu {
         this.dexbridgeBattery = (TextView) findViewById(R.id.textBridgeBattery);
         this.currentBgValueText = (TextView) findViewById(R.id.currentBgValueRealTime);
         this.notificationText = (TextView) findViewById(R.id.notices);
+        this.extraStatusLineText = (TextView) findViewById(R.id.extraStatusLine);
         if(BgGraphBuilder.isXLargeTablet(getApplicationContext())) {
             this.currentBgValueText.setTextSize(100);
             this.notificationText.setTextSize(40);
+            this.extraStatusLineText.setTextSize(40);
         }
         else if(BgGraphBuilder.isLargeTablet(getApplicationContext())) {
             this.currentBgValueText.setTextSize(70);
             this.notificationText.setTextSize(35);
+            this.extraStatusLineText.setTextSize(35);
         }
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
@@ -161,10 +165,28 @@ public class Home extends ActivityWithMenu {
         bgGraphBuilder = new BgGraphBuilder(this);
         updateStuff = false;
         chart = (LineChartView) findViewById(R.id.chart);
-
+        
+        boolean displayExtraLine = prefs.getBoolean("extra_status_line",false);
         if(BgGraphBuilder.isXLargeTablet(getApplicationContext())) {
             ViewGroup.MarginLayoutParams params = (ViewGroup.MarginLayoutParams) chart.getLayoutParams();
             params.topMargin = 130;
+            if(displayExtraLine) {
+                params.topMargin += 55;
+            }
+            chart.setLayoutParams(params);
+        } else if(BgGraphBuilder.isLargeTablet(getApplicationContext())) {
+            ViewGroup.MarginLayoutParams params = (ViewGroup.MarginLayoutParams) chart.getLayoutParams();
+            params.topMargin = 130;
+            if(displayExtraLine) {
+                params.topMargin += 45;
+            }
+            chart.setLayoutParams(params);
+        } else {
+            ViewGroup.MarginLayoutParams params = (ViewGroup.MarginLayoutParams) chart.getLayoutParams();
+            params.topMargin = 165;
+            if(displayExtraLine) {
+                params.topMargin += 35;
+            }
             chart.setLayoutParams(params);
         }
 
@@ -251,8 +273,10 @@ public class Home extends ActivityWithMenu {
         final TextView notificationText = (TextView) findViewById(R.id.notices);
         if(BgGraphBuilder.isXLargeTablet(getApplicationContext())) {
             notificationText.setTextSize(40);
+            extraStatusLineText.setTextSize(40);
         } else if(BgGraphBuilder.isLargeTablet(getApplicationContext())) {
             notificationText.setTextSize(35);
+            extraStatusLineText.setTextSize(35);
         }
         notificationText.setText("");
         notificationText.setTextColor(Color.RED);
@@ -426,13 +450,27 @@ public class Home extends ActivityWithMenu {
             SimpleDateFormat sdf = new SimpleDateFormat("HH:mm");
             String time = "";
             if(BgGraphBuilder.isXLargeTablet(getApplicationContext()) || 
-               BgGraphBuilder.isLargeTablet(getApplicationContext())) {
+               BgGraphBuilder.isLargeTablet(getApplicationContext()) ||
+               BgGraphBuilder.isSmallTablet(getApplicationContext())) {
                 time = sdf.format(new Date());
             }
-            String Extraline = "\n slope = " + String.format("%.2f",lastCalibration.slope) + 
-                    " inter = " + String.format("%.2f",lastCalibration.intercept) + 
+            
+            String SLOPE = "slope = ";
+            String INTERCEPT= "inter = ";
+            
+            if(BgGraphBuilder.isSmallTablet(getApplicationContext())) {
+                SLOPE = "s:";
+                INTERCEPT = "i:";
+            }
+            
+            String Extraline = SLOPE + String.format("%.2f",lastCalibration.slope) + " " +
+                    INTERCEPT + String.format("%.2f",lastCalibration.intercept) + 
                     " " + time;
-            notificationText.append(Extraline);
+            extraStatusLineText.setText(Extraline);
+            extraStatusLineText.setVisibility(View.VISIBLE);
+        } else {
+            extraStatusLineText.setText("");
+            extraStatusLineText.setVisibility(View.GONE);
         }
     }
 
