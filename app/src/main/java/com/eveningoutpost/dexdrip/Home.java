@@ -387,6 +387,11 @@ public class Home extends ActivityWithMenu {
         int bridgeBattery = prefs.getInt("bridge_battery", 0);
 
         if (isDexbridge && displayBattery) {
+            if(BgGraphBuilder.isXLargeTablet(getApplicationContext())) {
+                this.dexbridgeBattery.setTextSize(25);
+            } else if(BgGraphBuilder.isLargeTablet(getApplicationContext())) {
+                this.dexbridgeBattery.setTextSize(18);
+            }
             if (bridgeBattery == 0) {
                 dexbridgeBattery.setText("xBridge Battery: Unknown, Waiting for packet");
                 dexbridgeBattery.setTextColor(Color.WHITE);
