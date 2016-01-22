@@ -422,27 +422,25 @@ public class Home extends ActivityWithMenu {
         
         boolean displayExtraLine = prefs.getBoolean("extra_status_line",false);
         Calibration lastCalibration = Calibration.last();
-        if(displayExtraLine && lastCalibration != null) {
-            SimpleDateFormat sdf = new SimpleDateFormat("HH:mm");
-            String time = "";
-            if(BgGraphBuilder.isXLargeTablet(getApplicationContext()) || 
-               BgGraphBuilder.isLargeTablet(getApplicationContext()) ||
-               BgGraphBuilder.isSmallTablet(getApplicationContext())) {
-                time = sdf.format(new Date());
+        if(displayExtraLine) {
+            String extraline = "";
+
+            if (prefs.getBoolean("status_line_calibration_long", true) && lastCalibration != null){
+                extraline += ("slope = " + String.format("%.2f",lastCalibration.slope) + " " +
+                        "inter = " + String.format("%.2f",lastCalibration.intercept));
             }
             
-            String SLOPE = "slope = ";
-            String INTERCEPT= "inter = ";
-            
-            if(BgGraphBuilder.isSmallTablet(getApplicationContext())) {
-                SLOPE = "s:";
-                INTERCEPT = "i:";
+            if(prefs.getBoolean("status_line_calibration_short", false) && lastCalibration != null) {
+                extraline += (" s:" + String.format("%.2f",lastCalibration.slope) + " " +
+                        "i:" + String.format("%.2f",lastCalibration.intercept));
             }
-            
-            String Extraline = SLOPE + String.format("%.2f",lastCalibration.slope) + " " +
-                    INTERCEPT + String.format("%.2f",lastCalibration.intercept) + 
-                    " " + time;
-            extraStatusLineText.setText(Extraline);
+
+            if(prefs.getBoolean("status_line_calibration_time", false)) {
+                SimpleDateFormat sdf = new SimpleDateFormat("HH:mm");
+                extraline += (" " + sdf.format(new Date()));
+            }
+
+            extraStatusLineText.setText(extraline);
             extraStatusLineText.setVisibility(View.VISIBLE);
         } else {
             extraStatusLineText.setText("");
