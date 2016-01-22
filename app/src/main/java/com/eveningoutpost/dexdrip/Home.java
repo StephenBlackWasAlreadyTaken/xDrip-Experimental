@@ -165,30 +165,6 @@ public class Home extends ActivityWithMenu {
         bgGraphBuilder = new BgGraphBuilder(this);
         updateStuff = false;
         chart = (LineChartView) findViewById(R.id.chart);
-        
-        boolean displayExtraLine = prefs.getBoolean("extra_status_line",false);
-        if(BgGraphBuilder.isXLargeTablet(getApplicationContext())) {
-            ViewGroup.MarginLayoutParams params = (ViewGroup.MarginLayoutParams) chart.getLayoutParams();
-            params.topMargin = 130;
-            if(displayExtraLine) {
-                params.topMargin += 55;
-            }
-            chart.setLayoutParams(params);
-        } else if(BgGraphBuilder.isLargeTablet(getApplicationContext())) {
-            ViewGroup.MarginLayoutParams params = (ViewGroup.MarginLayoutParams) chart.getLayoutParams();
-            params.topMargin = 130;
-            if(displayExtraLine) {
-                params.topMargin += 45;
-            }
-            chart.setLayoutParams(params);
-        } else {
-            ViewGroup.MarginLayoutParams params = (ViewGroup.MarginLayoutParams) chart.getLayoutParams();
-            params.topMargin = 165;
-            if(displayExtraLine) {
-                params.topMargin += 35;
-            }
-            chart.setLayoutParams(params);
-        }
 
         chart.setZoomType(ZoomType.HORIZONTAL);
 
