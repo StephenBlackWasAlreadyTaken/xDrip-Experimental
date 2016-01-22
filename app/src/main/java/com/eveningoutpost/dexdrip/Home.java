@@ -423,21 +423,30 @@ public class Home extends ActivityWithMenu {
         boolean displayExtraLine = prefs.getBoolean("extra_status_line",false);
         Calibration lastCalibration = Calibration.last();
         if(displayExtraLine) {
-            String extraline = "";
+            StringBuilder extraline = new StringBuilder();
 
             if (prefs.getBoolean("status_line_calibration_long", true) && lastCalibration != null){
-                extraline += ("slope = " + String.format("%.2f",lastCalibration.slope) + " " +
-                        "inter = " + String.format("%.2f",lastCalibration.intercept));
+                if(extraline.length()!=0) extraline.append(' ');
+                extraline.append("slope = ");
+                extraline.append(String.format("%.2f",lastCalibration.slope));
+                extraline.append(' ');
+                extraline.append("inter = ");
+                extraline.append(String.format("%.2f",lastCalibration.intercept));
             }
             
             if(prefs.getBoolean("status_line_calibration_short", false) && lastCalibration != null) {
-                extraline += (" s:" + String.format("%.2f",lastCalibration.slope) + " " +
-                        "i:" + String.format("%.2f",lastCalibration.intercept));
+                if(extraline.length()!=0) extraline.append(' ');
+                extraline.append("s:");
+                extraline.append(String.format("%.2f",lastCalibration.slope));
+                extraline.append(' ');
+                extraline.append("i:");
+                extraline.append(String.format("%.2f",lastCalibration.intercept));
             }
 
             if(prefs.getBoolean("status_line_calibration_time", false)) {
                 SimpleDateFormat sdf = new SimpleDateFormat("HH:mm");
-                extraline += (" " + sdf.format(new Date()));
+                if(extraline.length()!=0) extraline.append(' ');
+                extraline.append(sdf.format(new Date()));
             }
 
             extraStatusLineText.setText(extraline);
