@@ -68,8 +68,8 @@
             android:summary="Advanced Calibration Data and/or Statistics">
             <SwitchPreference
                 android:key="extra_status_line"
-                android:title="Show Advanced Parameters"
-                android:summary="Calibration Data and/or Statistics"
+                android:title="Show Extra Line"
+                android:summary="Show Extra Line"
                 android:defaultValue="false" />
             <CheckBoxPreference
                 android:key="status_line_calibration_long"
