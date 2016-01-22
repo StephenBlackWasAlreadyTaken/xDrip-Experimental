@@ -157,7 +157,6 @@ public class PebbleSync extends Service {
     }
 
     public void buildDictionary() {
-        //PebbleDictionary dictionary = new PebbleDictionary();
         TimeZone tz = TimeZone.getDefault();
         Date now = new Date();
         int offsetFromUTC = tz.getOffset(now.getTime());
@@ -368,7 +367,11 @@ public class PebbleSync extends Service {
                  sendStep = 1;
              }
              if (sendStep > 0 && sendStep < 5) {
-                    sendTrendToPebble();
+                 if(!PreferenceManager.getDefaultSharedPreferences(mContext).getBoolean("pebble_display_trend",false)){
+                     sendStep = 5;
+                 } else {
+                     sendTrendToPebble();
+                 }
              }
              if(sendStep == 5) {
                  sendStep = 5;
