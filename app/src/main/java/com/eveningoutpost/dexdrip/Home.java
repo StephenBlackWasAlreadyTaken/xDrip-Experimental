@@ -96,16 +96,6 @@ public class Home extends ActivityWithMenu {
         this.currentBgValueText = (TextView) findViewById(R.id.currentBgValueRealTime);
         this.notificationText = (TextView) findViewById(R.id.notices);
         this.extraStatusLineText = (TextView) findViewById(R.id.extraStatusLine);
-        if(BgGraphBuilder.isXLargeTablet(getApplicationContext())) {
-            this.currentBgValueText.setTextSize(100);
-            this.notificationText.setTextSize(40);
-            this.extraStatusLineText.setTextSize(40);
-        }
-        else if(BgGraphBuilder.isLargeTablet(getApplicationContext())) {
-            this.currentBgValueText.setTextSize(70);
-            this.notificationText.setTextSize(35);
-            this.extraStatusLineText.setTextSize(35);
-        }
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             Intent intent = new Intent();
@@ -157,6 +147,17 @@ public class Home extends ActivityWithMenu {
                 updateCurrentBgInfo();
             }
         };
+        if(BgGraphBuilder.isXLargeTablet(getApplicationContext())) {
+            this.currentBgValueText.setTextSize(100);
+            this.notificationText.setTextSize(40);
+            this.extraStatusLineText.setTextSize(40);
+        }
+        else if(BgGraphBuilder.isLargeTablet(getApplicationContext())) {
+            this.currentBgValueText.setTextSize(70);
+            this.notificationText.setTextSize(34); // 35 too big 33 works 
+            this.extraStatusLineText.setTextSize(35);
+        }
+
         registerReceiver(_broadcastReceiver, new IntentFilter(Intent.ACTION_TIME_TICK));
         registerReceiver(newDataReceiver, new IntentFilter(Intents.ACTION_NEW_BG_ESTIMATE_NO_DATA));
         holdViewport.set(0, 0, 0, 0);
@@ -249,13 +250,6 @@ public class Home extends ActivityWithMenu {
     private void updateCurrentBgInfo() {
         setupCharts();
         final TextView notificationText = (TextView) findViewById(R.id.notices);
-        if(BgGraphBuilder.isXLargeTablet(getApplicationContext())) {
-            notificationText.setTextSize(40);
-            extraStatusLineText.setTextSize(40);
-        } else if(BgGraphBuilder.isLargeTablet(getApplicationContext())) {
-            notificationText.setTextSize(35);
-            extraStatusLineText.setTextSize(35);
-        }
         notificationText.setText("");
         notificationText.setTextColor(Color.RED);
         boolean isBTWixel = CollectionServiceStarter.isBTWixel(getApplicationContext());
@@ -278,12 +272,19 @@ public class Home extends ActivityWithMenu {
         } else if (prefs.getLong("low_alerts_disabled_until", 0) > new Date().getTime()
 			&&
 			prefs.getLong("high_alerts_disabled_until", 0) > new Date().getTime()) {
-            notificationText.append("\n LOW AND HIGH ALERTS CURRENTLY DISABLED");
+            notificationText.append("\nLOW AND HIGH ALERTS CURRENTLY DISABLED");
         } else if (prefs.getLong("low_alerts_disabled_until", 0) > new Date().getTime()) {
-            notificationText.append("\n LOW ALERTS CURRENTLY DISABLED");
+            notificationText.append("\nLOW ALERTS CURRENTLY DISABLED");
         } else if (prefs.getLong("high_alerts_disabled_until", 0) > new Date().getTime()) {
-            notificationText.append("\n HIGH ALERTS CURRENTLY DISABLED");
-        } 
+            notificationText.append("\nHIGH ALERTS CURRENTLY DISABLED");
+        }
+        if(prefs.getBoolean("extra_status_line", false)) {
+            extraStatusLineText.setText(extraStatusLine());
+            extraStatusLineText.setVisibility(View.VISIBLE);
+        } else {
+            extraStatusLineText.setText("");
+            extraStatusLineText.setVisibility(View.GONE);
+        }
         NavigationDrawerFragment navigationDrawerFragment = (NavigationDrawerFragment) getFragmentManager().findFragmentById(R.id.navigation_drawer);
         navigationDrawerFragment.setUp(R.id.navigation_drawer, (DrawerLayout) findViewById(R.id.drawer_layout), menu_name, this);
     }
@@ -420,14 +421,6 @@ public class Home extends ActivityWithMenu {
         }
         if (lastBgReading != null) {
             displayCurrentInfoFromReading(lastBgReading, predictive);
-        }
-
-        if(prefs.getBoolean("extra_status_line", false)) {
-            extraStatusLineText.setText(extraStatusLine());
-            extraStatusLineText.setVisibility(View.VISIBLE);
-        } else {
-            extraStatusLineText.setText("");
-            extraStatusLineText.setVisibility(View.GONE);
         }
     }
 
