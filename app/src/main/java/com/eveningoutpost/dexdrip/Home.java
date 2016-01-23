@@ -18,6 +18,7 @@ import android.os.Bundle;
 import android.os.PowerManager;
 import android.preference.PreferenceManager;
 import android.provider.Settings;
+import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.widget.DrawerLayout;
@@ -419,42 +420,44 @@ public class Home extends ActivityWithMenu {
         if (lastBgReading != null) {
             displayCurrentInfoFromReading(lastBgReading, predictive);
         }
-        
-        boolean displayExtraLine = prefs.getBoolean("extra_status_line",false);
-        Calibration lastCalibration = Calibration.last();
-        if(displayExtraLine) {
-            StringBuilder extraline = new StringBuilder();
 
-            if (prefs.getBoolean("status_line_calibration_long", true) && lastCalibration != null){
-                if(extraline.length()!=0) extraline.append(' ');
-                extraline.append("slope = ");
-                extraline.append(String.format("%.2f",lastCalibration.slope));
-                extraline.append(' ');
-                extraline.append("inter = ");
-                extraline.append(String.format("%.2f",lastCalibration.intercept));
-            }
-            
-            if(prefs.getBoolean("status_line_calibration_short", false) && lastCalibration != null) {
-                if(extraline.length()!=0) extraline.append(' ');
-                extraline.append("s:");
-                extraline.append(String.format("%.2f",lastCalibration.slope));
-                extraline.append(' ');
-                extraline.append("i:");
-                extraline.append(String.format("%.2f",lastCalibration.intercept));
-            }
-
-            if(prefs.getBoolean("status_line_calibration_time", false)) {
-                SimpleDateFormat sdf = new SimpleDateFormat("HH:mm");
-                if(extraline.length()!=0) extraline.append(' ');
-                extraline.append(sdf.format(new Date()));
-            }
-
-            extraStatusLineText.setText(extraline);
+        if(prefs.getBoolean("extra_status_line", false)) {
+            extraStatusLineText.setText(extraStatusLine());
             extraStatusLineText.setVisibility(View.VISIBLE);
         } else {
             extraStatusLineText.setText("");
             extraStatusLineText.setVisibility(View.GONE);
         }
+    }
+
+    @NonNull
+    private String extraStatusLine() {
+        StringBuilder extraline = new StringBuilder();
+        Calibration lastCalibration = Calibration.last();
+        if (prefs.getBoolean("status_line_calibration_long", true) && lastCalibration != null){
+            if(extraline.length()!=0) extraline.append(' ');
+            extraline.append("slope = ");
+            extraline.append(String.format("%.2f",lastCalibration.slope));
+            extraline.append(' ');
+            extraline.append("inter = ");
+            extraline.append(String.format("%.2f",lastCalibration.intercept));
+        }
+
+        if(prefs.getBoolean("status_line_calibration_short", false) && lastCalibration != null) {
+            if(extraline.length()!=0) extraline.append(' ');
+            extraline.append("s:");
+            extraline.append(String.format("%.2f",lastCalibration.slope));
+            extraline.append(' ');
+            extraline.append("i:");
+            extraline.append(String.format("%.2f",lastCalibration.intercept));
+        }
+
+        if(prefs.getBoolean("status_line_calibration_time", false)) {
+            SimpleDateFormat sdf = new SimpleDateFormat("HH:mm");
+            if(extraline.length()!=0) extraline.append(' ');
+            extraline.append(sdf.format(new Date()));
+        }
+        return extraline.toString();
     }
 
     private void displayCurrentInfoFromReading(BgReading lastBgReading, boolean predictive) {
