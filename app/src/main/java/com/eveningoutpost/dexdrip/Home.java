@@ -18,6 +18,7 @@ import android.os.Bundle;
 import android.os.PowerManager;
 import android.preference.PreferenceManager;
 import android.provider.Settings;
+import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.widget.DrawerLayout;
@@ -40,6 +41,7 @@ import com.eveningoutpost.dexdrip.Services.WixelReader;
 import com.eveningoutpost.dexdrip.UtilityModels.BgGraphBuilder;
 import com.eveningoutpost.dexdrip.UtilityModels.CollectionServiceStarter;
 import com.eveningoutpost.dexdrip.UtilityModels.Intents;
+import com.eveningoutpost.dexdrip.stats.StatsResult;
 import com.eveningoutpost.dexdrip.utils.ActivityWithMenu;
 import com.eveningoutpost.dexdrip.utils.DatabaseUtil;
 import com.eveningoutpost.dexdrip.wearintegration.WatchUpdaterService;
@@ -165,30 +167,6 @@ public class Home extends ActivityWithMenu {
         bgGraphBuilder = new BgGraphBuilder(this);
         updateStuff = false;
         chart = (LineChartView) findViewById(R.id.chart);
-        
-        boolean displayExtraLine = prefs.getBoolean("extra_status_line",false);
-        if(BgGraphBuilder.isXLargeTablet(getApplicationContext())) {
-            ViewGroup.MarginLayoutParams params = (ViewGroup.MarginLayoutParams) chart.getLayoutParams();
-            params.topMargin = 130;
-            if(displayExtraLine) {
-                params.topMargin += 55;
-            }
-            chart.setLayoutParams(params);
-        } else if(BgGraphBuilder.isLargeTablet(getApplicationContext())) {
-            ViewGroup.MarginLayoutParams params = (ViewGroup.MarginLayoutParams) chart.getLayoutParams();
-            params.topMargin = 130;
-            if(displayExtraLine) {
-                params.topMargin += 45;
-            }
-            chart.setLayoutParams(params);
-        } else {
-            ViewGroup.MarginLayoutParams params = (ViewGroup.MarginLayoutParams) chart.getLayoutParams();
-            params.topMargin = 165;
-            if(displayExtraLine) {
-                params.topMargin += 35;
-            }
-            chart.setLayoutParams(params);
-        }
 
         chart.setZoomType(ZoomType.HORIZONTAL);
 
@@ -443,35 +421,78 @@ public class Home extends ActivityWithMenu {
         if (lastBgReading != null) {
             displayCurrentInfoFromReading(lastBgReading, predictive);
         }
-        
-        boolean displayExtraLine = prefs.getBoolean("extra_status_line",false);
-        Calibration lastCalibration = Calibration.last();
-        if(displayExtraLine && lastCalibration != null) {
-            SimpleDateFormat sdf = new SimpleDateFormat("HH:mm");
-            String time = "";
-            if(BgGraphBuilder.isXLargeTablet(getApplicationContext()) || 
-               BgGraphBuilder.isLargeTablet(getApplicationContext()) ||
-               BgGraphBuilder.isSmallTablet(getApplicationContext())) {
-                time = sdf.format(new Date());
-            }
-            
-            String SLOPE = "slope = ";
-            String INTERCEPT= "inter = ";
-            
-            if(BgGraphBuilder.isSmallTablet(getApplicationContext())) {
-                SLOPE = "s:";
-                INTERCEPT = "i:";
-            }
-            
-            String Extraline = SLOPE + String.format("%.2f",lastCalibration.slope) + " " +
-                    INTERCEPT + String.format("%.2f",lastCalibration.intercept) + 
-                    " " + time;
-            extraStatusLineText.setText(Extraline);
+
+        if(prefs.getBoolean("extra_status_line", false)) {
+            extraStatusLineText.setText(extraStatusLine());
             extraStatusLineText.setVisibility(View.VISIBLE);
         } else {
             extraStatusLineText.setText("");
             extraStatusLineText.setVisibility(View.GONE);
         }
+    }
+
+    @NonNull
+    private String extraStatusLine() {
+        StringBuilder extraline = new StringBuilder();
+        Calibration lastCalibration = Calibration.last();
+        if (prefs.getBoolean("status_line_calibration_long", true) && lastCalibration != null){
+            if(extraline.length()!=0) extraline.append(' ');
+            extraline.append("slope = ");
+            extraline.append(String.format("%.2f",lastCalibration.slope));
+            extraline.append(' ');
+            extraline.append("inter = ");
+            extraline.append(String.format("%.2f",lastCalibration.intercept));
+        }
+
+        if(prefs.getBoolean("status_line_calibration_short", false) && lastCalibration != null) {
+            if(extraline.length()!=0) extraline.append(' ');
+            extraline.append("s:");
+            extraline.append(String.format("%.2f",lastCalibration.slope));
+            extraline.append(' ');
+            extraline.append("i:");
+            extraline.append(String.format("%.2f",lastCalibration.intercept));
+        }
+
+        if(prefs.getBoolean("status_line_avg", false)
+                || prefs.getBoolean("status_line_a1c_dcct", false)
+                || prefs.getBoolean("status_line_a1c_ifcc", false
+                || prefs.getBoolean("status_line_in", false))
+                || prefs.getBoolean("status_line_high", false)
+                || prefs.getBoolean("status_line_low", false)){
+
+            StatsResult statsResult = new StatsResult(prefs);
+
+            if(prefs.getBoolean("status_line_avg", false)) {
+                if(extraline.length()!=0) extraline.append(' ');
+                extraline.append(statsResult.getAverageUnitised());
+            }
+            if(prefs.getBoolean("status_line_a1c_dcct", false)) {
+                if(extraline.length()!=0) extraline.append(' ');
+                extraline.append(statsResult.getA1cDCCT());
+            }
+            if(prefs.getBoolean("status_line_a1c_ifcc", false)) {
+                if(extraline.length()!=0) extraline.append(' ');
+                extraline.append(statsResult.getA1cIFCC());
+            }
+            if(prefs.getBoolean("status_line_in", false)) {
+                if(extraline.length()!=0) extraline.append(' ');
+                extraline.append(statsResult.getInPercentage());
+            }
+            if(prefs.getBoolean("status_line_high", false)) {
+                if(extraline.length()!=0) extraline.append(' ');
+                extraline.append(statsResult.getHighPercentage());
+            }
+            if(prefs.getBoolean("status_line_low", false)) {
+                if(extraline.length()!=0) extraline.append(' ');
+                extraline.append(statsResult.getLowPercentage());
+            }
+        }
+        if(prefs.getBoolean("status_line_time", false)) {
+            SimpleDateFormat sdf = new SimpleDateFormat("HH:mm");
+            if(extraline.length()!=0) extraline.append(' ');
+            extraline.append(sdf.format(new Date()));
+        }
+        return extraline.toString();
     }
 
     private void displayCurrentInfoFromReading(BgReading lastBgReading, boolean predictive) {
