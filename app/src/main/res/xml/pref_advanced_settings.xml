@@ -84,7 +84,43 @@
                 android:dependency="extra_status_line"
                 android:defaultValue="false"/>
             <CheckBoxPreference
-                android:key="status_line_calibration_time"
+                android:key="status_line_avg"
+                android:title="Average"
+                android:summary="Today's average value."
+                android:dependency="extra_status_line"
+                android:defaultValue="false"/>
+            <CheckBoxPreference
+                android:key="status_line_a1c_dcct"
+                android:title="A1c DCCT"
+                android:summary="A1c estimation in DCCT format (%)"
+                android:dependency="extra_status_line"
+                android:defaultValue="false"/>
+            <CheckBoxPreference
+                android:key="status_line_a1c_ifcc"
+                android:title="A1c IFCC"
+                android:summary="A1c estimation in IFCC format (mmol/mol)"
+                android:dependency="extra_status_line"
+                android:defaultValue="false"/>
+            <CheckBoxPreference
+                android:key="status_line_in"
+                android:title="In Percentage"
+                android:summary="Percentage of values in range."
+                android:dependency="extra_status_line"
+                android:defaultValue="false"/>
+            <CheckBoxPreference
+                android:key="status_line_high"
+                android:title="High Percentage"
+                android:summary="Percentage of values above range."
+                android:dependency="extra_status_line"
+                android:defaultValue="false"/>
+            <CheckBoxPreference
+                android:key="status_line_low"
+                android:title="Low Percentage"
+                android:summary="Percentage of values below range."
+                android:dependency="extra_status_line"
+                android:defaultValue="false"/>
+            <CheckBoxPreference
+                android:key="status_line_time"
                 android:title="Time"
                 android:summary="The current time."
                 android:dependency="extra_status_line"
