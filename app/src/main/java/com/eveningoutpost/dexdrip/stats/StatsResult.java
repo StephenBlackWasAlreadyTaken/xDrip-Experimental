@@ -53,7 +53,7 @@ public class StatsResult {
         if(getTotalReadings() > 0){
             cursor= db.rawQuery("select avg(calculated_value) from bgreadings  where timestamp >= " + today + " AND calculated_value > " + DBSearchUtil.CUTOFF, null);
             cursor.moveToFirst();
-            avg = cursor.getInt(0);
+            avg = cursor.getDouble(0);
             cursor.close();
         } else {
             avg = 0;
