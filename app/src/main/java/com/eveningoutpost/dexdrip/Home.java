@@ -41,6 +41,7 @@ import com.eveningoutpost.dexdrip.Services.WixelReader;
 import com.eveningoutpost.dexdrip.UtilityModels.BgGraphBuilder;
 import com.eveningoutpost.dexdrip.UtilityModels.CollectionServiceStarter;
 import com.eveningoutpost.dexdrip.UtilityModels.Intents;
+import com.eveningoutpost.dexdrip.stats.StatsResult;
 import com.eveningoutpost.dexdrip.utils.ActivityWithMenu;
 import com.eveningoutpost.dexdrip.utils.DatabaseUtil;
 import com.eveningoutpost.dexdrip.wearintegration.WatchUpdaterService;
@@ -452,7 +453,41 @@ public class Home extends ActivityWithMenu {
             extraline.append(String.format("%.2f",lastCalibration.intercept));
         }
 
-        if(prefs.getBoolean("status_line_calibration_time", false)) {
+        if(prefs.getBoolean("status_line_avg", false)
+                || prefs.getBoolean("status_line_a1c_dcct", false)
+                || prefs.getBoolean("status_line_a1c_ifcc", false
+                || prefs.getBoolean("status_line_in", false))
+                || prefs.getBoolean("status_line_high", false)
+                || prefs.getBoolean("status_line_low", false)){
+
+            StatsResult statsResult = new StatsResult(prefs);
+
+            if(prefs.getBoolean("status_line_avg", false)) {
+                if(extraline.length()!=0) extraline.append(' ');
+                extraline.append(statsResult.getAverageUnitised());
+            }
+            if(prefs.getBoolean("status_line_a1c_dcct", false)) {
+                if(extraline.length()!=0) extraline.append(' ');
+                extraline.append(statsResult.getA1cDCCT());
+            }
+            if(prefs.getBoolean("status_line_a1c_ifcc", false)) {
+                if(extraline.length()!=0) extraline.append(' ');
+                extraline.append(statsResult.getA1cIFCC());
+            }
+            if(prefs.getBoolean("status_line_in", false)) {
+                if(extraline.length()!=0) extraline.append(' ');
+                extraline.append(statsResult.getInPercentage());
+            }
+            if(prefs.getBoolean("status_line_high", false)) {
+                if(extraline.length()!=0) extraline.append(' ');
+                extraline.append(statsResult.getHighPercentage());
+            }
+            if(prefs.getBoolean("status_line_low", false)) {
+                if(extraline.length()!=0) extraline.append(' ');
+                extraline.append(statsResult.getLowPercentage());
+            }
+        }
+        if(prefs.getBoolean("status_line_time", false)) {
             SimpleDateFormat sdf = new SimpleDateFormat("HH:mm");
             if(extraline.length()!=0) extraline.append(' ');
             extraline.append(sdf.format(new Date()));
