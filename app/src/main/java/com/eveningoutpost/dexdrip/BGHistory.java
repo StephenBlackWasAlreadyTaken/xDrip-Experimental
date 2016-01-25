@@ -70,7 +70,7 @@ public class BGHistory extends ActivityWithMenu {
         prevButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                date.roll(Calendar.DATE, false);
+                date.add(Calendar.DATE, -1);
                 setupCharts();
             }
         });
@@ -78,7 +78,7 @@ public class BGHistory extends ActivityWithMenu {
         nextButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                date.roll(Calendar.DATE, true);
+                date.add(Calendar.DATE, 1);
                 setupCharts();
             }
         });
