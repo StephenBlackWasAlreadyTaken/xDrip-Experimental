@@ -507,9 +507,14 @@ public class BgReading extends Model implements ShareUploadableBg{
     }
 
     public static List<BgReading> latestForGraph(int number, long startTime) {
+        return latestForGraph(number, startTime, Long.MAX_VALUE);
+    }
+
+    public static List<BgReading> latestForGraph(int number, long startTime, long endTime) {
         return new Select()
                 .from(BgReading.class)
                 .where("timestamp >= " + Math.max(startTime, 0))
+                .where("timestamp <= " + endTime)
                 .where("calculated_value != 0")
                 .where("raw_data != 0")
                 .orderBy("timestamp desc")
