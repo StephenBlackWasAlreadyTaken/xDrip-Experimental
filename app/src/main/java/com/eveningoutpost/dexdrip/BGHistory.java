@@ -6,7 +6,6 @@ import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
 import android.widget.DatePicker;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import com.eveningoutpost.dexdrip.UtilityModels.BgGraphBuilder;
@@ -14,7 +13,6 @@ import com.eveningoutpost.dexdrip.utils.ActivityWithMenu;
 
 import java.text.DateFormat;
 import java.util.Calendar;
-import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.Locale;
 
@@ -26,22 +24,16 @@ import lecho.lib.hellocharts.view.PreviewLineChartView;
 
 
 public class BGHistory extends ActivityWithMenu {
-    static String TAG = BGHistory.class.getName();
     public static String menu_name = "BG History";
-    private boolean updateStuff;
+    static String TAG = BGHistory.class.getName();
     private boolean updatingPreviewViewport = false;
     private boolean updatingChartViewport = false;
-    private BgGraphBuilder bgGraphBuilder;
     private Viewport holdViewport = new Viewport();
-    private LineChartView            chart;
-    private PreviewLineChartView     previewChart;
+    private LineChartView chart;
+    private PreviewLineChartView previewChart;
     private GregorianCalendar date;
     private DateFormat dateFormatter = DateFormat.getDateInstance(DateFormat.DEFAULT, Locale.getDefault());
-    private Button prevButton;
-    private Button nextButton;
     private Button dateButton;
-
-
 
 
     @Override
@@ -63,8 +55,8 @@ public class BGHistory extends ActivityWithMenu {
     }
 
     private void setupButtons() {
-        this.prevButton = (Button) findViewById(R.id.button_prev);
-        this.nextButton = (Button) findViewById(R.id.button_next);
+        Button prevButton = (Button) findViewById(R.id.button_prev);
+        Button nextButton = (Button) findViewById(R.id.button_next);
         this.dateButton = (Button) findViewById(R.id.button_date);
 
         prevButton.setOnClickListener(new View.OnClickListener() {
@@ -96,7 +88,6 @@ public class BGHistory extends ActivityWithMenu {
                 dialog.show();
             }
         });
-
     }
 
     @Override
@@ -109,8 +100,7 @@ public class BGHistory extends ActivityWithMenu {
         Calendar endDate = new GregorianCalendar();
         endDate.setTimeInMillis(date.getTimeInMillis());
         endDate.add(Calendar.DATE, 1);
-        bgGraphBuilder = new BgGraphBuilder(this, date.getTimeInMillis(), endDate.getTimeInMillis());
-        updateStuff = false;
+        BgGraphBuilder bgGraphBuilder = new BgGraphBuilder(this, date.getTimeInMillis(), endDate.getTimeInMillis());
         chart = (LineChartView) findViewById(R.id.chart);
 
         chart.setZoomType(ZoomType.HORIZONTAL);
@@ -120,7 +110,6 @@ public class BGHistory extends ActivityWithMenu {
         chart.setLineChartData(bgGraphBuilder.lineData());
         chart.setOnValueTouchListener(bgGraphBuilder.getOnValueSelectTooltipListener());
         previewChart.setLineChartData(bgGraphBuilder.previewLineData());
-        updateStuff = true;
 
         previewChart.setViewportCalculationEnabled(true);
         chart.setViewportCalculationEnabled(true);
@@ -150,11 +139,6 @@ public class BGHistory extends ActivityWithMenu {
                 chart.setCurrentViewport(newViewport);
                 updatingPreviewViewport = false;
             }
-            if (updateStuff) {
-                holdViewport.set(newViewport.left, newViewport.top, newViewport.right, newViewport.bottom);
-            }
         }
-
     }
-
 }

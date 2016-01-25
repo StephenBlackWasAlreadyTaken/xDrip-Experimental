@@ -315,7 +315,7 @@ public class BgGraphBuilder {
             calendar.add(Calendar.HOUR, 1);
         }
         while (calendar.getTimeInMillis()<end_time){
-            axisValues.add(new AxisValue((long) (calendar.getTimeInMillis() / FUZZER), (timeFormat.format(calendar.getTimeInMillis())).toCharArray()));
+            axisValues.add(new AxisValue((calendar.getTimeInMillis() / FUZZER), (timeFormat.format(calendar.getTimeInMillis())).toCharArray()));
             calendar.add(Calendar.HOUR, 1);
         }
         Axis axis = new Axis();
