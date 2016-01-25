@@ -7,6 +7,7 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.DatePicker;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.eveningoutpost.dexdrip.UtilityModels.BgGraphBuilder;
 import com.eveningoutpost.dexdrip.utils.ActivityWithMenu;
@@ -56,6 +57,9 @@ public class BGHistory extends ActivityWithMenu {
 
         setupButtons();
         setupCharts();
+
+        Toast.makeText(this, (String) "Double tap or pinch to zoom.",
+                Toast.LENGTH_LONG).show();
     }
 
     private void setupButtons() {
