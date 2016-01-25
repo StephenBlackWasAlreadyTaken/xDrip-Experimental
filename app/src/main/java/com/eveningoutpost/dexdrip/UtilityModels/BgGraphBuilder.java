@@ -90,9 +90,9 @@ public class BgGraphBuilder {
         LineChartData previewLineData = new LineChartData(lineData());
         previewLineData.setAxisYLeft(yAxis());
         previewLineData.setAxisXBottom(previewXAxis());
-        previewLineData.getLines().get(4).setPointRadius(2);
         previewLineData.getLines().get(5).setPointRadius(2);
         previewLineData.getLines().get(6).setPointRadius(2);
+        previewLineData.getLines().get(7).setPointRadius(2);
         return previewLineData;
     }
 
