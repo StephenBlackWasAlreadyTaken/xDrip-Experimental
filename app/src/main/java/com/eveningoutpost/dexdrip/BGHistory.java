@@ -108,7 +108,7 @@ public class BGHistory extends ActivityWithMenu {
         dateButton.setText(dateFormatter.format(date.getTime()));
         Calendar endDate = new GregorianCalendar();
         endDate.setTimeInMillis(date.getTimeInMillis());
-        endDate.roll(Calendar.DATE, true);
+        endDate.add(Calendar.DATE, 1);
         bgGraphBuilder = new BgGraphBuilder(this, date.getTimeInMillis(), endDate.getTimeInMillis());
         updateStuff = false;
         chart = (LineChartView) findViewById(R.id.chart);
