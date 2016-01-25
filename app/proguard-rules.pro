@@ -20,3 +20,11 @@
 -keep class retrofit.** { *; }
 -keepattributes Signature
 -keepattributes Exceptions
+-dontwarn com.**
+-dontwarn net.**
+-dontwarn okio.**
+-dontwarn org.**
+-dontwarn rx.**
+
+
+-dontobfuscate
