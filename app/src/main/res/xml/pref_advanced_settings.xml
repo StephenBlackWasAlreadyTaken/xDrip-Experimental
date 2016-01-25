@@ -127,10 +127,11 @@
                 android:defaultValue="false"/>
 
         </PreferenceScreen>
-
-
-
-
+        <CheckBoxPreference
+            android:key="widget_range_lines"
+            android:title="Widget Range Lines"
+            android:summary="Show a high and low line on the widget."
+            android:defaultValue="false" />
         <CheckBoxPreference
             android:key="xDripViewer_upload_mode"
             android:title="xDripViewer upload mode"
