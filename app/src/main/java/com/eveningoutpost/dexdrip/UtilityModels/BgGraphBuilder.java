@@ -52,8 +52,7 @@ public class BgGraphBuilder {
     final int previewAxisTextSize;
     final int hoursPreviewStep;
 
-    private double endHour;
-    private final int numValues =(60/5)*24;
+    private static final int NUM_VALUES =(60/5)*24;
     private final List<BgReading> bgReadings;
     private final List<Calibration> calibrations;
     private List<PointValue> inRangeValues = new ArrayList<PointValue>();
@@ -75,6 +74,10 @@ public class BgGraphBuilder {
     }
 
     public BgGraphBuilder(Context context, long start, long end){
+        this(context, start, end, NUM_VALUES);
+    }
+
+    public BgGraphBuilder(Context context, long start, long end, int numValues){
         end_time = end;
         start_time = start;
         bgReadings = BgReading.latestForGraph( numValues, start, end);
