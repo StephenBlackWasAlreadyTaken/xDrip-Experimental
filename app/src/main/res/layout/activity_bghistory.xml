@@ -56,12 +56,12 @@
                         android:id="@+id/button_date1"
                         android:layout_gravity="center_horizontal" />
 
-                    <Button
+                    <Spinner
                         android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="xx.xx.xxxx"
-                        android:id="@+id/button_date2"
-                        android:layout_gravity="center_horizontal" />
+                        android:layout_height="match_parent"
+                        android:id="@+id/daysspinner"
+                        android:layout_weight="1"
+                        android:spinnerMode="dialog"/>
 
                     <Button
                         android:layout_width="wrap_content"
