@@ -67,7 +67,7 @@ public class BGHistory extends ActivityWithMenu {
         prevButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                date1.add(Calendar.DATE, -1 - noDays);
+                date1.add(Calendar.DATE, - noDays);
                 setupCharts();
             }
         });
@@ -75,7 +75,7 @@ public class BGHistory extends ActivityWithMenu {
         nextButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                date1.add(Calendar.DATE, 1 + noDays);
+                date1.add(Calendar.DATE, + noDays);
                 setupCharts();
             }
         });
@@ -99,7 +99,7 @@ public class BGHistory extends ActivityWithMenu {
         for (int i = 1; i< vals.length; i++ ){
             vals[i] = (i+1) + " days";
         }
-        
+
         daysSpinner.setAdapter(new ArrayAdapter(this, android.R.layout.simple_dropdown_item_1line,  vals));
         daysSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
