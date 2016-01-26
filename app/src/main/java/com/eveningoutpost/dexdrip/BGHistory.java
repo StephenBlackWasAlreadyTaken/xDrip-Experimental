@@ -94,7 +94,12 @@ public class BGHistory extends ActivityWithMenu {
             }
         });
 
-        Integer[] vals = new Integer[]{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14};
+        String[] vals = new String[14];
+        vals[0] = 1 + " day";
+        for (int i = 1; i< vals.length; i++ ){
+            vals[i] = (i+1) + " days";
+        }
+        
         daysSpinner.setAdapter(new ArrayAdapter(this, android.R.layout.simple_dropdown_item_1line,  vals));
         daysSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
