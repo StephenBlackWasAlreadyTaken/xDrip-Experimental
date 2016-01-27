@@ -31,6 +31,14 @@
         android:orderInCategory="1"
         app:showAsAction="never"/>
 
+    <item android:id="@+id/importsettings"
+        android:title="Settings to external storage"
+        android:checkable="false"
+        android:onClick="settingsSDcardExport"
+        android:visible="true"
+        android:orderInCategory="1"
+        android:showAsAction="never"/>
+
     <item android:id="@+id/action_toggle_speakreadings"
         android:title="@string/menu_toggle_speakreadings"
         android:checkable="true"

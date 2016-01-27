@@ -220,6 +220,10 @@
         <activity
             android:name=".FollowerManagementActivity"
             android:label="Manage Followers" />
+        <activity
+            android:name=".utils.SdcardImportExport"
+            android:noHistory="true"
+            android:label="Settings on external storage" />
 
         <service
             android:name=".Services.SnoozeOnNotificationDismissService"
