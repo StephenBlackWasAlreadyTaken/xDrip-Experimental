@@ -27,6 +27,7 @@ import android.widget.Toast;
 
 import com.eveningoutpost.dexdrip.Models.UserError.Log;
 import com.eveningoutpost.dexdrip.Services.MissedReadingService;
+import com.eveningoutpost.dexdrip.Services.WixelReader;
 import com.eveningoutpost.dexdrip.R;
 import com.eveningoutpost.dexdrip.UtilityModels.CollectionServiceStarter;
 import com.eveningoutpost.dexdrip.UtilityModels.PebbleSync;
@@ -235,7 +236,7 @@ public class Preferences extends PreferenceActivity {
     }
 
 
-    public static class AllPrefsFragment extends PreferenceFragment {
+    private static class AllPrefsFragment extends PreferenceFragment {
         @Override
         public void onCreate(Bundle savedInstanceState) {
             super.onCreate(savedInstanceState);
@@ -460,6 +461,32 @@ public class Preferences extends PreferenceActivity {
                     return true;
                 }
             });
+            
+            // Remove all the parts that are not needed in xDripViewer (doing it all in one place to avoid having many ifs)
+            if(WixelReader.isxDripViewerMode(getActivity())) {
+                collectionCategory.removePreference(collectionMethod);
+                collectionCategory.removePreference(shareKey);
+                collectionCategory.removePreference(scanShare);
+                collectionCategory.removePreference(wifiRecievers);
+                collectionCategory.removePreference(transmitterId);
+                collectionCategory.removePreference(displayBridgeBatt);
+                
+                final PreferenceCategory dataSyncCategory = (PreferenceCategory) findPreference("dataSync");
+                final Preference autoConfigure = findPreference("auto_configure");
+                final Preference cloudStorageMongo =  findPreference("cloud_storage_mongo");
+                final Preference cloudStorageApi =  findPreference("cloud_storage_api");
+                final Preference dexcomServerUploadScreen =  findPreference("dexcom_server_upload_screen");
+                final Preference xDripViewerUploadMode =  findPreference("xDripViewer_upload_mode");
+                
+                dataSyncCategory.removePreference(autoConfigure);
+                dataSyncCategory.removePreference(cloudStorageMongo);
+                dataSyncCategory.removePreference(cloudStorageApi);
+                dataSyncCategory.removePreference(dexcomServerUploadScreen);
+                dataSyncCategory.removePreference(xDripViewerUploadMode);
+                
+            } else {
+                collectionCategory.removePreference(xDripViewerNsAdresses);
+            }
         }
 
         private void bindWidgetUpdater() {
