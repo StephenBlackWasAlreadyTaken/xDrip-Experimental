@@ -101,8 +101,8 @@
     <string name="wifi_recievers_dialog_title">Enter ip addresses and ports of receivers (including mongodb addresses if needed)</string>
 
     <!-- xDrip Viewer Settings -->
-    <string name="xdrip_viewer_ns_message_message">Enter nighscout site name and key</string>
-    <string name="xdrip_viewer_ns_dialog_title">Nightscout rest api parameters, and secret key. For example https://yourpassphrase@{YOUR-SITE}.azurewebsites.net</string>
+    <string name="xdrip_viewer_ns_message_message">Enter nighscout site name and key. For example https://yourpassphrase@{YOUR-SITE}.azurewebsites.net</string>
+    <string name="xdrip_viewer_ns_dialog_title">Nightscout rest api parameters, and secret key.</string>
     
     <!-- Location Settings -->
     <string name="location_not_found_title">Location Is Not Enabled</string>
