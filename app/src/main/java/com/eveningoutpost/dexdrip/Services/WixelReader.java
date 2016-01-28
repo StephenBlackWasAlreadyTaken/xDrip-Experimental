@@ -438,7 +438,11 @@ public class WixelReader extends AsyncTask<String, Void, Void > {
 
     public Void doInBackground(String... urls) {
         try {
-            readData();
+            if(isxDripViewerMode(mContext)) {
+                readDataxDripViewer();
+            } else {
+                readData();
+            }
         } finally {
             wakeLock.release();
             lockCounter--;
@@ -448,7 +452,7 @@ public class WixelReader extends AsyncTask<String, Void, Void > {
     }
     
     
-    public void readData1()
+    public void readData()
     {
         if(!WixelReader.IsConfigured(mContext)) {
             return;
@@ -555,7 +559,7 @@ public class WixelReader extends AsyncTask<String, Void, Void > {
     
     
 
-    public void readData() {
+    public void readDataxDripViewer() {
         try {
         
             SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(mContext);
@@ -694,6 +698,10 @@ public class WixelReader extends AsyncTask<String, Void, Void > {
         }
     }
     
+    
+    static public boolean isxDripViewerMode(Context context) {
+        return (context.getPackageName() == "com.eveningoutpost.dexdrip") ? false : true;
+    }
 /*
  * curl examples
  * curl -X GET --header "Accept: application/json api-secret: 6aaafe81264eb79d079caa91bbf25dba379ff6e2" "https://snirdar.azurewebsites.net/api/v1/entries/cal?count=122" -k

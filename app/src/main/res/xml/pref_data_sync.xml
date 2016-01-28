@@ -109,7 +109,11 @@
                     android:targetClass="com.eveningoutpost.dexdrip.FollowerManagementActivity"/>
             </Preference>
         </PreferenceScreen>
-
+        <CheckBoxPreference
+            android:key="xDripViewer_upload_mode"
+            android:title="xDripViewer upload mode"
+            android:summary="Upload more fields needed for optimum xDripViewer functioning"
+            android:defaultValue="false" />
     </PreferenceCategory>
 
 </PreferenceScreen>
