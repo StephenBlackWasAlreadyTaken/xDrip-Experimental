@@ -5,6 +5,7 @@ import android.content.SharedPreferences;
 import android.content.res.Configuration;
 import android.graphics.Color;
 import android.preference.PreferenceManager;
+import android.support.annotation.NonNull;
 import android.text.format.DateFormat;
 import android.widget.Toast;
 
@@ -37,8 +38,8 @@ import lecho.lib.hellocharts.view.Chart;
  */
 public class BgGraphBuilder {
     public static final int FUZZER = (1000 * 30 * 5);
-    public long  end_time = (new Date().getTime() + (60000 * 10)) / FUZZER;
-    public long  start_time = end_time - ((60000 * 60 * 24)) / FUZZER;
+    public long  end_time;
+    public long  start_time;
     public Context context;
     public SharedPreferences prefs;
     public double highMark;
@@ -51,10 +52,9 @@ public class BgGraphBuilder {
     final int previewAxisTextSize;
     final int hoursPreviewStep;
 
-    private double endHour;
-    private final int numValues =(60/5)*24;
-    private final List<BgReading> bgReadings = BgReading.latestForGraph( numValues, (start_time * FUZZER));
-    private final List<Calibration> calibrations = Calibration.latestForGraph( numValues, (start_time * FUZZER));
+    private static final int NUM_VALUES =(60/5)*24;
+    private final List<BgReading> bgReadings;
+    private final List<Calibration> calibrations;
     private List<PointValue> inRangeValues = new ArrayList<PointValue>();
     private List<PointValue> highValues = new ArrayList<PointValue>();
     private List<PointValue> lowValues = new ArrayList<PointValue>();
@@ -66,6 +66,22 @@ public class BgGraphBuilder {
 
 
     public BgGraphBuilder(Context context){
+        this(context, new Date().getTime() + (60000 * 10));
+    }
+
+    public BgGraphBuilder(Context context, long end){
+        this(context, end - (60000 * 60 * 24), end);
+    }
+
+    public BgGraphBuilder(Context context, long start, long end){
+        this(context, start, end, NUM_VALUES);
+    }
+
+    public BgGraphBuilder(Context context, long start, long end, int numValues){
+        end_time = end;
+        start_time = start;
+        bgReadings = BgReading.latestForGraph( numValues, start, end);
+        calibrations = Calibration.latestForGraph( numValues, start, end);
         this.context = context;
         this.prefs = PreferenceManager.getDefaultSharedPreferences(context);
         this.highMark = Double.parseDouble(prefs.getString("highValue", "170"));
@@ -82,7 +98,7 @@ public class BgGraphBuilder {
     public LineChartData lineData() {
         LineChartData lineData = new LineChartData(defaultLines());
         lineData.setAxisYLeft(yAxis());
-        lineData.setAxisXBottom(xAxis());
+        lineData.setAxisXBottom(chartXAxis());
         return lineData;
     }
 
@@ -189,8 +205,8 @@ public class BgGraphBuilder {
 
     public Line highLine(boolean show) {
         List<PointValue> highLineValues = new ArrayList<PointValue>();
-        highLineValues.add(new PointValue((float) start_time, (float) highMark));
-        highLineValues.add(new PointValue((float) end_time, (float) highMark));
+        highLineValues.add(new PointValue((float) start_time / FUZZER, (float) highMark));
+        highLineValues.add(new PointValue((float) end_time / FUZZER, (float) highMark));
         Line highLine = new Line(highLineValues);
         highLine.setHasPoints(false);
         highLine.setStrokeWidth(1);
@@ -206,8 +222,8 @@ public class BgGraphBuilder {
 
     public Line lowLine(boolean show, boolean line_only) {
         List<PointValue> lowLineValues = new ArrayList<PointValue>();
-        lowLineValues.add(new PointValue((float)start_time, (float)lowMark));
-        lowLineValues.add(new PointValue((float) end_time, (float) lowMark));
+        lowLineValues.add(new PointValue((float)start_time / FUZZER, (float)lowMark));
+        lowLineValues.add(new PointValue((float) end_time / FUZZER, (float) lowMark));
         Line lowLine = new Line(lowLineValues);
         lowLine.setHasPoints(false);
         if(!line_only) {
@@ -225,8 +241,8 @@ public class BgGraphBuilder {
 
     public Line maxShowLine() {
         List<PointValue> maxShowValues = new ArrayList<PointValue>();
-        maxShowValues.add(new PointValue((float) start_time, (float) defaultMaxY));
-        maxShowValues.add(new PointValue((float) end_time, (float) defaultMaxY));
+        maxShowValues.add(new PointValue((float) start_time / FUZZER, (float) defaultMaxY));
+        maxShowValues.add(new PointValue((float) end_time / FUZZER, (float) defaultMaxY));
         Line maxShowLine = new Line(maxShowValues);
         maxShowLine.setHasLines(false);
         maxShowLine.setHasPoints(false);
@@ -235,8 +251,8 @@ public class BgGraphBuilder {
 
     public Line minShowLine() {
         List<PointValue> minShowValues = new ArrayList<PointValue>();
-        minShowValues.add(new PointValue((float) start_time, (float) defaultMinY));
-        minShowValues.add(new PointValue((float) end_time, (float) defaultMinY));
+        minShowValues.add(new PointValue((float) start_time / FUZZER, (float) defaultMinY));
+        minShowValues.add(new PointValue((float) end_time / FUZZER, (float) defaultMinY));
         Line minShowLine = new Line(minShowValues);
         minShowLine.setHasPoints(false);
         minShowLine.setHasLines(false);
@@ -264,30 +280,8 @@ public class BgGraphBuilder {
         return yAxis;
     }
 
-    public Axis xAxis() {
-        Axis xAxis = new Axis();
-        xAxis.setAutoGenerated(false);
-        List<AxisValue> xAxisValues = new ArrayList<AxisValue>();
-        GregorianCalendar now = new GregorianCalendar();
-        GregorianCalendar today = new GregorianCalendar(now.get(Calendar.YEAR), now.get(Calendar.MONTH), now.get(Calendar.DAY_OF_MONTH));
-        final java.text.DateFormat timeFormat = hourFormat();
-        timeFormat.setTimeZone(TimeZone.getDefault());
-        double start_hour_block = today.getTime().getTime();
-        double timeNow = new Date().getTime();
-        for(int l=0; l<=24; l++) {
-            if ((start_hour_block + (60000 * 60 * (l))) <  timeNow) {
-                if((start_hour_block + (60000 * 60 * (l + 1))) >=  timeNow) {
-                    endHour = start_hour_block + (60000 * 60 * (l));
-                    l=25;
-                }
-            }
-        }
-        for(int l=0; l<=24; l++) {
-            double timestamp = (endHour - (60000 * 60 * l));
-            xAxisValues.add(new AxisValue((long)(timestamp/ FUZZER), (timeFormat.format(timestamp)).toCharArray()));
-        }
-        xAxis.setValues(xAxisValues);
-        xAxis.setHasLines(true);
+    public Axis chartXAxis() {
+        Axis xAxis = xAxis();
         xAxis.setTextSize(axisTextSize);
         return xAxis;
     }
@@ -305,18 +299,32 @@ public class BgGraphBuilder {
     }
 
     public Axis previewXAxis(){
-        List<AxisValue> previewXaxisValues = new ArrayList<AxisValue>();
-        final java.text.DateFormat timeFormat = hourFormat();
-        timeFormat.setTimeZone(TimeZone.getDefault());
-        for(int l=0; l<=24; l+=hoursPreviewStep) {
-            double timestamp = (endHour - (60000 * 60 * l));
-            previewXaxisValues.add(new AxisValue((long)(timestamp/ FUZZER), (timeFormat.format(timestamp)).toCharArray()));
-        }
-        Axis previewXaxis = new Axis();
-        previewXaxis.setValues(previewXaxisValues);
-        previewXaxis.setHasLines(true);
+        Axis previewXaxis = xAxis();
         previewXaxis.setTextSize(previewAxisTextSize);
         return previewXaxis;
+    }
+
+    @NonNull
+    private Axis xAxis() {
+        List<AxisValue> axisValues = new ArrayList<AxisValue>();
+        final java.text.DateFormat timeFormat = hourFormat();
+        timeFormat.setTimeZone(TimeZone.getDefault());
+        GregorianCalendar calendar = new GregorianCalendar();
+        calendar.setTimeInMillis(start_time);
+        calendar.set(Calendar.MINUTE, 0);
+        calendar.set(Calendar.SECOND, 0);
+        calendar.set(Calendar.MILLISECOND, 0);
+        if (calendar.getTimeInMillis()<start_time){
+            calendar.add(Calendar.HOUR, 1);
+        }
+        while (calendar.getTimeInMillis()<end_time){
+            axisValues.add(new AxisValue((calendar.getTimeInMillis() / FUZZER), (timeFormat.format(calendar.getTimeInMillis())).toCharArray()));
+            calendar.add(Calendar.HOUR, 1);
+        }
+        Axis axis = new Axis();
+        axis.setValues(axisValues);
+        axis.setHasLines(true);
+        return axis;
     }
 
     /////////VIEWPORT RELATED//////////////
