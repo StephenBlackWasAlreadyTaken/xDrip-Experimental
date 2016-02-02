@@ -58,7 +58,7 @@ public class NavDrawerBuilder {
             this.nav_drawer_intents.add(new Intent(context, CalibrationDataTable.class));
         }
 
-        if(xDripViewer) {
+        if(!xDripViewer) {
             if(is_active_sensor) {
                 if(!CollectionServiceStarter.isBTShare(context)) {
                     if (last_two_bgReadings.size() > 1) {
