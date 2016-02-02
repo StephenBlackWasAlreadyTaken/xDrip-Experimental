@@ -47,7 +47,7 @@
         </EditTextPreference>
         
         <EditTextPreference
-            android:title="xDrip viewer"
+            android:title="Nightscout website address"
             android:key="xdrip_viewer_ns_addresses"
             android:dialogTitle="@string/xdrip_viewer_ns_dialog_title"
             android:dialogMessage="@string/xdrip_viewer_ns_message_message"
