@@ -667,11 +667,12 @@ public class WixelReader extends AsyncTask<String, Void, Void > {
         }
         Log.e(TAG, "readBgData  LastReportedTime = " + LastReportedTime);
         
-        List<NightscoutBg> nightscoutBgs = nsRestApiReader.readBgDataFromNs(baseUrl,key, LastReportedTime, 12 * 24 );
+        List<NightscoutBg> nightscoutBgs = nsRestApiReader.readBgDataFromNs(baseUrl,key, LastReportedTime, 12 * 36 );
         if(nightscoutBgs == null) {
             Log.e(TAG, "readBgDataFromNs returned null");
             return;
         }
+        Log.e(TAG, "readBgData  finished reading from ns");
         
         ListIterator<NightscoutBg> li = nightscoutBgs.listIterator(nightscoutBgs.size());
         long lastInserted = 0;
@@ -687,20 +688,32 @@ public class WixelReader extends AsyncTask<String, Void, Void > {
               Log.e(TAG, "not inserting packet, since order is wrong. ");
               continue;
             }
+            TransmitterData.create((int)nightscoutBg.xDrip_raw, 100 /* ??????? */, nightscoutBg.date);
             BgReading.create(mContext, 
                     nightscoutBg.xDrip_raw * 1000,
                     nightscoutBg.xDrip_age_adjusted_raw_value,
                     nightscoutBg.xDrip_filtered * 1000,
                     nightscoutBg.date, 
                     nightscoutBg.xDrip_calculated_value != 0 ? nightscoutBg.xDrip_calculated_value : nightscoutBg.sgv);
-            TransmitterData.create((int)nightscoutBg.xDrip_raw, 100 /* ??????? */, nightscoutBg.date);
+            
             lastInserted = nightscoutBg.date;
         }
+        
+        Log.e(TAG, "readBgData  finished with BgReading.create ");
     }
     
     
     static public boolean isxDripViewerMode(Context context) {
         return (context.getPackageName() == "com.eveningoutpost.dexdrip") ? false : true;
+    }
+    
+    public static boolean IsxDripViewerConfigured(Context ctx) {
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(ctx);
+        String recieversIpAddresses = prefs.getString("xdrip_viewer_ns_addresses", "");
+        if(recieversIpAddresses == null || recieversIpAddresses.equals("") ) {
+            return false;
+        }
+        return true;
     }
 /*
  * curl examples

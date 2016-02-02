@@ -258,13 +258,16 @@ public class Home extends ActivityWithMenu {
         isBTShare = CollectionServiceStarter.isBTShare(getApplicationContext());
         boolean isWifiWixel = CollectionServiceStarter.isWifiWixel(getApplicationContext());
         alreadyDisplayedBgInfoCommon = false; // reset flag
-        if (isBTShare) {
+        
+        boolean xDripViewer = WixelReader.isxDripViewerMode(getApplicationContext());
+        
+        if(xDripViewer) {
+            updateCurrentBgInfoForxDripViewer(notificationText);
+        } else if (isBTShare) {
             updateCurrentBgInfoForBtShare(notificationText);
-        }
-        if (isBTWixel || isDexbridgeWixel ||  isWifiBluetoothWixel) {
+        } else if (isBTWixel || isDexbridgeWixel ||  isWifiBluetoothWixel) {
             updateCurrentBgInfoForBtBasedWixel(notificationText);
-        }
-        if (isWifiWixel || isWifiBluetoothWixel) {
+        } else if (isWifiWixel || isWifiBluetoothWixel) {
             updateCurrentBgInfoForWifiWixel(notificationText);
         }
         if (mPreferences.getLong("alerts_disabled_until", 0) > new Date().getTime()) {
@@ -298,6 +301,19 @@ public class Home extends ActivityWithMenu {
         updateCurrentBgInfoCommon(notificationText);
 
     }
+    
+    private void updateCurrentBgInfoForxDripViewer(TextView notificationText) {
+        if (!WixelReader.IsxDripViewerConfigured(getApplicationContext())) {
+            notificationText.setText("First configure Nightscout website address");
+            return;
+        }
+        
+        // Add more messages here. base on sensor size and bg reading size... how to tell if addresses is wrong...
+
+        displayCurrentInfo();
+
+    }
+    
 
     private void updateCurrentBgInfoForBtBasedWixel(TextView notificationText) {
         if ((android.os.Build.VERSION.SDK_INT < android.os.Build.VERSION_CODES.JELLY_BEAN_MR2)) {
