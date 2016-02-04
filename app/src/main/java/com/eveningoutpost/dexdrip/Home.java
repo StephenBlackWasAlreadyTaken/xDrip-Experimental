@@ -279,7 +279,7 @@ public class Home extends ActivityWithMenu {
             notificationText.append("\nHIGH ALERTS CURRENTLY DISABLED");
         }
         if(prefs.getBoolean("extra_status_line", false)) {
-            extraStatusLineText.setText(extraStatusLine());
+            extraStatusLineText.setText(extraStatusLine(prefs));
             extraStatusLineText.setVisibility(View.VISIBLE);
         } else {
             extraStatusLineText.setText("");
@@ -425,7 +425,7 @@ public class Home extends ActivityWithMenu {
     }
 
     @NonNull
-    private String extraStatusLine() {
+    public static String extraStatusLine(SharedPreferences prefs) {
         StringBuilder extraline = new StringBuilder();
         Calibration lastCalibration = Calibration.last();
         if (prefs.getBoolean("status_line_calibration_long", true) && lastCalibration != null){

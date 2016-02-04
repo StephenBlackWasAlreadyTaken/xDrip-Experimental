@@ -11,6 +11,7 @@ import android.graphics.Paint;
 import com.eveningoutpost.dexdrip.Models.UserError.Log;
 
 import android.preference.PreferenceManager;
+import android.view.View;
 import android.widget.RemoteViews;
 
 import com.eveningoutpost.dexdrip.Models.BgReading;
@@ -115,6 +116,14 @@ public class xDripWidget extends AppWidgetProvider {
                 views.setTextColor(R.id.readingAge, Color.parseColor("#FFBB33"));
             } else {
                 views.setTextColor(R.id.readingAge, Color.WHITE);
+            }
+
+            if(settings.getBoolean("extra_status_line", false) && settings.getBoolean("widget_status_line", false)) {
+                views.setTextViewText(R.id.widgetStatusLine, Home.extraStatusLine(settings));
+                views.setViewVisibility(R.id.widgetStatusLine, View.VISIBLE);
+            } else {
+                views.setTextViewText(R.id.widgetStatusLine, "");
+                views.setViewVisibility(R.id.widgetStatusLine, View.GONE);
             }
 
             if (bgGraphBuilder.unitized(estimate) <= bgGraphBuilder.lowMark) {

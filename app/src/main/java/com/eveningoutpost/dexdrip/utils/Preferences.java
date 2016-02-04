@@ -312,7 +312,6 @@ public class Preferences extends PreferenceActivity {
             final PreferenceScreen calibrationAlertsScreen = (PreferenceScreen) findPreference("calibration_alerts_screen");
             final PreferenceCategory alertsCategory = (PreferenceCategory) findPreference("alerts_category");
             final Preference disableAlertsStaleDataMinutes = findPreference("disable_alerts_stale_data_minutes");
-            final Preference widgetRangeLines = findPreference("widget_range_lines");
 
             disableAlertsStaleDataMinutes.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
                 @Override
@@ -368,16 +367,9 @@ public class Preferences extends PreferenceActivity {
                     return true;
                 }
             });
-            widgetRangeLines.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
-                @Override
-                public boolean onPreferenceChange(Preference preference, Object newValue) {
-                    Context context = preference.getContext();
-                    if(AppWidgetManager.getInstance(context).getAppWidgetIds(new ComponentName(context, xDripWidget.class)).length > 0){
-                        context.startService(new Intent(context, WidgetUpdateService.class));
-                    }
-                    return true;
-                }
-            });
+
+            bindWidgetUpdater();
+
             bindPreferenceSummaryToValue(collectionMethod);
             bindPreferenceSummaryToValue(shareKey);
             bindPreferenceSummaryToValue(wifiRecievers);
@@ -468,6 +460,21 @@ public class Preferences extends PreferenceActivity {
             });
         }
 
+        private void bindWidgetUpdater() {
+            findPreference("widget_range_lines").setOnPreferenceChangeListener(new WidgetListener());
+            findPreference("extra_status_line").setOnPreferenceChangeListener(new WidgetListener());
+            findPreference("widget_status_line").setOnPreferenceChangeListener(new WidgetListener());
+            findPreference("status_line_calibration_long").setOnPreferenceChangeListener(new WidgetListener());
+            findPreference("status_line_calibration_short").setOnPreferenceChangeListener(new WidgetListener());
+            findPreference("status_line_avg").setOnPreferenceChangeListener(new WidgetListener());
+            findPreference("status_line_a1c_dcct").setOnPreferenceChangeListener(new WidgetListener());
+            findPreference("status_line_a1c_ifcc").setOnPreferenceChangeListener(new WidgetListener());
+            findPreference("status_line_in").setOnPreferenceChangeListener(new WidgetListener());
+            findPreference("status_line_high").setOnPreferenceChangeListener(new WidgetListener());
+            findPreference("status_line_low").setOnPreferenceChangeListener(new WidgetListener());
+            findPreference("extra_status_line").setOnPreferenceChangeListener(new WidgetListener());
+        }
+
         private void setupBarcodeConfigScanner() {
             findPreference("auto_configure").setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
                 @Override
@@ -529,6 +536,16 @@ public class Preferences extends PreferenceActivity {
           findPreference("other_alerts_snooze").setOnPreferenceChangeListener(sBgMissedAlertsHandler);
         }
 
+        private static class WidgetListener implements Preference.OnPreferenceChangeListener {
+            @Override
+            public boolean onPreferenceChange(Preference preference, Object newValue) {
+                Context context = preference.getContext();
+                if(AppWidgetManager.getInstance(context).getAppWidgetIds(new ComponentName(context, xDripWidget.class)).length > 0){
+                    context.startService(new Intent(context, WidgetUpdateService.class));
+                }
+                return true;
+            }
+        }
     }
 
     public static boolean isNumeric(String str) {
