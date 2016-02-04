@@ -13,7 +13,6 @@ import com.activeandroid.annotation.Table;
 import com.activeandroid.query.Select;
 import com.eveningoutpost.dexdrip.ImportedLibraries.dexcom.records.EGVRecord;
 import com.eveningoutpost.dexdrip.ImportedLibraries.dexcom.records.SensorRecord;
-import com.eveningoutpost.dexdrip.Models.Sensor;
 import com.eveningoutpost.dexdrip.ShareModels.ShareUploadableBg;
 import com.eveningoutpost.dexdrip.UtilityModels.BgSendQueue;
 import com.eveningoutpost.dexdrip.UtilityModels.Constants;
@@ -32,6 +31,8 @@ import java.util.UUID;
 
 @Table(name = "BgReadings", id = BaseColumns._ID)
 public class BgReading extends Model implements ShareUploadableBg{
+    public static final double AGE_ADJUSTMENT_TIME = 86400000 * 1.9;
+    public static final double AGE_ADJUSTMENT_FACTOR = .45;
     private static boolean predictBG;
     private final static String TAG = BgReading.class.getSimpleName();
     private final static String TAG_ALERT = TAG +" AlertBg";
@@ -650,9 +651,9 @@ public class BgReading extends Model implements ShareUploadableBg{
     }
 
     public void calculateAgeAdjustedRawValue(){
-        double adjust_for = (86400000 * 1.9) - time_since_sensor_started;
+        double adjust_for = AGE_ADJUSTMENT_TIME - time_since_sensor_started;
         if (adjust_for > 0) {
-            age_adjusted_raw_value = (((.45) * (adjust_for / (86400000 * 1.9))) * raw_data) + raw_data;
+            age_adjusted_raw_value = ((AGE_ADJUSTMENT_FACTOR * (adjust_for / AGE_ADJUSTMENT_TIME)) * raw_data) + raw_data;
             Log.i(TAG, "calculateAgeAdjustedRawValue: RAW VALUE ADJUSTMENT FROM:" + raw_data + " TO: " + age_adjusted_raw_value);
         } else {
             age_adjusted_raw_value = raw_data;
