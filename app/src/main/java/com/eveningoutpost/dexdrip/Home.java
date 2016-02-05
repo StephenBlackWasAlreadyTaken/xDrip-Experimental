@@ -27,7 +27,6 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.ViewGroup;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -70,7 +69,7 @@ public class Home extends ActivityWithMenu {
     private boolean updatingPreviewViewport = false;
     private boolean updatingChartViewport = false;
     private BgGraphBuilder bgGraphBuilder;
-    private SharedPreferences prefs;
+    private SharedPreferences mPreferences;
     private Viewport tempViewport = new Viewport();
     private Viewport holdViewport = new Viewport();
     private boolean isBTShare;
@@ -88,7 +87,7 @@ public class Home extends ActivityWithMenu {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        prefs = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
+        mPreferences = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
         checkEula();
         setContentView(R.layout.activity_home);
 
@@ -103,10 +102,10 @@ public class Home extends ActivityWithMenu {
             Log.d(TAG, "Maybe ignoring battery optimization");
             PowerManager pm = (PowerManager) getSystemService(Context.POWER_SERVICE);
             if (!pm.isIgnoringBatteryOptimizations(packageName) &&
-                    !prefs.getBoolean("requested_ignore_battery_optimizations", false)) {
+                    !mPreferences.getBoolean("requested_ignore_battery_optimizations", false)) {
                 Log.d(TAG, "Requesting ignore battery optimization");
 
-                prefs.edit().putBoolean("requested_ignore_battery_optimizations", true).apply();
+                mPreferences.edit().putBoolean("requested_ignore_battery_optimizations", true).apply();
                 intent.setAction(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS);
                 intent.setData(Uri.parse("package:" + packageName));
                 startActivity(intent);
@@ -120,7 +119,7 @@ public class Home extends ActivityWithMenu {
     }
 
     private void checkEula() {
-        boolean IUnderstand = prefs.getBoolean("I_understand", false);
+        boolean IUnderstand = mPreferences.getBoolean("I_understand", false);
         if (!IUnderstand) {
             Intent intent = new Intent(getApplicationContext(), LicenseAgreementActivity.class);
             startActivity(intent);
@@ -173,7 +172,7 @@ public class Home extends ActivityWithMenu {
 
         //Transmitter Battery Level
         final Sensor sensor = Sensor.currentSensor();
-        if (sensor != null && sensor.latest_battery_level != 0 && sensor.latest_battery_level <= Constants.TRANSMITTER_BATTERY_LOW && ! prefs.getBoolean("disable_battery_warning", false)) {
+        if (sensor != null && sensor.latest_battery_level != 0 && sensor.latest_battery_level <= Constants.TRANSMITTER_BATTERY_LOW && ! mPreferences.getBoolean("disable_battery_warning", false)) {
             Drawable background = new Drawable() {
 
                 @Override
@@ -267,19 +266,19 @@ public class Home extends ActivityWithMenu {
         if (isWifiWixel || isWifiBluetoothWixel) {
             updateCurrentBgInfoForWifiWixel(notificationText);
         }
-        if (prefs.getLong("alerts_disabled_until", 0) > new Date().getTime()) {
+        if (mPreferences.getLong("alerts_disabled_until", 0) > new Date().getTime()) {
             notificationText.append("\n ALL ALERTS CURRENTLY DISABLED");
-        } else if (prefs.getLong("low_alerts_disabled_until", 0) > new Date().getTime()
+        } else if (mPreferences.getLong("low_alerts_disabled_until", 0) > new Date().getTime()
 			&&
-			prefs.getLong("high_alerts_disabled_until", 0) > new Date().getTime()) {
+			mPreferences.getLong("high_alerts_disabled_until", 0) > new Date().getTime()) {
             notificationText.append("\nLOW AND HIGH ALERTS CURRENTLY DISABLED");
-        } else if (prefs.getLong("low_alerts_disabled_until", 0) > new Date().getTime()) {
+        } else if (mPreferences.getLong("low_alerts_disabled_until", 0) > new Date().getTime()) {
             notificationText.append("\nLOW ALERTS CURRENTLY DISABLED");
-        } else if (prefs.getLong("high_alerts_disabled_until", 0) > new Date().getTime()) {
+        } else if (mPreferences.getLong("high_alerts_disabled_until", 0) > new Date().getTime()) {
             notificationText.append("\nHIGH ALERTS CURRENTLY DISABLED");
         }
-        if(prefs.getBoolean("extra_status_line", false)) {
-            extraStatusLineText.setText(extraStatusLine(prefs));
+        if(mPreferences.getBoolean("extra_status_line", false)) {
+            extraStatusLineText.setText(extraStatusLine(mPreferences));
             extraStatusLineText.setVisibility(View.VISIBLE);
         } else {
             extraStatusLineText.setText("");
@@ -357,7 +356,7 @@ public class Home extends ActivityWithMenu {
             return;
         }
 
-        String receiverSn = prefs.getString("share_key", "SM00000000").toUpperCase();
+        String receiverSn = mPreferences.getString("share_key", "SM00000000").toUpperCase();
         if (receiverSn.compareTo("SM00000000") == 0 || receiverSn.length() == 0) {
             notificationText.setText("Please set your Dex Receiver Serial Number in App Settings");
             return;
@@ -386,8 +385,8 @@ public class Home extends ActivityWithMenu {
         df.setMaximumFractionDigits(0);
 
         boolean isDexbridge = CollectionServiceStarter.isDexbridgeWixel(getApplicationContext());
-        boolean displayBattery = prefs.getBoolean("display_bridge_battery",false);
-        int bridgeBattery = prefs.getInt("bridge_battery", 0);
+        boolean displayBattery = mPreferences.getBoolean("display_bridge_battery",false);
+        int bridgeBattery = mPreferences.getInt("bridge_battery", 0);
 
         if (isDexbridge && displayBattery) {
             if(BgGraphBuilder.isXLargeTablet(getApplicationContext())) {
@@ -551,16 +550,16 @@ public class Home extends ActivityWithMenu {
         getMenuInflater().inflate(R.menu.menu_home, menu);
 
         //wear integration
-        if (!prefs.getBoolean("wear_sync", false)) {
+        if (!mPreferences.getBoolean("wear_sync", false)) {
             menu.removeItem(R.id.action_open_watch_settings);
             menu.removeItem(R.id.action_resend_last_bg);
         }
 
         //speak readings
         MenuItem menuItem =  menu.findItem(R.id.action_toggle_speakreadings);
-        if(prefs.getBoolean("bg_to_speech_shortcut", false)){
+        if(mPreferences.getBoolean("bg_to_speech_shortcut", false)){
             menuItem.setVisible(true);
-            if(prefs.getBoolean("bg_to_speech", false)){
+            if(mPreferences.getBoolean("bg_to_speech", false)){
                 menuItem.setChecked(true);
             } else {
                 menuItem.setChecked(false);
@@ -665,7 +664,7 @@ public class Home extends ActivityWithMenu {
         }
 
         if (item.getItemId() == R.id.action_toggle_speakreadings) {
-            prefs.edit().putBoolean("bg_to_speech", !prefs.getBoolean("bg_to_speech", false)).commit();
+            mPreferences.edit().putBoolean("bg_to_speech", !mPreferences.getBoolean("bg_to_speech", false)).commit();
             invalidateOptionsMenu();
             return true;
         }
