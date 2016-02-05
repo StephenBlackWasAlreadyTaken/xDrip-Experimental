@@ -90,6 +90,11 @@ public class Sensor extends Model {
     }
 
     public static void updateBatteryLevel(Sensor sensor, int sensorBatteryLevel) {
+        if(sensorBatteryLevel < 120) {
+            // This must be a wrong battery level. Some transmitter send those every couple of readings
+            // even if the battery is ok.
+            return;
+        }
         int startBatteryLevel = sensor.latest_battery_level;
         if(sensor.latest_battery_level == 0) {
             sensor.latest_battery_level = sensorBatteryLevel;
