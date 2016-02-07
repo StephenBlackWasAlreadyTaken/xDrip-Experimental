@@ -421,8 +421,7 @@ public class BgReading extends Model implements ShareUploadableBg{
             Log.i(TAG, "NEW VALUE CALCULATED AT: " + bgReading.calculated_value);
 
             bgReading.save();
-            bgReading.perform_calculations();
-            context.startService(new Intent(context, Notifications.class));
+//            bgReading.perform_calculations();
             BgSendQueue.handleNewBgReading(bgReading, "create", context);
         }
 
