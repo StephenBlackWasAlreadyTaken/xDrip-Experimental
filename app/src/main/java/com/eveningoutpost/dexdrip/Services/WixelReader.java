@@ -1,6 +1,7 @@
 package com.eveningoutpost.dexdrip.Services;
 
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.AsyncTask;
 import android.os.PowerManager;
@@ -14,6 +15,7 @@ import com.eveningoutpost.dexdrip.Models.Sensor;
 import com.eveningoutpost.dexdrip.Services.NsRestApiReader.NightscoutBg;
 import com.eveningoutpost.dexdrip.Services.NsRestApiReader.NightscoutMbg;
 import com.eveningoutpost.dexdrip.Services.NsRestApiReader.NightscoutSensor;
+import com.eveningoutpost.dexdrip.UtilityModels.Notifications;
 import com.eveningoutpost.dexdrip.utils.BgToSpeech;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -700,6 +702,10 @@ public class WixelReader extends AsyncTask<String, Void, Void > {
         }
         
         Log.e(TAG, "readBgData  finished with BgReading.create ");
+        if(nightscoutBgs.size() > 0) {
+            // Call the notification service only if we have new data...
+            mContext.startService(new Intent(mContext, Notifications.class));
+        }
     }
     
     
