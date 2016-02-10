@@ -105,7 +105,7 @@
                 android:summary="Manage your existing followers and invite new ones.">
                 <intent
                     android:action="android.intent.action.MAIN"
-                    android:targetPackage="com.eveningoutpost.dexdrip"
+                    android:targetPackage="@string/target_package"
                     android:targetClass="com.eveningoutpost.dexdrip.FollowerManagementActivity"/>
             </Preference>
         </PreferenceScreen>

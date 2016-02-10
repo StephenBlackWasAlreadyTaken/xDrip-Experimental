@@ -39,7 +39,7 @@
 
         <provider
             android:name="com.activeandroid.content.ContentProvider"
-            android:authorities="com.example"
+            android:authorities="@string/content_provider"
             android:exported="false" />
 
         <activity
