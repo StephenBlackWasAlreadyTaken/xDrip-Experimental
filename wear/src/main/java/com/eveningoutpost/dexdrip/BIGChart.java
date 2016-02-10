@@ -266,7 +266,7 @@ public class BIGChart extends WatchFace implements SharedPreferences.OnSharedPre
     }
 
     public void setColor() {
-        if (sharedPrefs.getBoolean("dark", false)) {
+        if (sharedPrefs.getBoolean("dark", true)) {
             setColorDark();
         } else {
             setColorBright();
