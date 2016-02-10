@@ -6,7 +6,7 @@
             android:key="I_understand" >
             <intent
                 android:action="android.intent.action.MAIN"
-                android:targetPackage="com.eveningoutpost.dexdrip"
+                android:targetPackage="@string/target_package"
                 android:targetClass="com.eveningoutpost.dexdrip.LicenseAgreementActivity"
                 />
         </Preference>
