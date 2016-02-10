@@ -87,7 +87,20 @@ android {
         versionName generateVersionName()
         multiDexEnabled true
     }
-    buildTypes {
+
+    productFlavors {
+        xDrip {
+            applicationId = "com.eveningoutpost.dexdrip"
+            resValue "string", "content_provider", "com.example"
+            resValue "string", "app_name", "xDrip"
+            resValue "string", "target_package", "com.eveningoutpost.dexdrip"
+        }
+        xDripViewer {
+            applicationId = "com.eveningoutpost.dexdrip.viewer"
+            resValue "string", "content_provider", "com.example1"
+            resValue "string", "app_name", "xDripViewer"
+            resValue "string", "target_package", "com.eveningoutpost.dexdrip.viewer"
+        }
     }
 }
 
