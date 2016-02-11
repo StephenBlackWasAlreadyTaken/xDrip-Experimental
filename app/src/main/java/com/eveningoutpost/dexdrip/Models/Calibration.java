@@ -33,12 +33,12 @@ import java.util.UUID;
 @Table(name = "Calibration", id = BaseColumns._ID)
 public class Calibration extends Model {
     private final static String TAG = Calibration.class.getSimpleName();
-    public static final double LOW_SLOPE_1 = 0.95;
-    public static final double LOW_SLOPE_2 = 0.85;
+    public static final double LOW_SLOPE_1 = 0.85; //0.95
+    public static final double LOW_SLOPE_2 = 0.80; //0.85
     public static final double HIGH_SLOPE_1 = 1.3;
     public static final double HIGH_SLOPE_2 = 1.4;
-    public static final double DEFAULT_LOW_SLOPE_LOW = 1.08;
-    public static final double DEFAULT_LOW_SLOPE_HIGH = 1.15;
+    public static final double DEFAULT_LOW_SLOPE_LOW = 0.9; //1.08
+    public static final double DEFAULT_LOW_SLOPE_HIGH = 0.95; //1.15
     public static final int DEFAULT_SLOPE = 1;
     public static final double DEFAULT_HIGH_SLOPE_HIGH = 1.3;
     public static final double DEFAUL_HIGH_SLOPE_LOW = 1.2;
