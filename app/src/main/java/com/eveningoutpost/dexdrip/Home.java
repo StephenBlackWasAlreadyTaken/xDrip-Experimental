@@ -313,13 +313,10 @@ public class Home extends ActivityWithMenu {
             notificationText.setText(xDripViewrError);
          // continue, we might have some recent data.
         }
-        // Add more messages here. base on sensor size and bg reading size... how to tell if addresses is wrong...
 
         displayCurrentInfo();
 
     }
-    
-
     private void updateCurrentBgInfoForBtBasedWixel(TextView notificationText) {
         if ((android.os.Build.VERSION.SDK_INT < android.os.Build.VERSION_CODES.JELLY_BEAN_MR2)) {
             notificationText.setText("Unfortunately your android version does not support Bluetooth Low Energy");
