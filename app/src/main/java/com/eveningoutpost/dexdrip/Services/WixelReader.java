@@ -710,7 +710,7 @@ public class WixelReader extends AsyncTask<String, Void, Void > {
     
     
     static public boolean isxDripViewerMode(Context context) {
-        return (context.getPackageName() == "com.eveningoutpost.dexdrip") ? false : true;
+        return (context.getPackageName().equals("com.eveningoutpost.dexdrip")) ? false : true;
     }
     
     public static boolean IsxDripViewerConfigured(Context ctx) {
