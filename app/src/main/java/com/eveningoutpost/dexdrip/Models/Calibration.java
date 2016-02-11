@@ -426,7 +426,7 @@ public class Calibration extends Model {
         calibration.slope_confidence = slope_confidence;
         calibration.sensor_confidence = sensor_confidence;
         calibration.raw_timestamp = raw_timestamp;
-        calibration.check_in = true;
+        calibration.check_in = false;
         calibration.save();
     }
     
