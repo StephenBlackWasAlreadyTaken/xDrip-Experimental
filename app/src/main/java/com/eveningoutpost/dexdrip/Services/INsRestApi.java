@@ -22,12 +22,6 @@ public interface INsRestApi {
             @Query("count") long count
     );
     
-    @GET("/api/v1/entries.json?find[type][$eq]=cal")
-    Call<List<NightscoutBg>> getCal(
-            @Header("api-secret") String key,
-            @Query("find[date][$gt]") long date,
-            @Query("count") long count
-    );
     
     @GET("/api/v1/entries.json?find[type][$eq]=mbg")
     Call<List<NightscoutMbg>> getMbg(

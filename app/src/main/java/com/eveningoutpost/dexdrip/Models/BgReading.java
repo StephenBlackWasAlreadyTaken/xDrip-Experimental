@@ -391,9 +391,6 @@ public class BgReading extends Model implements ShareUploadableBg{
             bgReading.timestamp = timestamp;
             bgReading.uuid = UUID.randomUUID().toString();
             bgReading.calculated_value = calculated_bg;
-            //bgReading.time_since_sensor_started = bgReading.timestamp - sensor.started_at;
-            //bgReading.synced = false;
-            //bgReading.calibration_flag = false;
 
             bgReading.save();
             bgReading.perform_calculations();
@@ -409,8 +406,6 @@ public class BgReading extends Model implements ShareUploadableBg{
             bgReading.timestamp = timestamp;
             bgReading.uuid = UUID.randomUUID().toString();
             bgReading.calculated_value = calculated_bg;
-            //bgReading.time_since_sensor_started = bgReading.timestamp - sensor.started_at;
-            //bgReading.synced = false;
 
             if (bgReading.calculated_value < 10) {
                 bgReading.calculated_value = 9;
@@ -421,12 +416,10 @@ public class BgReading extends Model implements ShareUploadableBg{
             Log.i(TAG, "NEW VALUE CALCULATED AT: " + bgReading.calculated_value);
 
             bgReading.save();
-//            bgReading.perform_calculations();
             BgSendQueue.handleNewBgReading(bgReading, "create", context);
         }
 
         Log.i("BG GSON: ",bgReading.toS());
-
     }
 
     public static String activeSlopeArrow() {

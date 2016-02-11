@@ -47,9 +47,6 @@ import com.squareup.okhttp.Interceptor;
 import com.squareup.okhttp.logging.HttpLoggingInterceptor;
 import com.squareup.okhttp.OkHttpClient;
 
-
-
-
 // Important note, this class is based on the fact that android will always run it one thread, which means it does not
 // need synchronization
 
@@ -558,11 +555,6 @@ public class WixelReader extends AsyncTask<String, Void, Void > {
         Log.d(TAG, "returned from setSerialDataToTransmitterRawData " + fakedRaw);
     }
     
-    
-    
-    
-    
-
     public static void setxDripViewrError(String error) {
         sxDripViewerErrorString = error;
     }
