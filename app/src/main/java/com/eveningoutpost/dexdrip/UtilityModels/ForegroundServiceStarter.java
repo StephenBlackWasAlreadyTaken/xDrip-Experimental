@@ -34,9 +34,7 @@ public class ForegroundServiceStarter {
             mHandler.post(new Runnable() {
                 @Override
                 public void run() {
-                    long end = System.currentTimeMillis() + (60000 * 5);
-                    long start = end - (60000 * 60*3) -  (60000 * 10);
-                    mService.startForeground(new Notifications().ongoingNotificationId, new Notifications().createOngoingNotification(new BgGraphBuilder(mContext, start, end), mContext));
+                    mService.startForeground(new Notifications().ongoingNotificationId, new Notifications().createOngoingNotification(mContext));
                 }
             });
         }
