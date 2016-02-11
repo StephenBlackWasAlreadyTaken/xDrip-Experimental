@@ -236,7 +236,8 @@ public class Preferences extends PreferenceActivity {
     }
 
 
-    private static class AllPrefsFragment extends PreferenceFragment {
+    // This class is used by android, so it must stay public although this will compile when it is private.
+    public static class AllPrefsFragment extends PreferenceFragment {
         @Override
         public void onCreate(Bundle savedInstanceState) {
             super.onCreate(savedInstanceState);
