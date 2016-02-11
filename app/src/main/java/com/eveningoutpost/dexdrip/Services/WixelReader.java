@@ -1,4 +1,5 @@
 package com.eveningoutpost.dexdrip.Services;
+import com.eveningoutpost.dexdrip.R;
 
 import android.content.Context;
 import android.content.Intent;
@@ -65,6 +66,7 @@ public class WixelReader extends AsyncTask<String, Void, Void > {
     private final static long DEXCOM_PERIOD=300000;
     
     private static int lockCounter = 0;
+    private static String sxDripViewerErrorString = null;
     
     // This variables are for fake function only
     static int i = 0;
@@ -561,9 +563,17 @@ public class WixelReader extends AsyncTask<String, Void, Void > {
     
     
 
+    public static void setxDripViewrError(String error) {
+        sxDripViewerErrorString = error;
+    }
+    
+    public static String getxDripViewrError() {
+        return sxDripViewerErrorString;
+    }
+
     public void readDataxDripViewer() {
         try {
-        
+            setxDripViewrError(null);
             SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(mContext);
             String rest_addresses = prefs.getString("xdrip_viewer_ns_addresses", "");
             
@@ -571,12 +581,14 @@ public class WixelReader extends AsyncTask<String, Void, Void > {
             String baseURL;
             String secret = uri.getUserInfo();
             if ((secret == null || secret.isEmpty())) {
+                setxDripViewrError("No secret returning");
                 Log.e(TAG,"No secret returning");
                 return;
             } 
             baseURL = rest_addresses.replaceFirst("//[^@]+@", "//");
             if ((baseURL == null || baseURL.isEmpty())) {
-                Log.e(TAG,"No baseURL returning");
+                setxDripViewrError("No baseURL returning");
+                Log.e(TAG,"No baseURL returning"); //
                 return;
             } 
             
@@ -587,6 +599,7 @@ public class WixelReader extends AsyncTask<String, Void, Void > {
             readCalData(baseURL, hashedSecret);
             readBgData(baseURL, hashedSecret);
         } catch (Exception e) {
+            setxDripViewrError(e.toString());
             Log.e(TAG, "readData cought exception in xDrip viewer mode ", e);
             e.printStackTrace();
         }
@@ -716,7 +729,8 @@ public class WixelReader extends AsyncTask<String, Void, Void > {
     public static boolean IsxDripViewerConfigured(Context ctx) {
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(ctx);
         String recieversIpAddresses = prefs.getString("xdrip_viewer_ns_addresses", "");
-        if(recieversIpAddresses == null || recieversIpAddresses.equals("") ) {
+        if(recieversIpAddresses == null || recieversIpAddresses.equals("") ||
+                recieversIpAddresses.equals(R.string.xdrip_viewer_ns_example)) {
             return false;
         }
         return true;
