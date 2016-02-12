@@ -718,7 +718,7 @@ public class WixelReader extends AsyncTask<String, Void, Void > {
         return (context.getPackageName().equals("com.eveningoutpost.dexdrip")) ? false : true;
     }
     
-    public static boolean IsxDripViewerConfigured(Context ctx) {
+    public static boolean isxDripViewerConfigured(Context ctx) {
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(ctx);
         String recieversIpAddresses = prefs.getString("xdrip_viewer_ns_addresses", "");
         if(recieversIpAddresses == null || recieversIpAddresses.equals("") ||

@@ -51,6 +51,7 @@ public class Sensor extends Model {
         return sensor;
     }
     
+ // Used by xDripViewer
     public static void createUpdate(long started_at, long stopped_at,  int latest_battery_level, String uuid) {
 
         Sensor sensor = getByTimestamp(started_at);

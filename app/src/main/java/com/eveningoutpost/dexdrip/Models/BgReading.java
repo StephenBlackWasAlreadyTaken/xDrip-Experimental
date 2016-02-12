@@ -372,6 +372,7 @@ public class BgReading extends Model implements ShareUploadableBg{
         return bgReading;
     }
     
+    // Used by xDripViewer
     public static void create(Context context, double raw_data, double age_adjusted_raw_value, double filtered_data, Long timestamp, double calculated_bg) {
         BgReading bgReading = new BgReading();
         Sensor sensor = Sensor.currentSensor();
