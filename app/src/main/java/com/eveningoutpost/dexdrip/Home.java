@@ -302,7 +302,7 @@ public class Home extends ActivityWithMenu {
     }
     
     private void updateCurrentBgInfoForxDripViewer(TextView notificationText) {
-        if (!WixelReader.IsxDripViewerConfigured(getApplicationContext())) {
+        if (!WixelReader.isxDripViewerConfigured(getApplicationContext())) {
             notificationText.setText("First configure Nightscout website address");
             return;
         }
