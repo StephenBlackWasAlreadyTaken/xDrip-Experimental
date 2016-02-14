@@ -341,33 +341,33 @@ public class BIGChart extends WatchFace implements SharedPreferences.OnSharedPre
 
 
     protected void setColorDark() {
-        mTime.setTextColor(Color.WHITE);
+        mTime.setTextColor(Color.GREEN);
         mRelativeLayout.setBackgroundColor(Color.BLACK);
         if (sgvLevel == 1) {
-            mSgv.setTextColor(Color.YELLOW);
-            mDelta.setTextColor(Color.YELLOW);
+            mSgv.setTextColor(Color.GREEN);
+            mDelta.setTextColor(Color.GREEN);
         } else if (sgvLevel == 0) {
-            mSgv.setTextColor(Color.WHITE);
-            mDelta.setTextColor(Color.WHITE);
+            mSgv.setTextColor(Color.GREEN);
+            mDelta.setTextColor(Color.GREEN);
         } else if (sgvLevel == -1) {
-            mSgv.setTextColor(Color.RED);
-            mDelta.setTextColor(Color.RED);
+            mSgv.setTextColor(Color.GREEN);
+            mDelta.setTextColor(Color.GREEN);
         }
 
 
         if (ageLevel == 1) {
-            mTimestamp.setTextColor(Color.WHITE);
+            mTimestamp.setTextColor(Color.GREEN);
         } else {
-            mTimestamp.setTextColor(Color.RED);
+            mTimestamp.setTextColor(Color.GREEN);
         }
 
         if (batteryLevel == 1) {
         } else {
         }
         if (chart != null) {
-            highColor = Color.YELLOW;
-            lowColor = Color.RED;
-            midColor = Color.WHITE;
+            highColor = Color.GREEN;
+            lowColor = Color.GREEN;
+            midColor = Color.GREEN;
             singleLine = false;
             pointSize = 2;
             setupCharts();
