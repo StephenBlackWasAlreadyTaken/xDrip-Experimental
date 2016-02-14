@@ -42,7 +42,7 @@ import lecho.lib.hellocharts.view.LineChartView;
 public  abstract class BaseWatchFace extends WatchFace implements SharedPreferences.OnSharedPreferenceChangeListener {
     public final static IntentFilter INTENT_FILTER;
     public static final long[] vibratePattern = {0,400,300,400,300,400};
-    public TextView mTime, mSgv, mDirection, mTimestamp, mUploaderBattery, mDelta, mRaw;
+    public TextView mTime, mSgv, mDirection, mTimestamp, mUploaderBattery, mDelta, mRaw, mStatus;
     public RelativeLayout mRelativeLayout;
     public LinearLayout mLinearLayout;
     public long sgvLevel = 0;
@@ -69,9 +69,11 @@ public  abstract class BaseWatchFace extends WatchFace implements SharedPreferen
     private MessageReceiver messageReceiver;
 
     protected SharedPreferences sharedPrefs;
-    private String rawString = "000 | 000 | 000";
+    // private String rawString = "000 | 000 | 000";
+    private String rawString = "";
     private String batteryString = "--";
     private String sgvString = "--";
+    private String externalStatusString = "no status";
 
     @Override
     public void onCreate() {
@@ -112,6 +114,7 @@ public  abstract class BaseWatchFace extends WatchFace implements SharedPreferen
                 mDirection = (TextView) stub.findViewById(R.id.direction);
                 mTimestamp = (TextView) stub.findViewById(R.id.timestamp);
                 mRaw = (TextView) stub.findViewById(R.id.raw);
+                mStatus = (TextView) stub.findViewById(R.id.externaltstatus);
                 mUploaderBattery = (TextView) stub.findViewById(R.id.uploader_battery);
                 mDelta = (TextView) stub.findViewById(R.id.delta);
                 mRelativeLayout = (RelativeLayout) stub.findViewById(R.id.main_layout);
@@ -240,21 +243,37 @@ public  abstract class BaseWatchFace extends WatchFace implements SharedPreferen
 
     private void showAgoRawBatt() {
 
-        if(mRaw == null || mTimestamp == null || mUploaderBattery == null){
+        if(mRaw == null || mTimestamp == null || mUploaderBattery == null|| mStatus == null){
             return;
         }
 
-        if (sharedPrefs.getBoolean("showRaw", false)||
-                (sharedPrefs.getBoolean("showRawNoise", true) && sgvString.equals("???"))
-                ) {
-            mRaw.setVisibility(View.VISIBLE);
-            mRaw.setText("R: " + rawString);
+        boolean showRaw = sharedPrefs.getBoolean("showRaw", false)
+                || (sharedPrefs.getBoolean("showRawNoise", true)
+                        && sgvString.equals("???"));
+
+        boolean showStatus = sharedPrefs.getBoolean("showExternalStatus", false);
+
+        if(showRaw || showStatus){
+            //use short forms
             mTimestamp.setText(readingAge(true));
             mUploaderBattery.setText("U: " + batteryString + "%");
         } else {
-            mRaw.setVisibility(View.GONE);
             mTimestamp.setText(readingAge(false));
             mUploaderBattery.setText("Uploader: " + batteryString + "%");
+        }
+
+        if (showRaw) {
+            mRaw.setVisibility(View.VISIBLE);
+            mRaw.setText("R: " + rawString);
+        } else {
+            mRaw.setVisibility(View.GONE);
+        }
+
+        if (showStatus) {
+            mStatus.setVisibility(View.VISIBLE);
+            mStatus.setText("S: " + externalStatusString);
+        } else {
+            mStatus.setVisibility(View.GONE);
         }
     }
 
