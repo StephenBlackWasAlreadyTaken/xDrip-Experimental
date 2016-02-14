@@ -1,12 +1,18 @@
 package com.eveningoutpost.dexdrip.wearintegration;
 
 import android.app.IntentService;
+import android.content.Context;
 import android.content.Intent;
+import android.os.PowerManager;
+import android.preference.PreferenceManager;
 import android.support.v4.content.WakefulBroadcastReceiver;
+import android.util.Log;
 
 import com.eveningoutpost.dexdrip.Home;
 import com.eveningoutpost.dexdrip.Models.UserError;
 import com.eveningoutpost.dexdrip.utils.Preferences;
+import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.wearable.Wearable;
 
 import java.util.Date;
 
@@ -47,6 +53,20 @@ public class ExternalStatusService extends IntentService{
                     Intent intent1 = new Intent(this, Home.class);
                     intent1.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                     startActivity(intent1);
+
+
+                    // send to wear
+                    if (PreferenceManager.getDefaultSharedPreferences(this).getBoolean("wear_sync", false)) {
+
+                        startService(new Intent(this, WatchUpdaterService.class).setAction(WatchUpdaterService.ACTION_SEND_STATUS).putExtra("externalStatusString", statusline));
+                        /*By integrating the watch part of Nightwatch we inherited the same wakelock
+                         problems NW had - so adding the same quick fix for now.
+                         TODO: properly "wakelock" the wear (and probably pebble) services
+                        */
+                        PowerManager powerManager = (PowerManager) this.getSystemService(Context.POWER_SERVICE);
+                        powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK,
+                                "quickFix4").acquire(15000);
+                    }
                 }
             }
         } finally {

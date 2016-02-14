@@ -14,6 +14,7 @@ import android.graphics.Paint;
 import android.graphics.Point;
 import android.graphics.Rect;
 import android.graphics.Shader;
+import android.os.Bundle;
 import android.os.PowerManager;
 import android.preference.PreferenceManager;
 import android.support.v4.app.NotificationCompat;
@@ -204,7 +205,11 @@ public class BIGChart extends WatchFace implements SharedPreferences.OnSharedPre
     public class MessageReceiver extends BroadcastReceiver {
         @Override
         public void onReceive(Context context, Intent intent) {
-            DataMap dataMap = DataMap.fromBundle(intent.getBundleExtra("data"));
+            Bundle bundle = intent.getBundleExtra("data");
+            if (bundle ==null){
+                return;
+            }
+            DataMap dataMap = DataMap.fromBundle(bundle);
             if (layoutSet) {
                 wakeLock.acquire(50);
                 sgvLevel = dataMap.getLong("sgvLevel");

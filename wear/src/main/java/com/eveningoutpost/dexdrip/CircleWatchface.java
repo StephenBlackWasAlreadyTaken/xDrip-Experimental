@@ -13,6 +13,7 @@ import android.graphics.Paint;
 import android.graphics.Point;
 import android.graphics.RectF;
 import android.graphics.Shader;
+import android.os.Bundle;
 import android.os.PowerManager;
 import android.preference.PreferenceManager;
 import android.support.v4.content.LocalBroadcastManager;
@@ -519,27 +520,29 @@ public class CircleWatchface extends WatchFace implements SharedPreferences.OnSh
             PowerManager.WakeLock wakeLock = powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK,
                     "MyWakelockTag");
             wakeLock.acquire(30000);
+            Bundle bundle = intent.getBundleExtra("data");
+            if (bundle!= null) {
+                DataMap dataMap = DataMap.fromBundle(bundle);
+                setSgvLevel((int) dataMap.getLong("sgvLevel"));
+                Log.d("CircleWatchface", "sgv level : " + getSgvLevel());
+                setSgvString(dataMap.getString("sgvString"));
+                Log.d("CircleWatchface", "sgv string : " + getSgvString());
+                setRawString(dataMap.getString("rawString"));
+                setDelta(dataMap.getString("delta"));
+                setDatetime(dataMap.getDouble("timestamp"));
+                addToWatchSet(dataMap);
 
-            DataMap dataMap = DataMap.fromBundle(intent.getBundleExtra("data"));
-            setSgvLevel((int) dataMap.getLong("sgvLevel"));
-            Log.d("CircleWatchface", "sgv level : " + getSgvLevel());
-            setSgvString(dataMap.getString("sgvString"));
-            Log.d("CircleWatchface", "sgv string : " + getSgvString());
-            setRawString(dataMap.getString("rawString"));
-            setDelta(dataMap.getString("delta"));
-            setDatetime(dataMap.getDouble("timestamp"));
-            addToWatchSet(dataMap);
 
+                //start animation?
+                // dataMap.getDataMapArrayList("entries") == null -> not on "resend data".
+                if (sharedPrefs.getBoolean("animation", false) && dataMap.getDataMapArrayList("entries") == null && (getSgvString().equals("100") || getSgvString().equals("5.5") || getSgvString().equals("5,5"))) {
+                    startAnimation();
+                }
 
-            //start animation?
-            // dataMap.getDataMapArrayList("entries") == null -> not on "resend data".
-            if (sharedPrefs.getBoolean("animation", false) && dataMap.getDataMapArrayList("entries") == null && (getSgvString().equals("100") || getSgvString().equals("5.5") || getSgvString().equals("5,5"))) {
-                startAnimation();
+                prepareLayout();
+                prepareDrawTime();
+                invalidate();
             }
-
-            prepareLayout();
-            prepareDrawTime();
-            invalidate();
             wakeLock.release();
         }
     }
