@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.support.v4.content.WakefulBroadcastReceiver;
 
 import com.eveningoutpost.dexdrip.Home;
+import com.eveningoutpost.dexdrip.Models.UserError;
 import com.eveningoutpost.dexdrip.utils.Preferences;
 
 import java.util.Date;
@@ -26,36 +27,30 @@ public class ExternalStatusService extends IntentService{
 
     @Override
     protected void onHandleIntent(Intent intent) {
+
+        UserError.Log.e("Adrian", "onHandleIntent");
+
+
         if (intent == null)
             return;
 
         final String action = intent.getAction();
 
+        UserError.Log.e("Adrian", "action = " + action);
         try {
+
             if (ACTION_NEW_EXTERNAL_STATUSLINE.equals(action)) {
                 final String statusline = intent.getStringExtra(EXTRA_STATUSLINE);
 
                 if(statusline != null) {
-
-
-                    if(statusline.equalsIgnoreCase("settings")) {
-                        Intent intent1 = new Intent(this, Preferences.class);
-                        intent1.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                        startActivity(intent1);
-                    } else {
-                        Intent intent1 = new Intent(this, Home.class);
-                        intent1.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                        startActivity(intent1);
-                    }
-
-
-
-
+                    UserError.Log.e("Adrian", "statusline = " + statusline);
+                    Intent intent1 = new Intent(this, Home.class);
+                    intent1.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                    startActivity(intent1);
                 }
             }
         } finally {
             WakefulBroadcastReceiver.completeWakefulIntent(intent);
         }
-
     }
 }

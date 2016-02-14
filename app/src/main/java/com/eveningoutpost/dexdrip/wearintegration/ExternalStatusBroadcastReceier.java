@@ -4,6 +4,8 @@ import android.content.Context;
 import android.content.Intent;
 import android.support.v4.content.WakefulBroadcastReceiver;
 
+import com.eveningoutpost.dexdrip.Models.UserError;
+
 /**
  * Created by adrian on 14/02/16.
  */
@@ -11,15 +13,12 @@ public class ExternalStatusBroadcastReceier extends WakefulBroadcastReceiver {
     @Override
     public void onReceive(Context context, Intent intent) {
 
-        throw new RuntimeException();
+        UserError.Log.e("Adrian", "onReceive");
 
-        /*
 
-        Intent service = new Intent(context, ExternalStatusService.class);
-        service.setAction(ExternalStatusService.ACTION_NEW_EXTERNAL_STATUSLINE);
-        service.putExtras(intent);
-        startWakefulService(context, service);
+        startWakefulService(context, new Intent(context, ExternalStatusService.class)
+                .setAction(ExternalStatusService.ACTION_NEW_EXTERNAL_STATUSLINE)
+                .putExtras(intent));
 
-        */
     }
 }

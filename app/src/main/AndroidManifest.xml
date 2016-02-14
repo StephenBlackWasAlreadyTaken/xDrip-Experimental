@@ -132,6 +132,12 @@
             android:exported="true" >
         </service>
 
+        <service
+            android:name=".wearintegration.ExternalStatusService"
+            android:enabled="true"
+            android:exported="false" >
+        </service>
+
         <activity
             android:name=".stats.StatsActivity"
             android:label="Statistics" >
