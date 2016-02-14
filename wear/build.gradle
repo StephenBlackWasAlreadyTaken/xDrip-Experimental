@@ -18,6 +18,17 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
+
+    publishNonDefault true
+
+    productFlavors {
+        xdrip {
+            applicationId = "com.eveningoutpost.dexdrip"
+        }
+        xdripviewer {
+            applicationId = "com.eveningoutpost.dexdrip.viewer"
+        }
+    }
 }
 
 dependencies {
