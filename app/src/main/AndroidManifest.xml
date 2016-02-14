@@ -129,6 +129,10 @@
             android:label="Statistics" >
         </activity>
         <activity
+            android:name=".BGHistory"
+            android:label="BG History" >
+        </activity>
+        <activity
             android:name=".SnoozeActivity"
             android:label="@string/title_snooze" >
         </activity>

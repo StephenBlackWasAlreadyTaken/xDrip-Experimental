@@ -337,7 +337,7 @@ public class CircleWatchface extends WatchFace implements SharedPreferences.OnSh
 
     // defining color for dark and bright
     public int getLowColor() {
-        if (sharedPrefs.getBoolean("dark", false)) {
+        if (sharedPrefs.getBoolean("dark", true)) {
             return Color.argb(255, 255, 120, 120);
         } else {
             return Color.argb(255, 255, 80, 80);

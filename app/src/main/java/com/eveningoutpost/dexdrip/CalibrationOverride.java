@@ -14,6 +14,7 @@ import android.widget.EditText;
 import android.widget.Toast;
 
 import com.eveningoutpost.dexdrip.Models.Calibration;
+import com.eveningoutpost.dexdrip.Models.Sensor;
 import com.eveningoutpost.dexdrip.UtilityModels.CollectionServiceStarter;
 import com.eveningoutpost.dexdrip.utils.ActivityWithMenu;
 
@@ -49,11 +50,7 @@ public class CalibrationOverride extends ActivityWithMenu {
                     String string_value = value.getText().toString();
                     if (!TextUtils.isEmpty(string_value)){
                         double calValue = Double.parseDouble(string_value);
-
-                        Calibration last_calibration = Calibration.last();
-                        last_calibration.sensor_confidence = 0;
-                        last_calibration.slope_confidence = 0;
-                        last_calibration.save();
+                        Calibration.clearLastCalibration(getApplicationContext());
                         Calibration.create(calValue, getApplicationContext());
 
                          Intent tableIntent = new Intent(v.getContext(), Home.class);

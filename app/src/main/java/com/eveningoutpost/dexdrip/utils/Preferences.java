@@ -1,6 +1,8 @@
 package com.eveningoutpost.dexdrip.utils;
 
 import android.app.AlertDialog;
+import android.appwidget.AppWidgetManager;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -28,6 +30,8 @@ import com.eveningoutpost.dexdrip.Services.MissedReadingService;
 import com.eveningoutpost.dexdrip.R;
 import com.eveningoutpost.dexdrip.UtilityModels.CollectionServiceStarter;
 import com.eveningoutpost.dexdrip.UtilityModels.PebbleSync;
+import com.eveningoutpost.dexdrip.WidgetUpdateService;
+import com.eveningoutpost.dexdrip.xDripWidget;
 import com.google.zxing.integration.android.IntentIntegrator;
 import com.google.zxing.integration.android.IntentResult;
 import com.nightscout.core.barcode.NSBarcodeConfig;
@@ -235,6 +239,8 @@ public class Preferences extends PreferenceActivity {
         @Override
         public void onCreate(Bundle savedInstanceState) {
             super.onCreate(savedInstanceState);
+            final SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getActivity());
+
             addPreferencesFromResource(R.xml.pref_license);
             addPreferencesFromResource(R.xml.pref_general);
             bindPreferenceSummaryToValueAndEnsureNumeric(findPreference("highValue"));
@@ -270,11 +276,34 @@ public class Preferences extends PreferenceActivity {
             bindTTSListener();
             bindBgMissedAlertsListener();
             final Preference collectionMethod = findPreference("dex_collection_method");
+            final Preference displayBridgeBatt = findPreference("display_bridge_battery");
             final Preference runInForeground = findPreference("run_service_in_foreground");
             final Preference wifiRecievers = findPreference("wifi_recievers_addresses");
             final Preference predictiveBG = findPreference("predictive_bg");
             final Preference interpretRaw = findPreference("interpret_raw");
+
             final Preference shareKey = findPreference("share_key");
+            shareKey.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
+                @Override
+                public boolean onPreferenceClick(Preference preference) {
+                    prefs.edit().remove("dexcom_share_session_id").apply();
+                    return true;
+                }
+            });
+
+            Preference.OnPreferenceChangeListener shareTokenResettingListener = new Preference.OnPreferenceChangeListener() {
+                @Override
+                public boolean onPreferenceChange(Preference preference, Object newValue) {
+                    prefs.edit().remove("dexcom_share_session_id").apply();
+                    return true;
+                }
+            };
+
+            final Preference sharePassword = findPreference("dexcom_account_password");
+            sharePassword.setOnPreferenceChangeListener(shareTokenResettingListener);
+            final Preference shareAccountName = findPreference("dexcom_account_name");
+            shareAccountName.setOnPreferenceChangeListener(shareTokenResettingListener);
+
             final Preference scanShare = findPreference("scan_share2_barcode");
             final EditTextPreference transmitterId = (EditTextPreference) findPreference("dex_txid");
             final Preference pebbleSync = findPreference("broadcast_to_pebble");
@@ -282,8 +311,8 @@ public class Preferences extends PreferenceActivity {
             final PreferenceCategory otherCategory = (PreferenceCategory) findPreference("other_category");
             final PreferenceScreen calibrationAlertsScreen = (PreferenceScreen) findPreference("calibration_alerts_screen");
             final PreferenceCategory alertsCategory = (PreferenceCategory) findPreference("alerts_category");
-            final SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getActivity());
             final Preference disableAlertsStaleDataMinutes = findPreference("disable_alerts_stale_data_minutes");
+
             disableAlertsStaleDataMinutes.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
                 @Override
                 public boolean onPreferenceChange(Preference preference, Object newValue) {
@@ -324,6 +353,7 @@ public class Preferences extends PreferenceActivity {
 
             if(prefs.getString("dex_collection_method", "BluetoothWixel").compareTo("DexbridgeWixel") != 0) {
                 collectionCategory.removePreference(transmitterId);
+                collectionCategory.removePreference(displayBridgeBatt);
             }
             pebbleSync.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
                 @Override
@@ -337,6 +367,9 @@ public class Preferences extends PreferenceActivity {
                     return true;
                 }
             });
+
+            bindWidgetUpdater();
+
             bindPreferenceSummaryToValue(collectionMethod);
             bindPreferenceSummaryToValue(shareKey);
             bindPreferenceSummaryToValue(wifiRecievers);
@@ -385,8 +418,10 @@ public class Preferences extends PreferenceActivity {
 
                     if(((String) newValue).compareTo("DexbridgeWixel") != 0) {
                         collectionCategory.removePreference(transmitterId);
+                        collectionCategory.removePreference(displayBridgeBatt);
                     } else {
                         collectionCategory.addPreference(transmitterId);
+                        collectionCategory.addPreference(displayBridgeBatt);
                     }
 
                     String stringValue = newValue.toString();
@@ -423,6 +458,21 @@ public class Preferences extends PreferenceActivity {
                     return true;
                 }
             });
+        }
+
+        private void bindWidgetUpdater() {
+            findPreference("widget_range_lines").setOnPreferenceChangeListener(new WidgetListener());
+            findPreference("extra_status_line").setOnPreferenceChangeListener(new WidgetListener());
+            findPreference("widget_status_line").setOnPreferenceChangeListener(new WidgetListener());
+            findPreference("status_line_calibration_long").setOnPreferenceChangeListener(new WidgetListener());
+            findPreference("status_line_calibration_short").setOnPreferenceChangeListener(new WidgetListener());
+            findPreference("status_line_avg").setOnPreferenceChangeListener(new WidgetListener());
+            findPreference("status_line_a1c_dcct").setOnPreferenceChangeListener(new WidgetListener());
+            findPreference("status_line_a1c_ifcc").setOnPreferenceChangeListener(new WidgetListener());
+            findPreference("status_line_in").setOnPreferenceChangeListener(new WidgetListener());
+            findPreference("status_line_high").setOnPreferenceChangeListener(new WidgetListener());
+            findPreference("status_line_low").setOnPreferenceChangeListener(new WidgetListener());
+            findPreference("extra_status_line").setOnPreferenceChangeListener(new WidgetListener());
         }
 
         private void setupBarcodeConfigScanner() {
@@ -486,6 +536,16 @@ public class Preferences extends PreferenceActivity {
           findPreference("other_alerts_snooze").setOnPreferenceChangeListener(sBgMissedAlertsHandler);
         }
 
+        private static class WidgetListener implements Preference.OnPreferenceChangeListener {
+            @Override
+            public boolean onPreferenceChange(Preference preference, Object newValue) {
+                Context context = preference.getContext();
+                if(AppWidgetManager.getInstance(context).getAppWidgetIds(new ComponentName(context, xDripWidget.class)).length > 0){
+                    context.startService(new Intent(context, WidgetUpdateService.class));
+                }
+                return true;
+            }
+        }
     }
 
     public static boolean isNumeric(String str) {

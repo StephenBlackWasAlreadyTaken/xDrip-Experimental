@@ -13,7 +13,6 @@ import com.activeandroid.annotation.Table;
 import com.activeandroid.query.Select;
 import com.eveningoutpost.dexdrip.ImportedLibraries.dexcom.records.CalRecord;
 import com.eveningoutpost.dexdrip.ImportedLibraries.dexcom.records.CalSubrecord;
-import com.eveningoutpost.dexdrip.Sensor;
 import com.eveningoutpost.dexdrip.UtilityModels.BgSendQueue;
 import com.eveningoutpost.dexdrip.UtilityModels.CalibrationSendQueue;
 import com.eveningoutpost.dexdrip.UtilityModels.Constants;
@@ -23,7 +22,6 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.annotations.Expose;
 import com.google.gson.internal.bind.DateTypeAdapter;
 
-import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -35,6 +33,15 @@ import java.util.UUID;
 @Table(name = "Calibration", id = BaseColumns._ID)
 public class Calibration extends Model {
     private final static String TAG = Calibration.class.getSimpleName();
+    public static final double LOW_SLOPE_1 = 0.95;
+    public static final double LOW_SLOPE_2 = 0.85;
+    public static final double HIGH_SLOPE_1 = 1.3;
+    public static final double HIGH_SLOPE_2 = 1.4;
+    public static final double DEFAULT_LOW_SLOPE_LOW = 1.08;
+    public static final double DEFAULT_LOW_SLOPE_HIGH = 1.15;
+    public static final int DEFAULT_SLOPE = 1;
+    public static final double DEFAULT_HIGH_SLOPE_HIGH = 1.3;
+    public static final double DEFAUL_HIGH_SLOPE_LOW = 1.2;
 
     @Expose
     @Column(name = "timestamp", index = true)
@@ -431,13 +438,13 @@ public class Calibration extends Model {
                 Calibration calibration = Calibration.last();
                 calibration.intercept = ((n * p) - (m * q)) / d;
                 calibration.slope = ((l * q) - (m * p)) / d;
-                if ((calibrations.size() == 2 && calibration.slope < 0.95) || (calibration.slope < 0.85)) { // I have not seen a case where a value below 7.5 proved to be accurate but we should keep an eye on this
+                if ((calibrations.size() == 2 && calibration.slope < LOW_SLOPE_1) || (calibration.slope < LOW_SLOPE_2)) { // I have not seen a case where a value below 7.5 proved to be accurate but we should keep an eye on this
                     calibration.slope = calibration.slopeOOBHandler(0);
                     if(calibrations.size() > 2) { calibration.possible_bad = true; }
                     calibration.intercept = calibration.bg - (calibration.estimate_raw_at_time_of_calibration * calibration.slope);
                     CalibrationRequest.createOffset(calibration.bg, 25);
                 }
-                if ((calibrations.size() == 2 && calibration.slope > 1.3) || (calibration.slope > 1.4)) {
+                if ((calibrations.size() == 2 && calibration.slope > HIGH_SLOPE_1) || (calibration.slope > HIGH_SLOPE_2)) {
                     calibration.slope = calibration.slopeOOBHandler(1);
                     if(calibrations.size() > 2) { calibration.possible_bad = true; }
                     calibration.intercept = calibration.bg - (calibration.estimate_raw_at_time_of_calibration * calibration.slope);
@@ -461,24 +468,24 @@ public class Calibration extends Model {
                 if ((Math.abs(thisCalibration.bg - thisCalibration.estimate_bg_at_time_of_calibration) < 30) && (calibrations.get(1).possible_bad != null && calibrations.get(1).possible_bad == true)) {
                     return calibrations.get(1).slope;
                 } else {
-                    return Math.max(((-0.048) * (thisCalibration.sensor_age_at_time_of_estimation / (60000 * 60 * 24))) + 1.1, 1.08);
+                    return Math.max(((-0.048) * (thisCalibration.sensor_age_at_time_of_estimation / (60000 * 60 * 24))) + 1.1, DEFAULT_LOW_SLOPE_LOW);
                 }
             } else if (calibrations.size() == 2) {
-                return Math.max(((-0.048) * (thisCalibration.sensor_age_at_time_of_estimation / (60000 * 60 * 24))) + 1.1, 1.15);
+                return Math.max(((-0.048) * (thisCalibration.sensor_age_at_time_of_estimation / (60000 * 60 * 24))) + 1.1, DEFAULT_LOW_SLOPE_HIGH);
             }
-            return 1;
+            return DEFAULT_SLOPE;
         } else {
             if (calibrations.size() == 3) {
                 if ((Math.abs(thisCalibration.bg - thisCalibration.estimate_bg_at_time_of_calibration) < 30) && (calibrations.get(1).possible_bad != null && calibrations.get(1).possible_bad == true)) {
                     return calibrations.get(1).slope;
                 } else {
-                    return 1.3;
+                    return DEFAULT_HIGH_SLOPE_HIGH;
                 }
             } else if (calibrations.size() == 2) {
-                return 1.2;
+                return DEFAUL_HIGH_SLOPE_LOW;
             }
         }
-        return 1;
+        return DEFAULT_SLOPE;
     }
 
     private static List<Calibration> calibrations_for_sensor(Sensor sensor) {
@@ -559,6 +566,18 @@ public class Calibration extends Model {
         }
 
     }
+    
+    public static void clearLastCalibration(Context context) {
+    
+        Calibration last_calibration = Calibration.last();
+        if(last_calibration == null) {
+            return;
+        }
+        last_calibration.sensor_confidence = 0;
+        last_calibration.slope_confidence = 0;
+        last_calibration.save();
+        CalibrationSendQueue.addToQueue(last_calibration, context);
+    }
 
     public String toS() {
         Gson gson = new GsonBuilder()
@@ -637,10 +656,11 @@ public class Calibration extends Model {
                 .execute();
     }
 
-    public static List<Calibration> latestForGraph(int number, long startTime) {
+    public static List<Calibration> latestForGraph(int number, long startTime, long endTime) {
         return new Select()
                 .from(Calibration.class)
                 .where("timestamp >= " + Math.max(startTime, 0))
+                .where("timestamp <= " + endTime)
                 .orderBy("timestamp desc")
                 .limit(number)
                 .execute();

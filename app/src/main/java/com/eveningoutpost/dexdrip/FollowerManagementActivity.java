@@ -80,6 +80,7 @@ public class FollowerManagementActivity extends ActivityWithMenu {
 
             @Override
             public void onFailure(Throwable t) {
+                Toast.makeText(FollowerManagementActivity.this, "Failed to retrieve follower list: " + t.getMessage(), Toast.LENGTH_LONG).show();
                 // If it fails, don't show followers.
             }
         };
@@ -124,7 +125,7 @@ public class FollowerManagementActivity extends ActivityWithMenu {
 
                                                     @Override
                                                     public void onFailure(Throwable t) {
-                                                        Toast.makeText(getApplicationContext(), "Failed to invite follower", Toast.LENGTH_LONG).show();
+                                                        Toast.makeText(getApplicationContext(), "Failed to invite follower: " + t.getMessage(), Toast.LENGTH_LONG).show();
                                                     }
                                                 });
                                             } else {
@@ -134,7 +135,7 @@ public class FollowerManagementActivity extends ActivityWithMenu {
 
                                         @Override
                                         public void onFailure(Throwable t) {
-                                            Toast.makeText(getApplicationContext(), "Failed to invite follower", Toast.LENGTH_LONG).show();
+                                            Toast.makeText(getApplicationContext(), "Failed to invite follower: " +t.getMessage(), Toast.LENGTH_LONG).show();
                                         }
                                     }
                             );

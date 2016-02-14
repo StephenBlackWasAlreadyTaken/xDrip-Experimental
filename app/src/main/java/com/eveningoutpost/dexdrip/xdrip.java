@@ -4,6 +4,7 @@ import android.app.Application;
 import android.preference.PreferenceManager;
 import android.content.Context;
 import android.content.Intent;
+import android.support.multidex.MultiDex;
 
 import com.eveningoutpost.dexdrip.Services.MissedReadingService;
 
@@ -33,4 +34,11 @@ public class xdrip extends Application {
         context.startService(new Intent(context, MissedReadingService.class));	
         new IdempotentMigrations(getApplicationContext()).performAll();
     }
+
+    @Override
+    public void attachBaseContext(Context base) {
+        MultiDex.install(base);
+        super.attachBaseContext(base);
+    }
+
 }

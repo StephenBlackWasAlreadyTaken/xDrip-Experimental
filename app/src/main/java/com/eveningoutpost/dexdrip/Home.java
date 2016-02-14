@@ -18,6 +18,7 @@ import android.os.Bundle;
 import android.os.PowerManager;
 import android.preference.PreferenceManager;
 import android.provider.Settings;
+import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.widget.DrawerLayout;
@@ -26,7 +27,6 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.ViewGroup;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -34,11 +34,13 @@ import com.eveningoutpost.dexdrip.ImportedLibraries.dexcom.Constants;
 import com.eveningoutpost.dexdrip.Models.ActiveBluetoothDevice;
 import com.eveningoutpost.dexdrip.Models.BgReading;
 import com.eveningoutpost.dexdrip.Models.Calibration;
+import com.eveningoutpost.dexdrip.Models.Sensor;
 import com.eveningoutpost.dexdrip.Models.UserError;
 import com.eveningoutpost.dexdrip.Services.WixelReader;
 import com.eveningoutpost.dexdrip.UtilityModels.BgGraphBuilder;
 import com.eveningoutpost.dexdrip.UtilityModels.CollectionServiceStarter;
 import com.eveningoutpost.dexdrip.UtilityModels.Intents;
+import com.eveningoutpost.dexdrip.stats.StatsResult;
 import com.eveningoutpost.dexdrip.utils.ActivityWithMenu;
 import com.eveningoutpost.dexdrip.utils.DatabaseUtil;
 import com.eveningoutpost.dexdrip.wearintegration.WatchUpdaterService;
@@ -49,6 +51,7 @@ import com.nispok.snackbar.listeners.ActionClickListener;
 
 import java.io.File;
 import java.text.DecimalFormat;
+import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
 
@@ -66,7 +69,7 @@ public class Home extends ActivityWithMenu {
     private boolean updatingPreviewViewport = false;
     private boolean updatingChartViewport = false;
     private BgGraphBuilder bgGraphBuilder;
-    private SharedPreferences prefs;
+    private SharedPreferences mPreferences;
     private Viewport tempViewport = new Viewport();
     private Viewport holdViewport = new Viewport();
     private boolean isBTShare;
@@ -77,35 +80,32 @@ public class Home extends ActivityWithMenu {
     private TextView                 dexbridgeBattery;
     private TextView                 currentBgValueText;
     private TextView                 notificationText;
+    private TextView                 extraStatusLineText;
     private boolean                  alreadyDisplayedBgInfoCommon = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        prefs = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
+        mPreferences = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
         checkEula();
         setContentView(R.layout.activity_home);
 
         this.dexbridgeBattery = (TextView) findViewById(R.id.textBridgeBattery);
         this.currentBgValueText = (TextView) findViewById(R.id.currentBgValueRealTime);
-        if(BgGraphBuilder.isXLargeTablet(getApplicationContext())) {
-            this.currentBgValueText.setTextSize(100);
-        }
         this.notificationText = (TextView) findViewById(R.id.notices);
-        if(BgGraphBuilder.isXLargeTablet(getApplicationContext())) {
-            this.notificationText.setTextSize(40);
-        }
+        this.extraStatusLineText = (TextView) findViewById(R.id.extraStatusLine);
+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             Intent intent = new Intent();
             String packageName = getPackageName();
             Log.d(TAG, "Maybe ignoring battery optimization");
             PowerManager pm = (PowerManager) getSystemService(Context.POWER_SERVICE);
             if (!pm.isIgnoringBatteryOptimizations(packageName) &&
-                    !prefs.getBoolean("requested_ignore_battery_optimizations", false)) {
+                    !mPreferences.getBoolean("requested_ignore_battery_optimizations", false)) {
                 Log.d(TAG, "Requesting ignore battery optimization");
 
-                prefs.edit().putBoolean("requested_ignore_battery_optimizations", true).apply();
+                mPreferences.edit().putBoolean("requested_ignore_battery_optimizations", true).apply();
                 intent.setAction(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS);
                 intent.setData(Uri.parse("package:" + packageName));
                 startActivity(intent);
@@ -119,7 +119,7 @@ public class Home extends ActivityWithMenu {
     }
 
     private void checkEula() {
-        boolean IUnderstand = prefs.getBoolean("I_understand", false);
+        boolean IUnderstand = mPreferences.getBoolean("I_understand", false);
         if (!IUnderstand) {
             Intent intent = new Intent(getApplicationContext(), LicenseAgreementActivity.class);
             startActivity(intent);
@@ -146,6 +146,17 @@ public class Home extends ActivityWithMenu {
                 updateCurrentBgInfo();
             }
         };
+        if(BgGraphBuilder.isXLargeTablet(getApplicationContext())) {
+            this.currentBgValueText.setTextSize(100);
+            this.notificationText.setTextSize(40);
+            this.extraStatusLineText.setTextSize(40);
+        }
+        else if(BgGraphBuilder.isLargeTablet(getApplicationContext())) {
+            this.currentBgValueText.setTextSize(70);
+            this.notificationText.setTextSize(34); // 35 too big 33 works 
+            this.extraStatusLineText.setTextSize(35);
+        }
+
         registerReceiver(_broadcastReceiver, new IntentFilter(Intent.ACTION_TIME_TICK));
         registerReceiver(newDataReceiver, new IntentFilter(Intents.ACTION_NEW_BG_ESTIMATE_NO_DATA));
         holdViewport.set(0, 0, 0, 0);
@@ -157,17 +168,11 @@ public class Home extends ActivityWithMenu {
         updateStuff = false;
         chart = (LineChartView) findViewById(R.id.chart);
 
-        if(BgGraphBuilder.isXLargeTablet(getApplicationContext())) {
-            ViewGroup.MarginLayoutParams params = (ViewGroup.MarginLayoutParams) chart.getLayoutParams();
-            params.topMargin = 130;
-            chart.setLayoutParams(params);
-        }
-
         chart.setZoomType(ZoomType.HORIZONTAL);
 
         //Transmitter Battery Level
         final Sensor sensor = Sensor.currentSensor();
-        if (sensor != null && sensor.latest_battery_level != 0 && sensor.latest_battery_level <= Constants.TRANSMITTER_BATTERY_LOW && ! prefs.getBoolean("disable_battery_warning", false)) {
+        if (sensor != null && sensor.latest_battery_level != 0 && sensor.latest_battery_level <= Constants.TRANSMITTER_BATTERY_LOW && ! mPreferences.getBoolean("disable_battery_warning", false)) {
             Drawable background = new Drawable() {
 
                 @Override
@@ -244,9 +249,6 @@ public class Home extends ActivityWithMenu {
     private void updateCurrentBgInfo() {
         setupCharts();
         final TextView notificationText = (TextView) findViewById(R.id.notices);
-        if(BgGraphBuilder.isXLargeTablet(getApplicationContext())) {
-            notificationText.setTextSize(40);
-        }
         notificationText.setText("");
         notificationText.setTextColor(Color.RED);
         boolean isBTWixel = CollectionServiceStarter.isBTWixel(getApplicationContext());
@@ -264,17 +266,24 @@ public class Home extends ActivityWithMenu {
         if (isWifiWixel || isWifiBluetoothWixel) {
             updateCurrentBgInfoForWifiWixel(notificationText);
         }
-        if (prefs.getLong("alerts_disabled_until", 0) > new Date().getTime()) {
+        if (mPreferences.getLong("alerts_disabled_until", 0) > new Date().getTime()) {
             notificationText.append("\n ALL ALERTS CURRENTLY DISABLED");
-        } else if (prefs.getLong("low_alerts_disabled_until", 0) > new Date().getTime()
+        } else if (mPreferences.getLong("low_alerts_disabled_until", 0) > new Date().getTime()
 			&&
-			prefs.getLong("high_alerts_disabled_until", 0) > new Date().getTime()) {
-            notificationText.append("\n LOW AND HIGH ALERTS CURRENTLY DISABLED");
-        } else if (prefs.getLong("low_alerts_disabled_until", 0) > new Date().getTime()) {
-            notificationText.append("\n LOW ALERTS CURRENTLY DISABLED");
-        } else if (prefs.getLong("high_alerts_disabled_until", 0) > new Date().getTime()) {
-            notificationText.append("\n HIGH ALERTS CURRENTLY DISABLED");
-        } 
+			mPreferences.getLong("high_alerts_disabled_until", 0) > new Date().getTime()) {
+            notificationText.append("\nLOW AND HIGH ALERTS CURRENTLY DISABLED");
+        } else if (mPreferences.getLong("low_alerts_disabled_until", 0) > new Date().getTime()) {
+            notificationText.append("\nLOW ALERTS CURRENTLY DISABLED");
+        } else if (mPreferences.getLong("high_alerts_disabled_until", 0) > new Date().getTime()) {
+            notificationText.append("\nHIGH ALERTS CURRENTLY DISABLED");
+        }
+        if(mPreferences.getBoolean("extra_status_line", false)) {
+            extraStatusLineText.setText(extraStatusLine(mPreferences));
+            extraStatusLineText.setVisibility(View.VISIBLE);
+        } else {
+            extraStatusLineText.setText("");
+            extraStatusLineText.setVisibility(View.GONE);
+        }
         NavigationDrawerFragment navigationDrawerFragment = (NavigationDrawerFragment) getFragmentManager().findFragmentById(R.id.navigation_drawer);
         navigationDrawerFragment.setUp(R.id.navigation_drawer, (DrawerLayout) findViewById(R.id.drawer_layout), menu_name, this);
     }
@@ -347,7 +356,7 @@ public class Home extends ActivityWithMenu {
             return;
         }
 
-        String receiverSn = prefs.getString("share_key", "SM00000000").toUpperCase();
+        String receiverSn = mPreferences.getString("share_key", "SM00000000").toUpperCase();
         if (receiverSn.compareTo("SM00000000") == 0 || receiverSn.length() == 0) {
             notificationText.setText("Please set your Dex Receiver Serial Number in App Settings");
             return;
@@ -376,19 +385,27 @@ public class Home extends ActivityWithMenu {
         df.setMaximumFractionDigits(0);
 
         boolean isDexbridge = CollectionServiceStarter.isDexbridgeWixel(getApplicationContext());
-        int bridgeBattery = prefs.getInt("bridge_battery", 0);
+        boolean displayBattery = mPreferences.getBoolean("display_bridge_battery",false);
+        int bridgeBattery = mPreferences.getInt("bridge_battery", 0);
 
-        if (isDexbridge) {
-            if (bridgeBattery == 0) {
-                dexbridgeBattery.setText("Waiting for packet");
-            } else {
-                dexbridgeBattery.setText("Bridge Battery: " + bridgeBattery + "%");
+        if (isDexbridge && displayBattery) {
+            if(BgGraphBuilder.isXLargeTablet(getApplicationContext())) {
+                this.dexbridgeBattery.setTextSize(25);
+            } else if(BgGraphBuilder.isLargeTablet(getApplicationContext())) {
+                this.dexbridgeBattery.setTextSize(18);
             }
-            if (bridgeBattery < 50) dexbridgeBattery.setTextColor(Color.YELLOW);
-            if (bridgeBattery < 25) dexbridgeBattery.setTextColor(Color.RED);
-            else dexbridgeBattery.setTextColor(Color.GREEN);
+            if (bridgeBattery == 0) {
+                dexbridgeBattery.setText("xBridge Battery: Unknown, Waiting for packet");
+                dexbridgeBattery.setTextColor(Color.WHITE);
+            } else {
+                dexbridgeBattery.setText("xBridge Battery: " + bridgeBattery + "%");
+            }
+            dexbridgeBattery.setTextColor(Color.GREEN);
+            if (bridgeBattery < 50 && bridgeBattery >30) dexbridgeBattery.setTextColor(Color.YELLOW);
+            if (bridgeBattery <= 30) dexbridgeBattery.setTextColor(Color.RED);
             dexbridgeBattery.setVisibility(View.VISIBLE);
         } else {
+            dexbridgeBattery.setText("");
             dexbridgeBattery.setVisibility(View.INVISIBLE);
         }
 
@@ -404,6 +421,70 @@ public class Home extends ActivityWithMenu {
         if (lastBgReading != null) {
             displayCurrentInfoFromReading(lastBgReading, predictive);
         }
+    }
+
+    @NonNull
+    public static String extraStatusLine(SharedPreferences prefs) {
+        StringBuilder extraline = new StringBuilder();
+        Calibration lastCalibration = Calibration.last();
+        if (prefs.getBoolean("status_line_calibration_long", true) && lastCalibration != null){
+            if(extraline.length()!=0) extraline.append(' ');
+            extraline.append("slope = ");
+            extraline.append(String.format("%.2f",lastCalibration.slope));
+            extraline.append(' ');
+            extraline.append("inter = ");
+            extraline.append(String.format("%.2f",lastCalibration.intercept));
+        }
+
+        if(prefs.getBoolean("status_line_calibration_short", false) && lastCalibration != null) {
+            if(extraline.length()!=0) extraline.append(' ');
+            extraline.append("s:");
+            extraline.append(String.format("%.2f",lastCalibration.slope));
+            extraline.append(' ');
+            extraline.append("i:");
+            extraline.append(String.format("%.2f",lastCalibration.intercept));
+        }
+
+        if(prefs.getBoolean("status_line_avg", false)
+                || prefs.getBoolean("status_line_a1c_dcct", false)
+                || prefs.getBoolean("status_line_a1c_ifcc", false
+                || prefs.getBoolean("status_line_in", false))
+                || prefs.getBoolean("status_line_high", false)
+                || prefs.getBoolean("status_line_low", false)){
+
+            StatsResult statsResult = new StatsResult(prefs);
+
+            if(prefs.getBoolean("status_line_avg", false)) {
+                if(extraline.length()!=0) extraline.append(' ');
+                extraline.append(statsResult.getAverageUnitised());
+            }
+            if(prefs.getBoolean("status_line_a1c_dcct", false)) {
+                if(extraline.length()!=0) extraline.append(' ');
+                extraline.append(statsResult.getA1cDCCT());
+            }
+            if(prefs.getBoolean("status_line_a1c_ifcc", false)) {
+                if(extraline.length()!=0) extraline.append(' ');
+                extraline.append(statsResult.getA1cIFCC());
+            }
+            if(prefs.getBoolean("status_line_in", false)) {
+                if(extraline.length()!=0) extraline.append(' ');
+                extraline.append(statsResult.getInPercentage());
+            }
+            if(prefs.getBoolean("status_line_high", false)) {
+                if(extraline.length()!=0) extraline.append(' ');
+                extraline.append(statsResult.getHighPercentage());
+            }
+            if(prefs.getBoolean("status_line_low", false)) {
+                if(extraline.length()!=0) extraline.append(' ');
+                extraline.append(statsResult.getLowPercentage());
+            }
+        }
+        if(prefs.getBoolean("status_line_time", false)) {
+            SimpleDateFormat sdf = new SimpleDateFormat("HH:mm");
+            if(extraline.length()!=0) extraline.append(' ');
+            extraline.append(sdf.format(new Date()));
+        }
+        return extraline.toString();
     }
 
     private void displayCurrentInfoFromReading(BgReading lastBgReading, boolean predictive) {
@@ -437,11 +518,17 @@ public class Home extends ActivityWithMenu {
             }
         }
         int minutes = (int)(System.currentTimeMillis() - lastBgReading.timestamp) / (60 * 1000);
-        notificationText.append("\n" + minutes + ((minutes==1)?" Minute ago":" Minutes ago"));
+        String minutesString;
+        if(BgGraphBuilder.isXLargeTablet(getApplicationContext()) || BgGraphBuilder.isLargeTablet(getApplicationContext())) {
+            minutesString = " Min ago";
+        } else {
+            minutesString = minutes==1 ?" Minute ago":" Minutes ago";
+        }
+        notificationText.append("\n" + minutes + minutesString);
         List<BgReading> bgReadingList = BgReading.latest(2);
         if(bgReadingList != null && bgReadingList.size() == 2) {
             // same logic as in xDripWidget (refactor that to BGReadings to avoid redundancy / later inconsistencies)?
-            if(BgGraphBuilder.isXLargeTablet(getApplicationContext())) {
+            if(BgGraphBuilder.isXLargeTablet(getApplicationContext()) || BgGraphBuilder.isLargeTablet(getApplicationContext())) {
                 notificationText.append("  ");
             } else {
                 notificationText.append("\n");
@@ -463,16 +550,16 @@ public class Home extends ActivityWithMenu {
         getMenuInflater().inflate(R.menu.menu_home, menu);
 
         //wear integration
-        if (!prefs.getBoolean("wear_sync", false)) {
+        if (!mPreferences.getBoolean("wear_sync", false)) {
             menu.removeItem(R.id.action_open_watch_settings);
             menu.removeItem(R.id.action_resend_last_bg);
         }
 
         //speak readings
         MenuItem menuItem =  menu.findItem(R.id.action_toggle_speakreadings);
-        if(prefs.getBoolean("bg_to_speech_shortcut", false)){
+        if(mPreferences.getBoolean("bg_to_speech_shortcut", false)){
             menuItem.setVisible(true);
-            if(prefs.getBoolean("bg_to_speech", false)){
+            if(mPreferences.getBoolean("bg_to_speech", false)){
                 menuItem.setChecked(true);
             } else {
                 menuItem.setChecked(false);
@@ -543,7 +630,16 @@ public class Home extends ActivityWithMenu {
           new AsyncTask<Void, Void, String>() {
                 @Override
                 protected String doInBackground(Void... params) {
-                    return DatabaseUtil.saveCSV(getBaseContext());
+                    int permissionCheck = ContextCompat.checkSelfPermission(Home.this,
+                            android.Manifest.permission.READ_EXTERNAL_STORAGE);
+                    if (permissionCheck != PackageManager.PERMISSION_GRANTED) {
+                        ActivityCompat.requestPermissions(Home.this,
+                                new String[]{android.Manifest.permission.READ_EXTERNAL_STORAGE},
+                                0);
+                        return null;
+                    } else {
+                        return DatabaseUtil.saveCSV(getBaseContext());
+                    }
                 }
 
                 @Override
@@ -568,7 +664,7 @@ public class Home extends ActivityWithMenu {
         }
 
         if (item.getItemId() == R.id.action_toggle_speakreadings) {
-            prefs.edit().putBoolean("bg_to_speech", !prefs.getBoolean("bg_to_speech", false)).commit();
+            mPreferences.edit().putBoolean("bg_to_speech", !mPreferences.getBoolean("bg_to_speech", false)).commit();
             invalidateOptionsMenu();
             return true;
         }

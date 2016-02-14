@@ -23,6 +23,7 @@ import android.preference.PreferenceManager;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.app.NotificationManagerCompat;
 import com.eveningoutpost.dexdrip.Models.UserError.Log;
+import com.eveningoutpost.dexdrip.Models.Sensor;
 
 import com.eveningoutpost.dexdrip.AddCalibration;
 import com.eveningoutpost.dexdrip.DoubleCalibrationActivity;
@@ -37,7 +38,6 @@ import com.eveningoutpost.dexdrip.Models.UserNotification;
 import com.eveningoutpost.dexdrip.Services.MissedReadingService;
 
 import com.eveningoutpost.dexdrip.R;
-import com.eveningoutpost.dexdrip.Sensor;
 
 import java.util.Calendar;
 import java.util.Date;
@@ -98,13 +98,16 @@ public class Notifications extends IntentService {
         PowerManager pm = (PowerManager) getApplicationContext().getSystemService(Context.POWER_SERVICE);
         PowerManager.WakeLock wl = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "NotificationsIntent");
         wl.acquire();
-        Log.d("Notifications", "Running Notifications Intent Service");
-        Context context =getApplicationContext(); 
-        ReadPerfs(context);
-        notificationSetter(context);
-        ArmTimer(context);
-        context.startService(new Intent(context, MissedReadingService.class));
-        wl.release();
+        try {
+            Log.d("Notifications", "Running Notifications Intent Service");
+            Context context =getApplicationContext();
+            ReadPerfs(context);
+            notificationSetter(context);
+            ArmTimer(context);
+            context.startService(new Intent(context, MissedReadingService.class));
+        } finally {
+            if (wl.isHeld()) wl.release();
+        }
     }
 
     public void ReadPerfs(Context context) {
@@ -205,15 +208,14 @@ public class Notifications extends IntentService {
                 // We should not do anything if we are snoozed for the 80...
                 // If one allert was high and the second one is low however, we alarm in any case (snoozing ignored).
                 boolean opositeDirection = AlertType.OpositeDirection(activeBgAlert, newAlert);
-                AlertType newHigherAlert = AlertType.HigherAlert(activeBgAlert, newAlert);
-                if ((newHigherAlert == activeBgAlert) && (!opositeDirection)) {
-                    // the existing alert is the higher, we should check if to play it
-                    Log.d(TAG, "FileBasedNotifications The existing alert has the same direcotion, checking if to playit newHigherAlert = " + newHigherAlert.name +
-                            "activeBgAlert = " + activeBgAlert.name);
-
-                    boolean trendingToAlertEnd = trendingToAlertEnd(context, false, newHigherAlert);
-                    AlertPlayer.getPlayer().ClockTick(context, trendingToAlertEnd, EditAlertActivity.unitsConvert2Disp(doMgdl, bgReading.calculated_value));
-                    return;
+                if(!opositeDirection) {
+                    AlertType newHigherAlert = AlertType.HigherAlert(activeBgAlert, newAlert);
+                    if ((newHigherAlert == activeBgAlert)) {
+                        // the existing (snoozed) alert is the higher, No need to play it since it is snoozed.
+                        Log.d(TAG, "FileBasedNotifications The new alert has the same direcotion, it is lower than the one snoozed, not playing it." +
+                              " newHigherAlert = " + newHigherAlert.name + "activeBgAlert = " + activeBgAlert.name);
+                        return;
+                    }
                 }
             }
             // For now, we are stopping the old alert and starting a new one.
@@ -307,7 +309,7 @@ public class Notifications extends IntentService {
           if (alert != null) {
               wakeTime = activeBgAlert.next_alert_at ;
               Log.d(TAG , "ArmTimer waking at: "+ new Date(wakeTime) +" in " +  (wakeTime - now)/60000d + " minutes");
-              if (wakeTime < now + 60000) {
+              if (wakeTime < now) {
                   // next alert should be at least one minute from now.
                   wakeTime = now + 60000;
                   Log.w(TAG , "setting next alert to 1 minute from now (no problem right now, but needs a fix someplace else)");
