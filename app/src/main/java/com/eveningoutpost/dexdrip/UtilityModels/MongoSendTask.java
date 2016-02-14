@@ -6,6 +6,7 @@ import android.os.AsyncTask;
 import android.os.PowerManager;
 import android.preference.PreferenceManager;
 
+import com.eveningoutpost.dexdrip.Models.Sensor;
 import com.eveningoutpost.dexdrip.Models.UserError.Log;
 import com.eveningoutpost.dexdrip.Models.BgReading;
 import com.eveningoutpost.dexdrip.Models.Calibration;
@@ -51,21 +52,26 @@ public class MongoSendTask extends AsyncTask<String, Void, Void> {
         	boolean xDripViewerMode = prefs.getBoolean("xDripViewer_upload_mode", false);
             List<CalibrationSendQueue>calibrationsQueue = CalibrationSendQueue.mongoQueue(xDripViewerMode);
             List<BgSendQueue> bgsQueue = BgSendQueue.mongoQueue( xDripViewerMode);
+            List<SensorSendQueue> sensorsQueue = SensorSendQueue.mongoQueue( xDripViewerMode);
 
             try {
                 List<BgReading> bgReadings = new ArrayList<BgReading>();
                 List<Calibration> calibrations = new ArrayList<Calibration>();
+                List<Sensor> sensors = new ArrayList<Sensor>();
                 for (CalibrationSendQueue job : calibrationsQueue) {
                     calibrations.add(job.calibration);
                 }
                 for (BgSendQueue job : bgsQueue) {
                     bgReadings.add(job.bgReading);
                 }
+                for (SensorSendQueue job : sensorsQueue) {
+                    sensors.add(job.sensor);
+                }
 
-                if(bgReadings.size() + calibrations.size() > 0) {
+                if(bgReadings.size() + calibrations.size() + sensors.size()> 0) {
                 	Log.i(TAG, "uoader.upload called " + bgReadings.size());
                     NightscoutUploader uploader = new NightscoutUploader(context);
-                    boolean uploadStatus = uploader.upload(bgReadings, calibrations, calibrations, xDripViewerMode);
+                    boolean uploadStatus = uploader.upload(bgReadings, calibrations, calibrations, sensors, xDripViewerMode);
                     if (uploadStatus) {
                     	Log.i(TAG, "Starting to delete objects from queue " + bgsQueue.size() + calibrationsQueue.size());
                         for (CalibrationSendQueue calibration : calibrationsQueue) {
@@ -73,6 +79,9 @@ public class MongoSendTask extends AsyncTask<String, Void, Void> {
                         }
                         for (BgSendQueue bgReading : bgsQueue) {
                             bgReading.deleteThis();
+                        }
+                        for (SensorSendQueue sensor : sensorsQueue) {
+                            sensor.deleteThis();
                         }
                         Log.i(TAG, "finished deleting objects from queue " + bgReadings.size());
                     } else {

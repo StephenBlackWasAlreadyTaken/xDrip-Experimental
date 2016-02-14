@@ -40,7 +40,7 @@ import com.eveningoutpost.dexdrip.Models.UserError.Log;
 import com.eveningoutpost.dexdrip.Models.ActiveBluetoothDevice;
 import com.eveningoutpost.dexdrip.Models.BgReading;
 import com.eveningoutpost.dexdrip.Models.TransmitterData;
-import com.eveningoutpost.dexdrip.Sensor;
+import com.eveningoutpost.dexdrip.Models.Sensor;
 import com.eveningoutpost.dexdrip.UtilityModels.CollectionServiceStarter;
 import com.eveningoutpost.dexdrip.UtilityModels.ForegroundServiceStarter;
 import com.eveningoutpost.dexdrip.UtilityModels.HM10Attributes;
@@ -91,6 +91,10 @@ public class DexCollectionService extends Service {
         prefs = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
         listenForChangeInSettings();
         bgToSpeech = BgToSpeech.setupTTS(mContext); //keep reference to not being garbage collected
+        if(CollectionServiceStarter.isDexbridgeWixel(getApplicationContext())){
+            Log.i(TAG,"onCreate: resetting bridge_battery preference to 0");
+            prefs.edit().putInt("bridge_battery",0).apply();
+        }
         Log.i(TAG, "onCreate: STARTING SERVICE");
     }
 
@@ -507,9 +511,7 @@ public class DexCollectionService extends Service {
             return;
         }
 
-        sensor.latest_battery_level = (sensor.latest_battery_level!=0)?Math.min(sensor.latest_battery_level, transmitterData.sensor_battery_level):transmitterData.sensor_battery_level;
-        sensor.save();
-
+        Sensor.updateBatteryLevel(sensor, transmitterData.sensor_battery_level);
         BgReading.create(transmitterData.raw_data, transmitterData.filtered_data, this, timestamp);
     }
 }

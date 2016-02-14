@@ -9,6 +9,7 @@
         android:required="true" />
     <uses-feature android:name="android.hardware.usb.host" />
 
+    <uses-permission android:name="com.google.android.permission.PROVIDE_BACKGROUND" />
     <uses-permission android:name="android.permission.BLUETOOTH" />
     <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
@@ -68,6 +69,10 @@
             android:exported="true" >
         </service>
 
+        <service android:name=".wearintegration.WatchUpdaterService" android:exported="true" >
+            <intent-filter> <action android:name="com.google.android.gms.wearable.BIND_LISTENER" /> </intent-filter>
+        </service>
+
         <activity
             android:name=".Tables.BgReadingTable"
             android:label="Bg Readings Table" >
@@ -122,6 +127,10 @@
         <activity
             android:name=".stats.StatsActivity"
             android:label="Statistics" >
+        </activity>
+        <activity
+            android:name=".BGHistory"
+            android:label="BG History" >
         </activity>
         <activity
             android:name=".SnoozeActivity"

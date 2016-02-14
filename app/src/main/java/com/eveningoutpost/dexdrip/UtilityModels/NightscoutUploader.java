@@ -7,6 +7,8 @@ import android.content.SharedPreferences;
 import android.os.BatteryManager;
 import android.preference.PreferenceManager;
 
+import com.activeandroid.annotation.Column;
+import com.eveningoutpost.dexdrip.Models.Sensor;
 import com.eveningoutpost.dexdrip.Models.BgReading;
 import com.eveningoutpost.dexdrip.Models.Calibration;
 import com.eveningoutpost.dexdrip.Models.UserError.Log;
@@ -61,7 +63,9 @@ public class NightscoutUploader {
         private SharedPreferences prefs;
         private OkHttpClient client;
 
-        public interface NightscoutService {
+
+
+    public interface NightscoutService {
             @POST("entries")
             Call<ResponseBody> upload(@Header("api-secret") String secret, @Body RequestBody body);
 
@@ -96,27 +100,27 @@ public class NightscoutUploader {
             enableMongoUpload = prefs.getBoolean("cloud_storage_mongodb_enable", false);
         }
 
-        public boolean upload(List<BgReading> glucoseDataSets, List<Calibration> meterRecords, List<Calibration> calRecords, boolean xDripViewerMode) {
+        public boolean upload(List<BgReading> glucoseDataSets, List<Calibration> meterRecords, List<Calibration> calRecords, List<Sensor> sensors, boolean xDripViewerMode) {
             boolean mongoStatus = false;
             boolean apiStatus = false;
 
             if (enableRESTUpload) {
                 long start = System.currentTimeMillis();
                 Log.i(TAG, String.format("Starting upload of %s record using a REST API", glucoseDataSets.size()));
-                apiStatus = doRESTUpload(prefs, glucoseDataSets, meterRecords, calRecords, xDripViewerMode);
+                apiStatus = doRESTUpload(prefs, glucoseDataSets, meterRecords, calRecords, sensors, xDripViewerMode);
                 Log.i(TAG, String.format("Finished upload of %s record using a REST API in %s ms", glucoseDataSets.size(), System.currentTimeMillis() - start));
             }
 
             if (enableMongoUpload) {
                 double start = new Date().getTime();
-                mongoStatus = doMongoUpload(prefs, glucoseDataSets, meterRecords, calRecords, xDripViewerMode);
+                mongoStatus = doMongoUpload(prefs, glucoseDataSets, meterRecords, calRecords, sensors, xDripViewerMode);
                 Log.i(TAG, String.format("Finished upload of %s record using a Mongo in %s ms", glucoseDataSets.size() + meterRecords.size(), System.currentTimeMillis() - start));
             }
 
             return apiStatus || mongoStatus;
         }
 
-        private boolean doRESTUpload(SharedPreferences prefs, List<BgReading> glucoseDataSets, List<Calibration> meterRecords, List<Calibration> calRecords, boolean xDripViewerMode) {
+        private boolean doRESTUpload(SharedPreferences prefs, List<BgReading> glucoseDataSets, List<Calibration> meterRecords, List<Calibration> calRecords,List<Sensor> sensors, boolean xDripViewerMode) {
             String baseURLSettings = prefs.getString("cloud_storage_api_base", "");
             ArrayList<String> baseURIs = new ArrayList<String>();
 
@@ -153,7 +157,7 @@ public class NightscoutUploader {
 
                     if (apiVersion == 1) {
                         String hashedSecret = Hashing.sha1().hashBytes(secret.getBytes(Charsets.UTF_8)).toString();
-                        doRESTUploadTo(nightscoutService, hashedSecret, glucoseDataSets, meterRecords, calRecords, xDripViewerMode);
+                        doRESTUploadTo(nightscoutService, hashedSecret, glucoseDataSets, meterRecords, calRecords, sensors, xDripViewerMode);
                     } else {
                         doLegacyRESTUploadTo(nightscoutService, glucoseDataSets);
                     }
@@ -175,10 +179,13 @@ public class NightscoutUploader {
             postDeviceStatus(nightscoutService, null);
         }
 
-        private void doRESTUploadTo(NightscoutService nightscoutService, String secret, List<BgReading> glucoseDataSets, List<Calibration> meterRecords, List<Calibration> calRecords, boolean xDripViewerMode) throws Exception {
+        private void doRESTUploadTo(NightscoutService nightscoutService, String secret, List<BgReading> glucoseDataSets, List<Calibration> meterRecords, List<Calibration> calRecords, List<Sensor> sensors, boolean xDripViewerMode) throws Exception {
             JSONArray array = new JSONArray();
             for (BgReading record : glucoseDataSets) {
                 populateV1APIBGEntry(array, record, xDripViewerMode);
+            }
+            for (Sensor record : sensors) {
+                populateV1APISensorEntry(array, record);
             }
             for (Calibration record : meterRecords) {
                 populateV1APIMeterReadingEntry(array, record, xDripViewerMode);
@@ -250,6 +257,9 @@ public class NightscoutUploader {
 	            json.put("xDrip_slope_confidence", record.slope_confidence);
 	            json.put("xDrip_sensor_confidence", record.sensor_confidence);
 	            json.put("xDrip_raw_timestamp", record.raw_timestamp);
+	            if(record.sensor != null) {
+	                json.put("xDrip_sensor_uuid", record.sensor.uuid);
+	            }
             }
             json.put("sysTime", format.format(record.timestamp));
             array.put(json);
@@ -267,16 +277,24 @@ public class NightscoutUploader {
             json.put("type", "cal");
             json.put("date", record.timestamp);
             json.put("dateString", format.format(record.timestamp));
-            if(record.check_in) {
-                json.put("slope", (record.first_slope));
-                json.put("intercept", ((record.first_intercept)));
-                json.put("scale", record.first_scale);
-            } else {
-                json.put("slope", (1000/record.slope));
-                json.put("intercept", ((record.intercept * -1000) / (record.slope)));
-                json.put("scale", 1);
-            }
+            json.put("slope", getNightscoutSlope(record));
+            json.put("intercept", getNightscoutIntercept(record));
+            json.put("scale", getNightscoutScale(record));
             json.put("sysTime", format.format(record.timestamp));
+            array.put(json);
+        }
+        
+        private void populateV1APISensorEntry(JSONArray array, Sensor record) throws Exception {
+            JSONObject json = new JSONObject();
+            SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ", Locale.US);
+            format.setTimeZone(TimeZone.getDefault());
+            json.put("type", "sensor");
+            json.put("date", record.started_at);
+            json.put("xDrip_started_at", record.started_at);
+            json.put("xDrip_stopped_at", record.stopped_at);
+            json.put("xDrip_latest_battery_level", record.latest_battery_level);
+            json.put("xDrip_uuid", record.uuid);
+            json.put("sysTime", format.format(record.started_at));
             array.put(json);
         }
 
@@ -293,7 +311,7 @@ public class NightscoutUploader {
         }
 
         private boolean doMongoUpload(SharedPreferences prefs, List<BgReading> glucoseDataSets,
-                                      List<Calibration> meterRecords,  List<Calibration> calRecords, boolean xDripViewerMode) {
+                                      List<Calibration> meterRecords,  List<Calibration> calRecords, List<Sensor> sensors, boolean xDripViewerMode) {
             SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ", Locale.US);
             format.setTimeZone(TimeZone.getDefault());
 
@@ -342,6 +360,21 @@ public class NightscoutUploader {
                             dexcomData.update(query, testData, true, false,  WriteConcern.UNACKNOWLEDGED);
                         }
 
+                        Log.i(TAG, "The number of sensor records being sent to MongoDB is " + meterRecords.size());
+                        for (Sensor sensor : sensors) {
+                            // make db object
+                            BasicDBObject testData = new BasicDBObject();
+                            testData.put("type", "sensor");
+                            testData.put("date", sensor.started_at);
+                            testData.put("xDrip_started_at", sensor.started_at);
+                            testData.put("xDrip_stopped_at", sensor.stopped_at);
+                            testData.put("xDrip_latest_battery_level", sensor.latest_battery_level);
+                            testData.put("xDrip_uuid", sensor.uuid);
+                            testData.put("sysTime", format.format(sensor.started_at));
+                            BasicDBObject query = new BasicDBObject("type", "sensor").append("sysTime", format.format(sensor.started_at));
+                            dexcomData.update(query, testData, true, false,  WriteConcern.UNACKNOWLEDGED);
+                        }
+
                         Log.i(TAG, "The number of MBG records being sent to MongoDB is " + meterRecords.size());
                         for (Calibration meterRecord : meterRecords) {
                             // make db object
@@ -358,6 +391,9 @@ public class NightscoutUploader {
 	                            testData.put("xDrip_slope_confidence", meterRecord.slope_confidence);
 	                            testData.put("xDrip_sensor_confidence", meterRecord.sensor_confidence);
 	                            testData.put("xDrip_raw_timestamp", meterRecord.raw_timestamp);
+	                            if(meterRecord.sensor != null) {
+	                                testData.put("xDrip_sensor_uuid", meterRecord.sensor.uuid);
+	                            }
                             }               
                             testData.put("sysTime", format.format(meterRecord.timestamp));
                             BasicDBObject query = new BasicDBObject("type", "mbg").append("sysTime", format.format(meterRecord.timestamp));
@@ -366,21 +402,17 @@ public class NightscoutUploader {
 
                         for (Calibration calRecord : calRecords) {
                             //do not upload undefined slopes
-                            if(calRecord.slope == 0d) break;
+                            if(calRecord.slope == 0d) {
+                                continue;
+                            }
                             // make db object
                             BasicDBObject testData = new BasicDBObject();
                             testData.put("device", "xDrip-" + prefs.getString("dex_collection_method", "BluetoothWixel"));
                             testData.put("date", calRecord.timestamp);
                             testData.put("dateString", format.format(calRecord.timestamp));
-                            if (calRecord.check_in) {
-                                testData.put("slope", (calRecord.first_slope));
-                                testData.put("intercept", ((calRecord.first_intercept)));
-                                testData.put("scale", calRecord.first_scale);
-                            } else {
-                                testData.put("slope",  (1000/calRecord.slope));
-                                testData.put("intercept", ((calRecord.intercept * -1000) / (calRecord.slope)));
-                                testData.put("scale", 1);
-                            }
+                            testData.put("slope", getNightscoutSlope(calRecord));
+                            testData.put("intercept", getNightscoutIntercept(calRecord));
+                            testData.put("scale", getNightscoutScale(calRecord));
 
                             testData.put("type", "cal");
                             
@@ -388,6 +420,7 @@ public class NightscoutUploader {
                             BasicDBObject query = new BasicDBObject("type", "cal").append("sysTime", format.format(calRecord.timestamp));
                             dexcomData.update(query, testData, true, false,  WriteConcern.UNACKNOWLEDGED);
                         }
+                        
 
                         // TODO: quick port from original code, revisit before release
                         DBCollection dsCollection = db.getCollection(dsCollectionName);
@@ -422,4 +455,50 @@ public class NightscoutUploader {
             return (int) (((float) level / (float) scale) * 100.0f);
         } else return 50;
     }
+    public static double getNightscoutRaw(BgReading bgReading, Calibration cal) {
+        double slope = 0, intercept = 0, scale = 0, filtered = 0, unfiltered = 0, nightscoutRaw = 0;
+        if (cal != null){
+            // slope/intercept/scale like uploaded to NightScout (NightScoutUploader.java)
+            slope = getNightscoutSlope(cal);
+            intercept = getNightscoutIntercept(cal);
+            scale = getNightscoutScale(cal);
+            unfiltered= bgReading.usedRaw()*1000;
+            filtered = bgReading.ageAdjustedFiltered()*1000;
+        }
+        //nightscoutRaw logic from https://github.com/nightscout/cgm-remote-monitor/blob/master/lib/plugins/rawbg.js#L59
+        if (slope != 0 && intercept != 0 && scale != 0) {
+            if (filtered == 0 || bgReading.calculated_value < 40) {
+                nightscoutRaw = scale * (unfiltered - intercept) / slope;
+            } else {
+                double ratio = scale * (filtered - intercept) / slope / bgReading.calculated_value;
+                nightscoutRaw = scale * (unfiltered - intercept) / slope / ratio;
+            }
+        }
+        return nightscoutRaw;
+    }
+
+    public static double getNightscoutScale(Calibration cal) {
+        if(cal.check_in) {
+            return  cal.first_scale;
+        } else {
+            return 1;
+        }
+    }
+
+    public static double getNightscoutIntercept(Calibration cal) {
+        if(cal.check_in) {
+            return cal.first_intercept;
+        } else {
+            return (cal.intercept * -1000) / (cal.slope);
+        }
+    }
+
+    public static double getNightscoutSlope(Calibration cal) {
+        if(cal.check_in) {
+            return cal.first_slope;
+        } else {
+            return 1000/cal.slope;
+        }
+    }
+    
 }

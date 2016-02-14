@@ -5,9 +5,13 @@ import android.appwidget.AppWidgetManager;
 import android.appwidget.AppWidgetProvider;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.graphics.Paint;
 import com.eveningoutpost.dexdrip.Models.UserError.Log;
+
+import android.preference.PreferenceManager;
+import android.view.View;
 import android.widget.RemoteViews;
 
 import com.eveningoutpost.dexdrip.Models.BgReading;
@@ -65,13 +69,17 @@ public class xDripWidget extends AppWidgetProvider {
     private static void displayCurrentInfo(AppWidgetManager appWidgetManager, int appWidgetId, Context context, RemoteViews views) {
         BgGraphBuilder bgGraphBuilder = new BgGraphBuilder(context);
         BgReading lastBgreading = BgReading.lastNoSenssor();
+
+        SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(context);
+        boolean showLines = settings.getBoolean("widget_range_lines", false);
+
         if (lastBgreading != null) {
             double estimate = 0;
             int height = appWidgetManager.getAppWidgetOptions(appWidgetId).getInt(AppWidgetManager.OPTION_APPWIDGET_MAX_HEIGHT);
             int width = appWidgetManager.getAppWidgetOptions(appWidgetId).getInt(AppWidgetManager.OPTION_APPWIDGET_MAX_WIDTH);
             views.setImageViewBitmap(R.id.widgetGraph, new BgSparklineBuilder(context)
                     .setBgGraphBuilder(bgGraphBuilder)
-                    .setHeight(height).setWidth(width).build());
+                    .setHeight(height).setWidth(width).showHighLine(showLines).showLowLine(showLines).build());
 
             if ((new Date().getTime()) - (60000 * 11) - lastBgreading.timestamp > 0) {
                 estimate = lastBgreading.calculated_value;
@@ -108,6 +116,14 @@ public class xDripWidget extends AppWidgetProvider {
                 views.setTextColor(R.id.readingAge, Color.parseColor("#FFBB33"));
             } else {
                 views.setTextColor(R.id.readingAge, Color.WHITE);
+            }
+
+            if(settings.getBoolean("extra_status_line", false) && settings.getBoolean("widget_status_line", false)) {
+                views.setTextViewText(R.id.widgetStatusLine, Home.extraStatusLine(settings));
+                views.setViewVisibility(R.id.widgetStatusLine, View.VISIBLE);
+            } else {
+                views.setTextViewText(R.id.widgetStatusLine, "");
+                views.setViewVisibility(R.id.widgetStatusLine, View.GONE);
             }
 
             if (bgGraphBuilder.unitized(estimate) <= bgGraphBuilder.lowMark) {

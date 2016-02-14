@@ -132,4 +132,8 @@
         The database verions number may change with xDrip updates.
         It is best to import the database with the same version of the xDrip app it was exported and then update xDrip.
     </string>
+    <string name="action_resend_to_watch">Resend glucose to watch</string>
+    <string name="action_open_watch_setting">Open Settings on Wear</string>
+    <string name="prev_arrow"><![CDATA[<<]]></string>
+    <string name="next_arrow"><![CDATA[>>]]></string>
 </resources>
