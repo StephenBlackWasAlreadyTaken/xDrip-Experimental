@@ -43,6 +43,7 @@ import com.eveningoutpost.dexdrip.UtilityModels.Intents;
 import com.eveningoutpost.dexdrip.stats.StatsResult;
 import com.eveningoutpost.dexdrip.utils.ActivityWithMenu;
 import com.eveningoutpost.dexdrip.utils.DatabaseUtil;
+import com.eveningoutpost.dexdrip.utils.SdcardImportExport;
 import com.eveningoutpost.dexdrip.wearintegration.WatchUpdaterService;
 import com.nispok.snackbar.Snackbar;
 import com.nispok.snackbar.SnackbarManager;
@@ -671,6 +672,12 @@ public class Home extends ActivityWithMenu {
 
         return super.onOptionsItemSelected(item);
     }
+
+    public void settingsSDcardExport(MenuItem myitem)
+    {
+        startActivity(new Intent(getApplicationContext(), SdcardImportExport.class));
+    }
+
 
     private class ChartViewPortListener implements ViewportChangeListener {
         @Override
