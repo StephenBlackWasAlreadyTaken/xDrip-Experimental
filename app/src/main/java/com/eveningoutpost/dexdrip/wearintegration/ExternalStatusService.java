@@ -34,27 +34,17 @@ public class ExternalStatusService extends IntentService{
     @Override
     protected void onHandleIntent(Intent intent) {
 
-        UserError.Log.e("Adrian", "onHandleIntent");
-
-
         if (intent == null)
             return;
 
         final String action = intent.getAction();
 
-        UserError.Log.e("Adrian", "action = " + action);
         try {
 
             if (ACTION_NEW_EXTERNAL_STATUSLINE.equals(action)) {
                 final String statusline = intent.getStringExtra(EXTRA_STATUSLINE);
 
                 if(statusline != null) {
-                    UserError.Log.e("Adrian", "statusline = " + statusline);
-                    Intent intent1 = new Intent(this, Home.class);
-                    intent1.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                    startActivity(intent1);
-
-
                     // send to wear
                     if (PreferenceManager.getDefaultSharedPreferences(this).getBoolean("wear_sync", false)) {
 

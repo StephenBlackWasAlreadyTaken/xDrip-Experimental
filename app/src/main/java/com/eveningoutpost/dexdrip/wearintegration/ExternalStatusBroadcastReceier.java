@@ -12,10 +12,6 @@ import com.eveningoutpost.dexdrip.Models.UserError;
 public class ExternalStatusBroadcastReceier extends WakefulBroadcastReceiver {
     @Override
     public void onReceive(Context context, Intent intent) {
-
-        UserError.Log.e("Adrian", "onReceive");
-
-
         startWakefulService(context, new Intent(context, ExternalStatusService.class)
                 .setAction(ExternalStatusService.ACTION_NEW_EXTERNAL_STATUSLINE)
                 .putExtras(intent));
