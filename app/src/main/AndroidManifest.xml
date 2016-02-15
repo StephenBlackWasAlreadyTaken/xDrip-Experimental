@@ -7,7 +7,7 @@
     <!-- To receive data from HAPP. -->
     <uses-permission android:name="com.eveningoutpost.dexdrip.permissions.RECEIVE_EXTERNAL_STATUSLINE" />
 
-    <uses-featureg
+    <uses-feature
         android:name="android.hardware.bluetooth_le"
         android:required="true" />
     <uses-feature android:name="android.hardware.usb.host" />
@@ -114,8 +114,6 @@
         <receiver android:name=".wearintegration.ExternalStatusBroadcastReceier" android:exported="true" >
             <intent-filter> <action android:name="com.eveningoutpost.dexdrip.ExternalStatusline" /> </intent-filter>
         </receiver>
-
-
         <activity
             android:name=".Tables.CalibrationDataTable"
             android:label="@string/title_activity_calibration_data_table" >

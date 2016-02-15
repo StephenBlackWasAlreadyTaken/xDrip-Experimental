@@ -30,7 +30,6 @@ public class WatchUpdaterService extends WearableListenerService implements
     public static final String ACTION_OPEN_SETTINGS = WatchUpdaterService.class.getName().concat(".OpenSettings");
     public static final String ACTION_SEND_STATUS = WatchUpdaterService.class.getName().concat(".SendStatus");
 
-
     private GoogleApiClient googleApiClient;
     public static final String WEARABLE_DATA_PATH = "/nightscout_watch_data";
     public static final String WEARABLE_RESEND_PATH = "/nightscout_watch_data_resend";
@@ -104,9 +103,7 @@ public class WatchUpdaterService extends WearableListenerService implements
                     sendNotification();
                 } else if (ACTION_SEND_STATUS.equals(action)) {
                     sendStatus(intent.getStringExtra("externalStatusString"));
-                }
-
-                else {
+                } else {
                     sendData();
                 }
             } else {
@@ -185,7 +182,7 @@ public class WatchUpdaterService extends WearableListenerService implements
             PutDataRequest putDataRequest = dataMapRequest.asPutDataRequest();
             Wearable.DataApi.putDataItem(googleApiClient, putDataRequest);
         } else {
-            Log.e("OpenSettings", "No connection to wearable available!");
+            Log.e("SendStatus", "No connection to wearable available!");
         }
     }
 

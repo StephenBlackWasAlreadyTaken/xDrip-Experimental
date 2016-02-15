@@ -47,7 +47,6 @@ public class ExternalStatusService extends IntentService{
                 if(statusline != null) {
                     // send to wear
                     if (PreferenceManager.getDefaultSharedPreferences(this).getBoolean("wear_sync", false)) {
-
                         startService(new Intent(this, WatchUpdaterService.class).setAction(WatchUpdaterService.ACTION_SEND_STATUS).putExtra("externalStatusString", statusline));
                         /*By integrating the watch part of Nightwatch we inherited the same wakelock
                          problems NW had - so adding the same quick fix for now.

@@ -15,6 +15,5 @@ public class ExternalStatusBroadcastReceier extends WakefulBroadcastReceiver {
         startWakefulService(context, new Intent(context, ExternalStatusService.class)
                 .setAction(ExternalStatusService.ACTION_NEW_EXTERNAL_STATUSLINE)
                 .putExtras(intent));
-
     }
 }
