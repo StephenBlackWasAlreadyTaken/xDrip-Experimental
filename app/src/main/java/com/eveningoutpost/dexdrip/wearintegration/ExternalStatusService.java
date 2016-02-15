@@ -24,6 +24,7 @@ public class ExternalStatusService extends IntentService{
     public static final String EXTRA_STATUSLINE = "com.eveningoutpost.dexdrip.Extras.Statusline";
     public static final String ACTION_NEW_EXTERNAL_STATUSLINE = "com.eveningoutpost.dexdrip.ExternalStatusline";
     public static final String RECEIVER_PERMISSION = "com.eveningoutpost.dexdrip.permissions.RECEIVE_EXTERNAL_STATUSLINE";
+    public static final int MAX_LEN = 40;
 
     public ExternalStatusService() {
         super("ExternalStatusService");
@@ -42,7 +43,11 @@ public class ExternalStatusService extends IntentService{
         try {
 
             if (ACTION_NEW_EXTERNAL_STATUSLINE.equals(action)) {
-                final String statusline = intent.getStringExtra(EXTRA_STATUSLINE);
+                String statusline = intent.getStringExtra(EXTRA_STATUSLINE);
+
+                if(statusline.length() > MAX_LEN){
+                    statusline = statusline.substring(0, MAX_LEN);
+                }
 
                 if(statusline != null) {
                     // send to wear
