@@ -28,6 +28,8 @@ public class NsRestApiReader {
 	    Long date; // timestamp
 	    double sgv; // calculated_bg
 	    double xDrip_calculated_value;
+	    double xDrip_calculated_current_slope;
+	    boolean xDrip_hide_slope;
 	}
 
 	class NightscoutMbg {

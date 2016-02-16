@@ -224,6 +224,7 @@ public class NightscoutUploader {
 	            json.put("xDrip_calculated_value", record.calculated_value);
 	            json.put("xDrip_age_adjusted_raw_value", record.age_adjusted_raw_value);
 	            json.put("xDrip_calculated_current_slope", record.currentSlope());
+	            json.put("xDrip_hide_slope", record.hide_slope);
             }
             json.put("sysTime", format.format(record.timestamp));
             array.put(json);
@@ -354,6 +355,7 @@ public class NightscoutUploader {
 	                            testData.put("xDrip_calculated_value", record.calculated_value);
 	                            testData.put("xDrip_calculated_current_slope", record.currentSlope());
 	                            testData.put("xDrip_age_adjusted_raw_value", record.age_adjusted_raw_value);
+	                            testData.put("xDrip_hide_slope", record.hide_slope);
                             }
                             testData.put("sysTime", format.format(record.timestamp));
                             BasicDBObject query = new BasicDBObject("type", "sgv").append("sysTime", format.format(record.timestamp));

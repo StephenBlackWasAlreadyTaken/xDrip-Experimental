@@ -373,7 +373,9 @@ public class BgReading extends Model implements ShareUploadableBg{
     }
     
     // Used by xDripViewer
-    public static void create(Context context, double raw_data, double age_adjusted_raw_value, double filtered_data, Long timestamp, double calculated_bg) {
+    public static void create(Context context, double raw_data, double age_adjusted_raw_value, double filtered_data, Long timestamp,
+            double calculated_bg,  double calculated_current_slope, boolean hide_slope) {
+        
         BgReading bgReading = new BgReading();
         Sensor sensor = Sensor.currentSensor();
         if (sensor == null) {
@@ -392,6 +394,8 @@ public class BgReading extends Model implements ShareUploadableBg{
             bgReading.timestamp = timestamp;
             bgReading.uuid = UUID.randomUUID().toString();
             bgReading.calculated_value = calculated_bg;
+            bgReading.calculated_value_slope = calculated_current_slope;
+            bgReading.hide_slope = hide_slope;
 
             bgReading.save();
             bgReading.perform_calculations();
@@ -407,6 +411,8 @@ public class BgReading extends Model implements ShareUploadableBg{
             bgReading.timestamp = timestamp;
             bgReading.uuid = UUID.randomUUID().toString();
             bgReading.calculated_value = calculated_bg;
+            bgReading.calculated_value_slope = calculated_current_slope;
+            bgReading.hide_slope = hide_slope;
 
             if (bgReading.calculated_value < 10) {
                 bgReading.calculated_value = 9;
