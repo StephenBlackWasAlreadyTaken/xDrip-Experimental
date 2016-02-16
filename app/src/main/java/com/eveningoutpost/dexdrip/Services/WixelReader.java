@@ -673,7 +673,9 @@ public class WixelReader extends AsyncTask<String, Void, Void > {
                     nightscoutBg.xDrip_age_adjusted_raw_value,
                     nightscoutBg.xDrip_filtered * 1000,
                     nightscoutBg.date, 
-                    nightscoutBg.xDrip_calculated_value != 0 ? nightscoutBg.xDrip_calculated_value : nightscoutBg.sgv);
+                    nightscoutBg.xDrip_calculated_value != 0 ? nightscoutBg.xDrip_calculated_value : nightscoutBg.sgv,
+                    nightscoutBg.xDrip_calculated_current_slope,
+                    nightscoutBg.xDrip_hide_slope);
             
             lastInserted = nightscoutBg.date;
         }
