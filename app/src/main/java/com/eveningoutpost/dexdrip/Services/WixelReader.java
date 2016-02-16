@@ -63,7 +63,6 @@ public class WixelReader extends AsyncTask<String, Void, Void > {
     private final static long DEXCOM_PERIOD=300000;
     
     private static int lockCounter = 0;
-    private static String sxDripViewerErrorString = null;
     
     // This variables are for fake function only
     static int i = 0;
@@ -555,43 +554,16 @@ public class WixelReader extends AsyncTask<String, Void, Void > {
         Log.d(TAG, "returned from setSerialDataToTransmitterRawData " + fakedRaw);
     }
     
-    public static void setxDripViewrError(String error) {
-        sxDripViewerErrorString = error;
-    }
-    
-    public static String getxDripViewrError() {
-        return sxDripViewerErrorString;
-    }
 
     public void readDataxDripViewer() {
         try {
-            setxDripViewrError(null);
             SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(mContext);
             String rest_addresses = prefs.getString("xdrip_viewer_ns_addresses", "");
-            
-            URI uri = new URI(rest_addresses);
-            String baseURL;
-            String secret = uri.getUserInfo();
-            if ((secret == null || secret.isEmpty())) {
-                setxDripViewrError("No secret returning");
-                Log.e(TAG,"No secret returning");
-                return;
-            } 
-            baseURL = rest_addresses.replaceFirst("//[^@]+@", "//");
-            if ((baseURL == null || baseURL.isEmpty())) {
-                setxDripViewrError("No baseURL returning");
-                Log.e(TAG,"No baseURL returning"); //
-                return;
-            } 
-            
-            Log.e(TAG, "readData baseURL= "+ baseURL +" secret = (is a secret, don't print)" + secret);
-            String hashedSecret = Hashing.sha1().hashBytes(secret.getBytes(Charsets.UTF_8)).toString();
-            
-            readSensorData(baseURL, hashedSecret);
-            readCalData(baseURL, hashedSecret);
-            readBgData(baseURL, hashedSecret);
+            String hashedSecret = "";
+            readSensorData(rest_addresses, hashedSecret);
+            readCalData(rest_addresses, hashedSecret);
+            readBgData(rest_addresses, hashedSecret);
         } catch (Exception e) {
-            setxDripViewrError(e.toString());
             Log.e(TAG, "readData cought exception in xDrip viewer mode ", e);
             e.printStackTrace();
         }
