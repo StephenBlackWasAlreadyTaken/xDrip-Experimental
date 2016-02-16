@@ -96,7 +96,6 @@ public class NsRestApiReader {
             nightscoutSensors = response.body();
             //
         } catch (IOException e ) {
-            WixelReader.setxDripViewrError(e.toString());
             Log.e(TAG,"RetrofitError exception was cought " + e.toString());
             return null;
         }
