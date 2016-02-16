@@ -307,12 +307,6 @@ public class Home extends ActivityWithMenu {
             return;
         }
         
-        String xDripViewrError = WixelReader.getxDripViewrError();
-        if(xDripViewrError != null) {
-            notificationText.setText(xDripViewrError);
-         // continue, we might have some recent data.
-        }
-
         displayCurrentInfo();
 
     }
