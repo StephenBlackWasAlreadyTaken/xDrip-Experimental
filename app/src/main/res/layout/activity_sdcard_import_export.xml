@@ -1,68 +1,71 @@
-<?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<android.support.v4.widget.DrawerLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/drawer_layout"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:paddingBottom="@dimen/activity_vertical_margin"
-    android:paddingLeft="@dimen/activity_horizontal_margin"
-    android:paddingRight="@dimen/activity_horizontal_margin"
-    android:paddingTop="@dimen/activity_vertical_margin"
-    tools:context="com.eveningoutpost.dexdrip.utils.SdcardImportExport">
+    android:layout_height="match_parent">
 
-    <LinearLayout
-        android:orientation="vertical"
+
+    <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:tools="http://schemas.android.com/tools"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:id="@+id/linearLayout">
+        android:paddingBottom="@dimen/activity_vertical_margin"
+        android:paddingLeft="@dimen/activity_horizontal_margin"
+        android:paddingRight="@dimen/activity_horizontal_margin"
+        android:paddingTop="@dimen/activity_vertical_margin"
+        tools:context="com.eveningoutpost.dexdrip.utils.SdcardImportExport">
 
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Here you can save the settings to the external storage (sdcard).\n\nOnce saved to the external storage it is potentially possible for any app to read the settings which might contain sensitive information.\n\nYou are advised to delete the settings once you have imported them again if you are concerned about this."
-            android:id="@+id/warningtext"
-            android:layout_alignParentTop="true"
-            android:layout_centerHorizontal="true" />
+        <ScrollView
+            android:id="@+id/scrollView4"
+            android:layout_width="fill_parent"
+            android:layout_height="fill_parent">
 
-        <Button
-            android:layout_marginTop="28dp"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Save all Settings to SDcard"
-            android:id="@+id/saveallsettings"
-            android:onClick="savePreferencesToSD"
-            android:layout_centerVertical="true"
-            android:layout_alignParentStart="true" />
+            <LinearLayout
+                android:id="@+id/linearLayout"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:orientation="vertical">
 
-        <Button
-            android:layout_marginTop="28dp"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Load all Settings from SDcard"
-            android:id="@+id/buttonload"
-            android:onClick="loadPreferencesToSD"
-            android:layout_below="@+id/saveallsettings"
-            android:layout_alignStart="@+id/saveallsettings" />
+                <TextView
+                    android:id="@+id/warningtext"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_alignParentTop="true"
+                    android:layout_centerHorizontal="true"
+                    android:text="Here you can save the settings to the external storage (sdcard).\n\nOnce saved to the external storage it is potentially possible for any app to read the settings which might contain sensitive information.\n\nYou are advised to delete the settings once you have imported them again if you are concerned about this." />
 
-        <Button
-            android:layout_marginTop="28dp"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Delete any settings on SDcard"
-            android:id="@+id/buttondelete"
-            android:onClick="deletePreferencesOnSD"
-            android:layout_below="@+id/buttonload"
-            android:layout_alignStart="@+id/buttonload" />
+                <Button
+                    android:id="@+id/saveallsettings"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_alignParentStart="true"
+                    android:layout_centerVertical="true"
+                    android:layout_marginTop="28dp"
+                    android:onClick="savePreferencesToSD"
+                    android:text="Save all Settings to SDcard" />
 
-    </LinearLayout>
+                <Button
+                    android:id="@+id/buttonload"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_alignStart="@+id/saveallsettings"
+                    android:layout_below="@+id/saveallsettings"
+                    android:layout_marginTop="28dp"
+                    android:onClick="loadPreferencesToSD"
+                    android:text="Load all Settings from SDcard" />
 
-    <ImageButton
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:id="@+id/closebutton"
-        android:onClick="closeButton"
-        android:layout_gravity="end"
-        android:src="@android:drawable/ic_delete"
-        android:layout_alignParentBottom="true"
-        android:layout_alignParentEnd="true" />
+            </LinearLayout>
 
-</RelativeLayout>
+        </ScrollView>
+
+    </RelativeLayout>
+
+    <fragment
+        android:id="@+id/navigation_drawer"
+        android:name="com.eveningoutpost.dexdrip.NavigationDrawerFragment"
+        android:layout_width="@dimen/navigation_drawer_width"
+        android:layout_height="match_parent"
+        android:layout_gravity="start"
+        tools:layout="@layout/fragment_navigation_drawer" />
+
+</android.support.v4.widget.DrawerLayout>

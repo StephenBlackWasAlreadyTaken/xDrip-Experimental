@@ -15,35 +15,14 @@ import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
 
-public class SdcardImportExport extends Activity {
+import static com.eveningoutpost.dexdrip.utils.FileUtils.getExternalDir;
+
+public class SdcardImportExport extends ActivityWithMenu {
 
     private final static String TAG = "jamorham sdcard";
 
     private final static String PREFERENCES_FILE = "shared_prefs/com.eveningoutpost.dexdrip_preferences.xml";
 
-    public static boolean deleteFolder(File path, boolean recursion) {
-        try {
-            Log.d(TAG, "deleteFolder called with: " + path.toString());
-            if (path.exists()) {
-                File[] files = path.listFiles();
-                if (files == null) {
-                    return true;
-                }
-                for (File file : files) {
-                    if ((recursion) && (file.isDirectory())) {
-                        deleteFolder(file, recursion);
-                    } else {
-                        Log.d(TAG, "Calling delete for file: " + file.getName());
-                        file.delete();
-                    }
-                }
-            }
-            return (path.delete());
-        } catch (Exception e) {
-            Log.e(TAG, "Got exception in delete: " + e.toString());
-            return false;
-        }
-    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -51,10 +30,15 @@ public class SdcardImportExport extends Activity {
         setContentView(R.layout.activity_sdcard_import_export);
     }
 
+    @Override
+    public String getMenuName() {
+        return "Import/Export Settings";
+    }
+
     public void savePreferencesToSD(View myview) {
 
         if (savePreferencesToSD()) {
-            toast("Preferences saved in sdcard Downloads");
+            toast("Preferences saved in sdcard '/xdrip/settingsExport' ");
         } else {
             toast("Couldn't write to sdcard - check permissions?");
         }
@@ -67,18 +51,6 @@ public class SdcardImportExport extends Activity {
             android.os.Process.killProcess(android.os.Process.myPid());
         } else {
             toast("Could not load preferences");
-        }
-    }
-
-    public void deletePreferencesOnSD(View myview) {
-        if (!isExternalStorageWritable()) {
-            toast("External storage is not writable");
-            return;
-        }
-        if (deleteFolder(new File(getCustomSDcardpath()), false)) {
-            toast("Successfully deleted");
-        } else {
-            toast("Deletion problem");
         }
     }
 
@@ -109,8 +81,7 @@ public class SdcardImportExport extends Activity {
     }
 
     private String getCustomSDcardpath() {
-        return Environment.getExternalStoragePublicDirectory(
-                Environment.DIRECTORY_DOWNLOADS) + "/xDrip-export";
+        return getExternalDir() + "/settingsExport";
     }
 
     private boolean dataToSDcopy(String filename) {

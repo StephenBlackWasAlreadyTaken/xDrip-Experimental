@@ -673,8 +673,7 @@ public class Home extends ActivityWithMenu {
         return super.onOptionsItemSelected(item);
     }
 
-    public void settingsSDcardExport(MenuItem myitem)
-    {
+    public void settingsSDcardExport(MenuItem myitem) {
         startActivity(new Intent(getApplicationContext(), SdcardImportExport.class));
     }
 
