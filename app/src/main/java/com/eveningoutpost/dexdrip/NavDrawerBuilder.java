@@ -8,7 +8,7 @@ import android.preference.PreferenceManager;
 import com.eveningoutpost.dexdrip.Models.BgReading;
 import com.eveningoutpost.dexdrip.Models.Calibration;
 import com.eveningoutpost.dexdrip.Models.Sensor;
-import com.eveningoutpost.dexdrip.Services.WixelReader;
+import com.eveningoutpost.dexdrip.Services.XDripViewer;
 import com.eveningoutpost.dexdrip.Tables.BgReadingTable;
 import com.eveningoutpost.dexdrip.Tables.CalibrationDataTable;
 import com.eveningoutpost.dexdrip.UtilityModels.CollectionServiceStarter;
@@ -34,7 +34,7 @@ public class NavDrawerBuilder {
 
     public NavDrawerBuilder(Context aContext) {
         context = aContext;
-        boolean xDripViewer = WixelReader.isxDripViewerMode(aContext);
+        boolean xDripViewer = XDripViewer.isxDripViewerMode(aContext);
         
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
         boolean IUnderstand = prefs.getBoolean("I_understand", false);

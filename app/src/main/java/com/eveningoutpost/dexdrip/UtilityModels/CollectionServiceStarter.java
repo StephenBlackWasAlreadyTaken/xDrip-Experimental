@@ -14,7 +14,7 @@ import com.eveningoutpost.dexdrip.Services.DexCollectionService;
 import com.eveningoutpost.dexdrip.Services.DexShareCollectionService;
 import com.eveningoutpost.dexdrip.Services.SyncService;
 import com.eveningoutpost.dexdrip.Services.WifiCollectionService;
-import com.eveningoutpost.dexdrip.Services.WixelReader;
+import com.eveningoutpost.dexdrip.Services.XDripViewer;
 
 import java.io.IOException;
 import java.util.Calendar;
@@ -29,7 +29,7 @@ public class CollectionServiceStarter {
 
 
     public static boolean isWifiandBTWixel(Context context) {
-        if(WixelReader.isxDripViewerMode(context)) {
+        if(XDripViewer.isxDripViewerMode(context)) {
             return false;
         }
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
@@ -41,14 +41,14 @@ public class CollectionServiceStarter {
     }
     
     private static boolean isWifiandBTWixel(String collection_method, Context context) {
-        if(WixelReader.isxDripViewerMode(context)) {
+        if(XDripViewer.isxDripViewerMode(context)) {
             return false;
         }
         return collection_method.equals("WifiBlueToothWixel"); 
     }
 
     public static boolean isBTWixel(Context context) {
-        if(WixelReader.isxDripViewerMode(context)) {
+        if(XDripViewer.isxDripViewerMode(context)) {
             return false;
         }
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
@@ -60,14 +60,14 @@ public class CollectionServiceStarter {
     }
 
     private static boolean isBTWixel(String collection_method, Context context) {
-        if(WixelReader.isxDripViewerMode(context)) {
+        if(XDripViewer.isxDripViewerMode(context)) {
             return false;
         }
         return collection_method.equals("BluetoothWixel"); 
     }
 
     public static boolean isDexbridgeWixel(Context context) {
-        if(WixelReader.isxDripViewerMode(context)) {
+        if(XDripViewer.isxDripViewerMode(context)) {
             return false;
         }
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
@@ -79,14 +79,14 @@ public class CollectionServiceStarter {
     }
     
     private static boolean isDexbridgeWixel(String collection_method, Context context) {
-        if(WixelReader.isxDripViewerMode(context)) {
+        if(XDripViewer.isxDripViewerMode(context)) {
             return false;
         }
         return collection_method.equals("DexbridgeWixel"); 
     }
 
     public static boolean isBTShare(Context context) {
-        if(WixelReader.isxDripViewerMode(context)) {
+        if(XDripViewer.isxDripViewerMode(context)) {
             return false;
         }
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
@@ -97,14 +97,14 @@ public class CollectionServiceStarter {
         return false;
     }
     public static boolean isBTShare(String collection_method, Context context) {
-        if(WixelReader.isxDripViewerMode(context)) {
+        if(XDripViewer.isxDripViewerMode(context)) {
             return false;
         }
         return collection_method.equals("DexcomShare"); 
     }
 
     public static boolean isWifiWixel(Context context) {
-        if(WixelReader.isxDripViewerMode(context)) {
+        if(XDripViewer.isxDripViewerMode(context)) {
             return true;
         }
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
@@ -115,7 +115,7 @@ public class CollectionServiceStarter {
         return false;
     }
     public static boolean isWifiWixel(String collection_method, Context context) {
-        if(WixelReader.isxDripViewerMode(context)) {
+        if(XDripViewer.isxDripViewerMode(context)) {
             return true;
         }
         return collection_method.equals("WifiWixel"); 
