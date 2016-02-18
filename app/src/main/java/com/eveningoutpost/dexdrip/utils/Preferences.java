@@ -27,7 +27,7 @@ import android.widget.Toast;
 
 import com.eveningoutpost.dexdrip.Models.UserError.Log;
 import com.eveningoutpost.dexdrip.Services.MissedReadingService;
-import com.eveningoutpost.dexdrip.Services.WixelReader;
+import com.eveningoutpost.dexdrip.Services.XDripViewer;
 import com.eveningoutpost.dexdrip.R;
 import com.eveningoutpost.dexdrip.UtilityModels.CollectionServiceStarter;
 import com.eveningoutpost.dexdrip.UtilityModels.PebbleSync;
@@ -464,7 +464,7 @@ public class Preferences extends PreferenceActivity {
             });
             
             // Remove all the parts that are not needed in xDripViewer (doing it all in one place to avoid having many ifs)
-            if(WixelReader.isxDripViewerMode(getActivity())) {
+            if(XDripViewer.isxDripViewerMode(getActivity())) {
                 collectionCategory.removePreference(collectionMethod);
                 collectionCategory.removePreference(shareKey);
                 collectionCategory.removePreference(scanShare);
