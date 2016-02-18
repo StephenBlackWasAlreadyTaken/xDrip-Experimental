@@ -37,6 +37,7 @@ import com.eveningoutpost.dexdrip.Models.Calibration;
 import com.eveningoutpost.dexdrip.Models.Sensor;
 import com.eveningoutpost.dexdrip.Models.UserError;
 import com.eveningoutpost.dexdrip.Services.WixelReader;
+import com.eveningoutpost.dexdrip.Services.XDripViewer;
 import com.eveningoutpost.dexdrip.UtilityModels.BgGraphBuilder;
 import com.eveningoutpost.dexdrip.UtilityModels.CollectionServiceStarter;
 import com.eveningoutpost.dexdrip.UtilityModels.Intents;
@@ -259,7 +260,7 @@ public class Home extends ActivityWithMenu {
         boolean isWifiWixel = CollectionServiceStarter.isWifiWixel(getApplicationContext());
         alreadyDisplayedBgInfoCommon = false; // reset flag
         
-        boolean xDripViewer = WixelReader.isxDripViewerMode(getApplicationContext());
+        boolean xDripViewer = XDripViewer.isxDripViewerMode(getApplicationContext());
         
         if(xDripViewer) {
             updateCurrentBgInfoForxDripViewer(notificationText);
@@ -303,7 +304,7 @@ public class Home extends ActivityWithMenu {
     }
     
     private void updateCurrentBgInfoForxDripViewer(TextView notificationText) {
-        if (!WixelReader.isxDripViewerConfigured(getApplicationContext())) {
+        if (!XDripViewer.isxDripViewerConfigured(getApplicationContext())) {
             notificationText.setText("First configure Nightscout website address");
             return;
         }
