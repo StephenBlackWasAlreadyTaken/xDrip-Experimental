@@ -38,7 +38,7 @@
                 app:showAsAction="never"/>
 
             <item android:id="@+id/importsettings"
-                android:title="Settings to external storage"
+                android:title="Im/Export Settings"
                 android:checkable="false"
                 android:onClick="settingsSDcardExport"
                 android:visible="true"

@@ -50,7 +50,7 @@ public class SdcardImportExport extends ActivityWithMenu {
             // shared preferences are cached so we need a hard restart
             android.os.Process.killProcess(android.os.Process.myPid());
         } else {
-            toast("Could not load preferences");
+            toast("Could not load preferences\nPlease make sure it exists in '/xdrip/settingsExport' on the sdcard");
         }
     }
 
