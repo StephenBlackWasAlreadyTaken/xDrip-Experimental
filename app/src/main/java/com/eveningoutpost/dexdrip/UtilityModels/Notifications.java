@@ -245,9 +245,8 @@ public class Notifications extends IntentService {
 
     private void notificationSetter(Context context) {
         ReadPerfs(context);
-        BgGraphBuilder bgGraphBuilder = new BgGraphBuilder(context);
         if (bg_ongoing && (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN)) {
-            bgOngoingNotification(bgGraphBuilder);
+            bgOngoingNotification();
         }
         if (prefs.getLong("alerts_disabled_until", 0) > new Date().getTime()) {
             Log.d("NOTIFICATIONS", "Notifications are currently disabled!!");
@@ -409,8 +408,11 @@ public class Notifications extends IntentService {
     }
 
     @TargetApi(Build.VERSION_CODES.JELLY_BEAN)
-    public Notification createOngoingNotification(BgGraphBuilder bgGraphBuilder, Context context) {
+    public Notification createOngoingNotification(Context context) {
         mContext = context;
+        long end = System.currentTimeMillis() + (60000 * 5);
+        long start = end - (60000 * 60*3) -  (60000 * 10);
+        BgGraphBuilder bgGraphBuilder = new BgGraphBuilder(mContext, start, end);
         ReadPerfs(mContext);
         Intent intent = new Intent(mContext, Home.class);
         List<BgReading> lastReadings = BgReading.latest(2);
@@ -462,13 +464,13 @@ public class Notifications extends IntentService {
         return b.build();
     }
 
-    private void bgOngoingNotification(final BgGraphBuilder bgGraphBuilder) {
+    private void bgOngoingNotification() {
         mHandler.post(new Runnable() {
             @Override
             public void run() {
                 NotificationManagerCompat
                         .from(mContext)
-                        .notify(ongoingNotificationId, createOngoingNotification(bgGraphBuilder, mContext));
+                        .notify(ongoingNotificationId, createOngoingNotification(mContext));
                 if (iconBitmap != null)
                     iconBitmap.recycle();
                 if (notifiationBitmap != null)
