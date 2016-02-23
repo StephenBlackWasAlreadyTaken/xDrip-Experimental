@@ -136,4 +136,5 @@
     <string name="action_open_watch_setting">Open Settings on Wear</string>
     <string name="prev_arrow"><![CDATA[<<]]></string>
     <string name="next_arrow"><![CDATA[>>]]></string>
+    <string name="export_submenu">Im-/Export...</string>
 </resources>
