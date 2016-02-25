@@ -23,7 +23,18 @@ public class StartNewSensor extends ActivityWithMenu {
     private Button button;
     private DatePicker dp;
     private TimePicker tp;
+    
+    private int last_hour;
 
+    void AddDays(int numberOfDays) {
+        Calendar calendar = Calendar.getInstance();
+        calendar.set(dp.getYear(), dp.getMonth(), dp.getDayOfMonth(),
+        tp.getCurrentHour(), tp.getCurrentMinute(), 0);
+        
+        calendar.add(Calendar.DAY_OF_YEAR, numberOfDays);
+        dp.updateDate(calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH), calendar.get(Calendar.DAY_OF_MONTH));
+    }
+    
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -33,6 +44,28 @@ public class StartNewSensor extends ActivityWithMenu {
             dp = (DatePicker)findViewById(R.id.datePicker);
             tp = (TimePicker)findViewById(R.id.timePicker);
             addListenerOnButton();
+            
+            tp.setOnTimeChangedListener(new TimePicker.OnTimeChangedListener() {
+
+                public void onTimeChanged(TimePicker arg0, int arg1, int arg2) {
+                    Log.d("NEW SENSOR", "new time " + arg1  + " " + arg2);
+
+                    if(arg1 == 23 && last_hour == 0) {
+                        Log.d("NEW SENSOR", "decreading day");
+                        AddDays(-1);
+
+                    }
+                    if (arg1 == 0 && last_hour == 23) {
+                        Log.d("NEW SENSOR", "increasing day");
+                        AddDays(1);
+                    }
+                    last_hour = arg1;
+
+                }
+            });
+
+            last_hour = tp.getCurrentHour();
+            
         } else {
             Intent intent = new Intent(this, StopSensor.class);
             startActivity(intent);
