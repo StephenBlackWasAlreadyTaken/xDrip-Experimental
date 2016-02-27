@@ -26,15 +26,6 @@ public class StartNewSensor extends ActivityWithMenu {
     
     private int last_hour;
 
-    void AddDays(int numberOfDays) {
-        Calendar calendar = Calendar.getInstance();
-        calendar.set(dp.getYear(), dp.getMonth(), dp.getDayOfMonth(),
-        tp.getCurrentHour(), tp.getCurrentMinute(), 0);
-        
-        calendar.add(Calendar.DAY_OF_YEAR, numberOfDays);
-        dp.updateDate(calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH), calendar.get(Calendar.DAY_OF_MONTH));
-    }
-    
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -52,12 +43,12 @@ public class StartNewSensor extends ActivityWithMenu {
 
                     if(arg1 == 23 && last_hour == 0) {
                         Log.d("NEW SENSOR", "decreading day");
-                        AddDays(-1);
+                        addDays(-1);
 
                     }
                     if (arg1 == 0 && last_hour == 23) {
                         Log.d("NEW SENSOR", "increasing day");
-                        AddDays(1);
+                        addDays(1);
                     }
                     last_hour = arg1;
 
@@ -110,4 +101,14 @@ public class StartNewSensor extends ActivityWithMenu {
         });
 
     }
+    
+    void addDays(int numberOfDays) {
+        Calendar calendar = Calendar.getInstance();
+        calendar.set(dp.getYear(), dp.getMonth(), dp.getDayOfMonth(),
+        tp.getCurrentHour(), tp.getCurrentMinute(), 0);
+        
+        calendar.add(Calendar.DAY_OF_YEAR, numberOfDays);
+        dp.updateDate(calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH), calendar.get(Calendar.DAY_OF_MONTH));
+    }
+
 }
