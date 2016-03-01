@@ -38,6 +38,8 @@ public class StartNewSensor extends ActivityWithMenu {
             dp = (DatePicker)findViewById(R.id.datePicker);
             tp = (TimePicker)findViewById(R.id.timePicker);
             tp.setIs24HourView(DateFormat.is24HourFormat(this));
+            tp.setSaveFromParentEnabled(false);
+            tp.setSaveEnabled(true);
             addListenerOnButton();
             
             tp.setOnTimeChangedListener(new TimePicker.OnTimeChangedListener() {
@@ -66,6 +68,13 @@ public class StartNewSensor extends ActivityWithMenu {
             startActivity(intent);
             finish();
         }
+    }
+    
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
+        prefs.edit().putBoolean("start_sensor_pair_pickers", pairPickers.isChecked()).apply();
     }
 
     @Override
