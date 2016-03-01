@@ -7,6 +7,7 @@ import android.preference.PreferenceManager;
 import android.text.format.DateFormat;
 import android.view.View;
 import android.widget.Button;
+import android.widget.CheckBox;
 import android.widget.DatePicker;
 import android.widget.TimePicker;
 import android.widget.Toast;
@@ -24,6 +25,7 @@ public class StartNewSensor extends ActivityWithMenu {
     private Button button;
     private DatePicker dp;
     private TimePicker tp;
+    private CheckBox pairPickers;
     
     private int last_hour;
 
@@ -74,6 +76,9 @@ public class StartNewSensor extends ActivityWithMenu {
     public void addListenerOnButton() {
 
         button = (Button)findViewById(R.id.startNewSensor);
+        pairPickers = (CheckBox)findViewById(R.id.startSensorPairPickers);
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
+        pairPickers.setChecked(prefs.getBoolean("start_sensor_pair_pickers", false));
 
         button.setOnClickListener(new View.OnClickListener() {
           public void onClick(View v) {
@@ -87,8 +92,11 @@ public class StartNewSensor extends ActivityWithMenu {
               Log.d("NEW SENSOR", "Sensor started at " + startTime);
 
               Toast.makeText(getApplicationContext(), "NEW SENSOR STARTED", Toast.LENGTH_LONG).show();
-              CollectionServiceStarter.newStart(getApplicationContext());
+              
               SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
+              prefs.edit().putBoolean("start_sensor_pair_pickers", pairPickers.isChecked()).apply();
+              
+              CollectionServiceStarter.newStart(getApplicationContext());
               Intent intent;
               if(prefs.getBoolean("store_sensor_location",true)) {
                   intent = new Intent(getApplicationContext(), NewSensorLocation.class);
@@ -105,6 +113,11 @@ public class StartNewSensor extends ActivityWithMenu {
     }
     
     void addDays(int numberOfDays) {
+        
+        if(!pairPickers.isChecked()) {
+            return;
+        }
+        
         Calendar calendar = Calendar.getInstance();
         calendar.set(dp.getYear(), dp.getMonth(), dp.getDayOfMonth(),
         tp.getCurrentHour(), tp.getCurrentMinute(), 0);
