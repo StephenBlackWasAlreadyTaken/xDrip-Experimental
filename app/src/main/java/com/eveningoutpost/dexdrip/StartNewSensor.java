@@ -34,6 +34,7 @@ public class StartNewSensor extends ActivityWithMenu {
             button = (Button)findViewById(R.id.startNewSensor);
             dp = (DatePicker)findViewById(R.id.datePicker);
             tp = (TimePicker)findViewById(R.id.timePicker);
+            tp.setIs24HourView(true);
             addListenerOnButton();
             
             tp.setOnTimeChangedListener(new TimePicker.OnTimeChangedListener() {
