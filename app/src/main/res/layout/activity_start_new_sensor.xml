@@ -17,14 +17,6 @@
                 android:layout_width="fill_parent"
                 android:layout_height="fill_parent"
                 android:gravity="center_horizontal">
-                <DatePicker
-                    android:layout_width="wrap_content"
-                    android:layout_height="0dp"
-                    android:id="@+id/datePicker"
-                    android:datePickerMode="spinner"
-                    android:calendarViewShown="false"
-                    android:layout_weight="0.30" />
-
                 <TimePicker
                     android:layout_width="wrap_content"
                     android:layout_height="0dp"
@@ -34,6 +26,14 @@
                     android:layout_alignParentStart="true"
                     android:timePickerMode="spinner"
                     android:layout_weight="0.30"/>
+
+                <DatePicker
+                    android:layout_width="wrap_content"
+                    android:layout_height="0dp"
+                    android:id="@+id/datePicker"
+                    android:datePickerMode="spinner"
+                    android:calendarViewShown="false"
+                    android:layout_weight="0.30" />
 
                 <TextView
                     android:layout_width="wrap_content"
@@ -56,6 +56,13 @@
                     android:layout_alignParentBottom="true"
                     android:layout_centerHorizontal="true"
                     android:layout_marginTop="15dp" />
+                
+                <CheckBox
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="link time and date pickers"
+                    android:id="@+id/startSensorLinkPickers"
+                    android:checked="false" />
             </LinearLayout>
         </ScrollView>
 
