@@ -25,7 +25,7 @@ public class StartNewSensor extends ActivityWithMenu {
     private Button button;
     private DatePicker dp;
     private TimePicker tp;
-    private CheckBox pairPickers;
+    private CheckBox linkPickers;
     
     private int last_hour;
 
@@ -74,7 +74,7 @@ public class StartNewSensor extends ActivityWithMenu {
     public void onDestroy() {
         super.onDestroy();
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
-        prefs.edit().putBoolean("start_sensor_pair_pickers", pairPickers.isChecked()).apply();
+        prefs.edit().putBoolean("start_sensor_link_pickers", linkPickers.isChecked()).apply();
     }
 
     @Override
@@ -85,9 +85,9 @@ public class StartNewSensor extends ActivityWithMenu {
     public void addListenerOnButton() {
 
         button = (Button)findViewById(R.id.startNewSensor);
-        pairPickers = (CheckBox)findViewById(R.id.startSensorPairPickers);
+        linkPickers = (CheckBox)findViewById(R.id.startSensorLinkPickers);
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
-        pairPickers.setChecked(prefs.getBoolean("start_sensor_pair_pickers", false));
+        linkPickers.setChecked(prefs.getBoolean("start_sensor_link_pickers", false));
 
         button.setOnClickListener(new View.OnClickListener() {
           public void onClick(View v) {
@@ -103,7 +103,7 @@ public class StartNewSensor extends ActivityWithMenu {
               Toast.makeText(getApplicationContext(), "NEW SENSOR STARTED", Toast.LENGTH_LONG).show();
               
               SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
-              prefs.edit().putBoolean("start_sensor_pair_pickers", pairPickers.isChecked()).apply();
+              prefs.edit().putBoolean("start_sensor_link_pickers", linkPickers.isChecked()).apply();
               
               CollectionServiceStarter.newStart(getApplicationContext());
               Intent intent;
@@ -123,7 +123,7 @@ public class StartNewSensor extends ActivityWithMenu {
     
     void addDays(int numberOfDays) {
         
-        if(!pairPickers.isChecked()) {
+        if(!linkPickers.isChecked()) {
             return;
         }
         

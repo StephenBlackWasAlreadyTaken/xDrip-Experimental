@@ -60,8 +60,8 @@
                 <CheckBox
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="pair time and date pickers"
-                    android:id="@+id/startSensorPairPickers"
+                    android:text="link time and date pickers"
+                    android:id="@+id/startSensorLinkPickers"
                     android:checked="false" />
             </LinearLayout>
         </ScrollView>
