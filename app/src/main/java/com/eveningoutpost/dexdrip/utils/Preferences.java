@@ -254,7 +254,6 @@ public class Preferences extends PreferenceActivity {
             bindPreferenceSummaryToValue(findPreference("calibration_notification_sound"));
             bindPreferenceSummaryToValueAndEnsureNumeric(findPreference("calibration_snooze"));
             bindPreferenceSummaryToValueAndEnsureNumeric(findPreference("bg_unclear_readings_minutes"));
-            bindPreferenceSummaryToValueAndEnsureNumeric(findPreference("bg_missed_minutes"));
             bindPreferenceSummaryToValueAndEnsureNumeric(findPreference("disable_alerts_stale_data_minutes"));
             bindPreferenceSummaryToValue(findPreference("falling_bg_val"));
             bindPreferenceSummaryToValue(findPreference("rising_bg_val"));
@@ -561,8 +560,6 @@ public class Preferences extends PreferenceActivity {
 
         
         private void bindBgMissedAlertsListener(){
-          findPreference("bg_missed_alerts").setOnPreferenceChangeListener(sBgMissedAlertsHandler);
-          findPreference("bg_missed_minutes").setOnPreferenceChangeListener(sBgMissedAlertsHandler);
           findPreference("other_alerts_snooze").setOnPreferenceChangeListener(sBgMissedAlertsHandler);
         }
 
