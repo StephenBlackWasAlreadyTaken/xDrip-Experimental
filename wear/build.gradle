@@ -24,9 +24,19 @@ android {
     productFlavors {
         xdrip {
             applicationId = "com.eveningoutpost.dexdrip"
+            resValue "string", "label_xdrip", "xDrip"
+            resValue "string", "label_xdrip_large", "xDrip(Large)"
+            resValue "string", "label_xdrip_big_chart", "xDrip(BigChart)"
+            resValue "string", "label_xdrip_circle", "xDrip(Circle)"
+            resValue "string", "label_xdrip_activity", "XDrip Prefs."
         }
         xdripviewer {
             applicationId = "com.eveningoutpost.dexdrip.viewer"
+            resValue "string", "label_xdrip", "xDripV"
+            resValue "string", "label_xdrip_large", "xDripV(Large)"
+            resValue "string", "label_xdrip_big_chart", "xDripV(BigChart)"
+            resValue "string", "label_xdrip_circle", "xDripV(Circle)"
+            resValue "string", "label_xdrip_activity", "XDripV Prefs."
         }
     }
 }
