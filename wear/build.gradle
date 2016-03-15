@@ -29,6 +29,7 @@ android {
             resValue "string", "label_xdrip_big_chart", "xDrip(BigChart)"
             resValue "string", "label_xdrip_circle", "xDrip(Circle)"
             resValue "string", "label_xdrip_activity", "XDrip Prefs."
+            resValue "string", "app_settings", "xDrip Settings"
         }
         xdripviewer {
             applicationId = "com.eveningoutpost.dexdrip.viewer"
@@ -37,6 +38,7 @@ android {
             resValue "string", "label_xdrip_big_chart", "xDripV(BigChart)"
             resValue "string", "label_xdrip_circle", "xDripV(Circle)"
             resValue "string", "label_xdrip_activity", "XDripV Prefs."
+            resValue "string", "app_settings", "xDrip Viewer Settings"
         }
     }
 }
