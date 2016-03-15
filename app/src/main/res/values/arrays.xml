@@ -5,7 +5,8 @@
         <item>xBridge Wixel</item>
         <item>Wifi Wixel</item>
         <item>Wifi Wixel + BT Wixel</item>
-        <item>DexcomShare</item>
+        <item>G4 Share Receiver</item>
+        <item>G5 Transmitter</item>
     </string-array>
 
     <string-array name="DexCollectionMethodValues">
@@ -14,6 +15,7 @@
         <item>WifiWixel</item>
         <item>WifiBlueToothWixel</item>
         <item>DexcomShare</item>
+        <item>DexcomG5</item>
     </string-array>
 
 
