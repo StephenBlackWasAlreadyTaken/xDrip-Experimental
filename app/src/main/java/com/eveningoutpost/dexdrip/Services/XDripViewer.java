@@ -165,7 +165,6 @@ public class XDripViewer extends AsyncTaskBase {
         }
     }
     
-    
     static public boolean isxDripViewerMode(Context context) {
         return (context.getPackageName().equals("com.eveningoutpost.dexdrip")) ? false : true;
     }
@@ -174,7 +173,7 @@ public class XDripViewer extends AsyncTaskBase {
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(ctx);
         String recieversIpAddresses = prefs.getString("xdrip_viewer_ns_addresses", "");
         if(recieversIpAddresses == null || recieversIpAddresses.equals("") ||
-                recieversIpAddresses.equals(R.string.xdrip_viewer_ns_example)) {
+                recieversIpAddresses.equals(ctx.getString(R.string.xdrip_viewer_ns_example))) {
             return false;
         }
         return true;

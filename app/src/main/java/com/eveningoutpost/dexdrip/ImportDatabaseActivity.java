@@ -91,7 +91,7 @@ public class ImportDatabaseActivity extends ListActivityWithMenu {
     private boolean findAllDatabases() {
         databases = new ArrayList<>();
 
-        File file = new File(FileUtils.getExternalDir());
+        File file = new File(FileUtils.getExternalDir(getApplicationContext()));
         if (!FileUtils.makeSureDirectoryExists(file.getAbsolutePath())) {
             return false;
         }

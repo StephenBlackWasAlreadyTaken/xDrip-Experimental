@@ -59,7 +59,7 @@ public class DatabaseUtil {
 
             final String databaseName = new Configuration.Builder(context).create().getDatabaseName();
 
-            final String dir = getExternalDir();
+            final String dir = getExternalDir(context);
             makeSureDirectoryExists(dir);
 
             final StringBuilder sb = new StringBuilder();
@@ -126,7 +126,7 @@ public class DatabaseUtil {
 
             final String databaseName = new Configuration.Builder(context).create().getDatabaseName();
 
-            final String dir = getExternalDir();
+            final String dir = getExternalDir(context);
             makeSureDirectoryExists(dir);
 
             final StringBuilder sb = new StringBuilder();
@@ -199,7 +199,7 @@ public class DatabaseUtil {
 
             final String databaseName = new Configuration.Builder(context).create().getDatabaseName();
 
-            final String dir = getExternalDir();
+            final String dir = getExternalDir(context);
             makeSureDirectoryExists(dir);
 
             final StringBuilder sb = new StringBuilder();
