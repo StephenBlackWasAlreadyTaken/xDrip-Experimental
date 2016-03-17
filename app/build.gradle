@@ -94,12 +94,14 @@ android {
             resValue "string", "content_provider", "com.example"
             resValue "string", "app_name", "xDrip"
             resValue "string", "target_package", "com.eveningoutpost.dexdrip"
+            resValue "string", "data_sync", "Data Sync"
         }
         xdripviewer {
             applicationId = "com.eveningoutpost.dexdrip.viewer"
             resValue "string", "content_provider", "com.example1"
             resValue "string", "app_name", "xDripViewer"
             resValue "string", "target_package", "com.eveningoutpost.dexdrip.viewer"
+            resValue "string", "data_sync", ""
         }
     }
 }
@@ -116,7 +118,7 @@ dependencies {
     compile 'com.google.code.gson:gson:2.3'
     compile 'com.squareup.retrofit:converter-gson:2.0.0-beta2'
     compile 'com.squareup.retrofit:retrofit:2.0.0-beta2'
-    compile 'com.squareup.okhttp:logging-interceptor:2.6.0' 
+    compile 'com.squareup.okhttp:logging-interceptor:2.6.0'
     compile 'com.getpebble:pebblekit:3.0.0'
     compile 'io.reactivex:rxjava:1.0.0'
     compile 'com.github.lecho:hellocharts-android:v1.5.5'
