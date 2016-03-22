@@ -1,5 +1,6 @@
 package com.eveningoutpost.dexdrip.UtilityModels;
 
+import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Context;
@@ -363,12 +364,20 @@ public class AlertPlayer {
         String content = "BG LEVEL ALERT: " + bgValue;
         Intent intent = new Intent(ctx, SnoozeActivity.class);
 
+        // Create an intent that will snooze the current alarm
+        Intent snoozeIntent = new Intent(ctx, SnoozeActivity.class);
+        snoozeIntent.putExtra("SNOOZE", true);
+        PendingIntent pendingSnoozeIntent = PendingIntent.getActivity(ctx, (int) System.currentTimeMillis(), snoozeIntent, 0);
+
         NotificationCompat.Builder  builder = new NotificationCompat.Builder(ctx)
             .setSmallIcon(R.drawable.ic_action_communication_invert_colors_on)
             .setContentTitle(title)
             .setContentText(content)
             .setContentIntent(notificationIntent(ctx, intent))
-            .setDeleteIntent(snoozeIntent(ctx));
+            .setDeleteIntent(snoozeIntent(ctx))
+            .setPriority(Notification.PRIORITY_MAX)
+            .addAction(R.drawable.ic_snooze, "Snooze", pendingSnoozeIntent);
+
         if (profile != ALERT_PROFILE_VIBRATE_ONLY && profile != ALERT_PROFILE_SILENT) {
             if (timeFromStartPlaying >= MAX_VIBRATING) {
                 // Before this, we only vibrate...

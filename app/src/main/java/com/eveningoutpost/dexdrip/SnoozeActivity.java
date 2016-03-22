@@ -117,6 +117,11 @@ public class SnoozeActivity extends ActivityWithMenu {
             buttonSnooze.setTextSize(TypedValue.COMPLEX_UNIT_SP, 30);
         }
         displayStatus();
+
+        if(getIntent().getBooleanExtra("SNOOZE", false))
+        {
+            doDefaultSnoozeAndFinish();
+        }
     }
 
     @Override
@@ -130,6 +135,17 @@ public class SnoozeActivity extends ActivityWithMenu {
     @Override
     public String getMenuName() {
         return menu_name;
+    }
+
+    public void doDefaultSnoozeAndFinish()
+    {
+        int intValue = getTimeFromSnoozeValue(snoozeValue.getValue());
+        AlertPlayer.getPlayer().Snooze(getApplicationContext(), intValue);
+        Intent intent = new Intent(getApplicationContext(), Home.class);
+        if (ActiveBgAlert.getOnly() != null) {
+            startActivity(intent);
+        }
+        finish();
     }
 
     public void addListenerOnButton() {
@@ -148,13 +164,7 @@ public class SnoozeActivity extends ActivityWithMenu {
         clearDisabled = (Button)findViewById(R.id.enable_alerts);
         buttonSnooze.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
-                int intValue = getTimeFromSnoozeValue(snoozeValue.getValue());
-                AlertPlayer.getPlayer().Snooze(getApplicationContext(), intValue);
-                Intent intent = new Intent(getApplicationContext(), Home.class);
-                if (ActiveBgAlert.getOnly() != null) {
-                    startActivity(intent);
-                }
-                finish();
+                doDefaultSnoozeAndFinish();
             }
 
         });

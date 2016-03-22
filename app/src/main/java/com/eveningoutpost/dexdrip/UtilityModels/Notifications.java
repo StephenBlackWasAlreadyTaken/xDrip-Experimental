@@ -38,6 +38,7 @@ import com.eveningoutpost.dexdrip.Models.UserNotification;
 import com.eveningoutpost.dexdrip.Services.MissedReadingService;
 
 import com.eveningoutpost.dexdrip.R;
+import com.eveningoutpost.dexdrip.SnoozeActivity;
 
 import java.util.Calendar;
 import java.util.Date;
@@ -430,10 +431,13 @@ public class Notifications extends IntentService {
                         PendingIntent.FLAG_UPDATE_CURRENT
                 );
 
+
         NotificationCompat.Builder b = new NotificationCompat.Builder(mContext);
         //b.setOngoing(true);
         b.setCategory(NotificationCompat.CATEGORY_STATUS);
+        b.setPriority(Notification.PRIORITY_MAX);
         String titleString = lastReading == null ? "BG Reading Unavailable" : (lastReading.displayValue(mContext) + " " + lastReading.slopeArrow());
+
         b.setContentTitle(titleString)
                 .setContentText("xDrip Data collection service is running.")
                 .setSmallIcon(R.drawable.ic_action_communication_invert_colors_on)
@@ -613,11 +617,19 @@ public class Notifications extends IntentService {
             }
             UserNotification.create(message, type);
             Intent intent = new Intent(context, Home.class);
+
+            // Create an intent that will snooze the current alarm
+            Intent snoozeIntent = new Intent(context, SnoozeActivity.class);
+            snoozeIntent.putExtra("SNOOZE", true);
+            PendingIntent pendingSnoozeIntent = PendingIntent.getActivity(context, (int) System.currentTimeMillis(), snoozeIntent, 0);
+
             NotificationCompat.Builder mBuilder =
                     new NotificationCompat.Builder(context)
                             .setSmallIcon(R.drawable.ic_action_communication_invert_colors_on)
                             .setContentTitle(message)
                             .setContentText(message)
+                            .setPriority(Notification.PRIORITY_MAX)
+                            .addAction(R.drawable.ic_snooze, "Snooze", pendingSnoozeIntent)
                             .setContentIntent(PendingIntent.getActivity(context, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT));
             mBuilder.setVibrate(vibratePattern);
             mBuilder.setLights(0xff00ff00, 300, 1000);
