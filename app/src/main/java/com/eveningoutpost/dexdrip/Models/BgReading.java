@@ -423,8 +423,8 @@ public class BgReading extends Model implements ShareUploadableBg{
             Log.i(TAG, "NEW VALUE CALCULATED AT: " + bgReading.calculated_value);
 
             bgReading.save();
-            BgSendQueue.handleNewBgReading(bgReading, "create", context);
         }
+        BgSendQueue.handleNewBgReading(bgReading, "create", context);
 
         Log.i("BG GSON: ",bgReading.toS());
     }
