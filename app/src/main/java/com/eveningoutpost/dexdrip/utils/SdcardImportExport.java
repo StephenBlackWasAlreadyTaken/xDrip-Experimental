@@ -8,6 +8,7 @@ import android.view.View;
 import android.widget.Toast;
 
 import com.eveningoutpost.dexdrip.R;
+import com.eveningoutpost.dexdrip.Services.XDripViewer;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -21,9 +22,15 @@ public class SdcardImportExport extends ActivityWithMenu {
 
     private final static String TAG = "jamorham sdcard";
 
-    private final static String PREFERENCES_FILE = "shared_prefs/com.eveningoutpost.dexdrip_preferences.xml";
-
-
+    
+    String getPreferenceFileName() {
+      if(XDripViewer.isxDripViewerMode(getApplicationContext())) {
+        return "shared_prefs/com.eveningoutpost.dexdrip.viewer_preferences.xml";
+      } else {
+        return "shared_prefs/com.eveningoutpost.dexdrip_preferences.xml";
+      }
+    }
+        
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -38,7 +45,7 @@ public class SdcardImportExport extends ActivityWithMenu {
     public void savePreferencesToSD(View myview) {
 
         if (savePreferencesToSD()) {
-            toast("Preferences saved in sdcard '/xdrip/settingsExport' ");
+            toast("Preferences saved in sdcard '/"+FileUtils.getDirectoryName(getApplicationContext()) + "/settingsExport' ");
         } else {
             toast("Couldn't write to sdcard - check permissions?");
         }
@@ -50,13 +57,14 @@ public class SdcardImportExport extends ActivityWithMenu {
             // shared preferences are cached so we need a hard restart
             android.os.Process.killProcess(android.os.Process.myPid());
         } else {
-            toast("Could not load preferences\nPlease make sure it exists in '/xdrip/settingsExport' on the sdcard");
+            toast("Could not load preferences\nPlease make sure it exists in '/" + 
+                FileUtils.getDirectoryName(getApplicationContext()) + "/settingsExport' on the sdcard");
         }
     }
 
     public boolean savePreferencesToSD() {
         if (isExternalStorageWritable()) {
-            return dataToSDcopy(PREFERENCES_FILE);
+            return dataToSDcopy(getPreferenceFileName());
         } else {
             toast("SDcard not writable - cannot save");
             return false;
@@ -65,7 +73,7 @@ public class SdcardImportExport extends ActivityWithMenu {
 
     public boolean loadPreferencesFromSD() {
         if (isExternalStorageWritable()) {
-            return dataFromSDcopy(PREFERENCES_FILE);
+            return dataFromSDcopy(getPreferenceFileName());
         } else {
             toast("SDcard not readable");
             return false;
@@ -81,7 +89,7 @@ public class SdcardImportExport extends ActivityWithMenu {
     }
 
     private String getCustomSDcardpath() {
-        return getExternalDir() + "/settingsExport";
+        return getExternalDir(getApplicationContext()) + "/settingsExport";
     }
 
     private boolean dataToSDcopy(String filename) {

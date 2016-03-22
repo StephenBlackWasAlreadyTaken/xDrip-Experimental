@@ -51,13 +51,30 @@ public class Sensor extends Model {
         return sensor;
     }
     
+ // Used by xDripViewer
+    public static void createUpdate(long started_at, long stopped_at,  int latest_battery_level, String uuid) {
+
+        Sensor sensor = getByTimestamp(started_at);
+        if (sensor != null) {
+            Log.d("SENSOR", "updatinga an existing sensor");
+        } else {
+            Log.d("SENSOR", "creating a new sensor");
+            sensor = new Sensor();
+        }
+        sensor.started_at = started_at;
+        sensor.stopped_at = stopped_at;
+        sensor.latest_battery_level = latest_battery_level;
+        sensor.uuid = uuid;
+        sensor.save();
+    }
+    
     public static void stopSensor() {
         Sensor sensor = currentSensor();
         if(sensor == null) {
             return;
         }
         sensor.stopped_at = new Date().getTime();
-        Log.i("NEW SENSOR", "Sensor stopped at " + sensor.stopped_at);
+        Log.i("SENSOR", "Sensor stopped at " + sensor.stopped_at);
         sensor.save();
         SensorSendQueue.addToQueue(sensor);
         
@@ -88,6 +105,27 @@ public class Sensor extends Model {
             return true;
         }
     }
+   
+    public static Sensor getByTimestamp(double started_at) {
+        return new Select()
+                .from(Sensor.class)
+                .where("started_at = ?", started_at)
+                .executeSingle();
+    }
+    
+    public static Sensor getByUuid(String xDrip_sensor_uuid) {
+        if(xDrip_sensor_uuid == null) {
+            Log.e("SENSOR", "xDrip_sensor_uuid is null");
+            return null;
+        }
+        Log.e("SENSOR", "xDrip_sensor_uuid is " + xDrip_sensor_uuid);
+        
+        return new Select()
+                .from(Sensor.class)
+                .where("uuid = ?", xDrip_sensor_uuid)
+                .executeSingle();
+    }
+    
 
     public static void updateBatteryLevel(Sensor sensor, int sensorBatteryLevel) {
         if(sensorBatteryLevel < 120) {
@@ -112,7 +150,7 @@ public class Sensor extends Model {
     public static void updateSensorLocation(String sensor_location) {
         Sensor sensor = currentSensor();
         if (sensor == null) {
-            Log.e("SENSOR MODEL:", "updateSensorLocation called but sensor is null");
+            Log.e("SENSOR", "updateSensorLocation called but sensor is null");
             return;
         }
         sensor.sensor_location = sensor_location;
