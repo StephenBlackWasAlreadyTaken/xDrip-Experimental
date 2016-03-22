@@ -147,9 +147,9 @@ public class XDripViewer extends AsyncTaskBase {
             }
             TransmitterData.create((int)nightscoutBg.xDrip_raw, 100 /* ??????? */, nightscoutBg.date);
             BgReading.create(mContext, 
-                    nightscoutBg.xDrip_raw * 1000,
+                    nightscoutBg.xDrip_raw != 0 ? nightscoutBg.xDrip_raw * 1000 : nightscoutBg.unfiltered,
                     nightscoutBg.xDrip_age_adjusted_raw_value,
-                    nightscoutBg.xDrip_filtered * 1000,
+                    nightscoutBg.xDrip_raw != 0 ? nightscoutBg.xDrip_filtered * 1000 : nightscoutBg.unfiltered,
                     nightscoutBg.date, 
                     nightscoutBg.xDrip_calculated_value != 0 ? nightscoutBg.xDrip_calculated_value : nightscoutBg.sgv,
                     nightscoutBg.xDrip_calculated_current_slope,
