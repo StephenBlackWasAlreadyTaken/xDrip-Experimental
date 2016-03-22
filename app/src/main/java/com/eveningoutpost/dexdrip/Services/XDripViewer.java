@@ -53,7 +53,7 @@ public class XDripViewer extends AsyncTaskBase {
         NsRestApiReader nsRestApiReader = new NsRestApiReader();
         Long LastReportedTime = 0L;
 
-        Sensor lastSensor = Sensor.last();
+        Sensor lastSensor = Sensor.currentSensor();
 
         if(lastSensor != null) {
             LastReportedTime = (long)lastSensor.started_at;

@@ -105,14 +105,7 @@ public class Sensor extends Model {
             return true;
         }
     }
-    
-    public static Sensor last() {
-        return new Select()
-                .from(Sensor.class)
-                .orderBy("started_at desc")
-                .executeSingle();
-    }
-    
+   
     public static Sensor getByTimestamp(double started_at) {
         return new Select()
                 .from(Sensor.class)
