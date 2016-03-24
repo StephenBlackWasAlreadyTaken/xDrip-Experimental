@@ -89,14 +89,14 @@ android {
     }
 
     productFlavors {
-        xDrip {
+        xdrip {
             applicationId = "com.eveningoutpost.dexdrip"
             resValue "string", "content_provider", "com.example"
             resValue "string", "app_name", "xDrip"
             resValue "string", "target_package", "com.eveningoutpost.dexdrip"
             resValue "string", "data_sync", "Data Sync"
         }
-        xDripViewer {
+        xdripviewer {
             applicationId = "com.eveningoutpost.dexdrip.viewer"
             resValue "string", "content_provider", "com.example1"
             resValue "string", "app_name", "xDripViewer"
@@ -108,7 +108,8 @@ android {
 
 dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
-    wearApp project(':wear')
+    xdripWearApp project(path: ':wear', configuration: 'xdripRelease')
+    xdripviewerWearApp project(path: ':wear', configuration: 'xdripviewerRelease')
     testCompile 'com.squareup.okhttp:mockwebserver:2.6.0'
     compile 'com.nispok:snackbar:2.10.8'
     compile 'com.android.support:appcompat-v7:23.1.0'
