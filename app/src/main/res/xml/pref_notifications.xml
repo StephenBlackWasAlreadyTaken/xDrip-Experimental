@@ -6,7 +6,7 @@
             android:key="bg_level_alerts" >
             <intent
                 android:action="android.intent.action.MAIN"
-                android:targetPackage="com.eveningoutpost.dexdrip"
+                android:targetPackage="@string/target_package"
                 android:targetClass="com.eveningoutpost.dexdrip.AlertList"
                 />
         </Preference>

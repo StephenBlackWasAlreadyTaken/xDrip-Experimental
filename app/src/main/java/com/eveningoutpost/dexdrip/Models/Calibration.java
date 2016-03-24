@@ -334,6 +334,18 @@ public class Calibration extends Model {
                 .executeSingle();
     }
 
+    public static Calibration getByTimestamp(double timestamp) {
+        Sensor sensor = Sensor.currentSensor();
+        if(sensor == null) {
+          return null;
+        }
+        return new Select()
+                .from(Calibration.class)
+                .where("Sensor = ? ", sensor.getId())
+                .where("timestamp = ?", timestamp)
+                .executeSingle();
+    }
+
     public static Calibration create(double bg, Context context) {
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
         String unit = prefs.getString("units", "mgdl");
@@ -388,6 +400,40 @@ public class Calibration extends Model {
         return Calibration.last();
     }
 
+    // Used by xDripViewer
+    public static void createUpdate(String xDrip_sensor_uuid, double bg, long timeStamp, double intercept, double slope, 
+            double estimate_raw_at_time_of_calibration, double slope_confidence , double sensor_confidence, 
+            long raw_timestamp) {
+        Sensor sensor = Sensor.getByUuid(xDrip_sensor_uuid);
+
+        if (sensor == null) {
+            Log.d("CALIBRATION", "No sensor found, ignoring cailbration");
+            return;
+        }
+        
+        Calibration calibration = getByTimestamp(timeStamp);
+        if (calibration != null) {
+            Log.d("CALIBRATION", "updatinga an existing calibration");
+        } else {
+            Log.d("CALIBRATION", "creating a new calibration");
+            calibration = new Calibration();
+        }
+
+        calibration.sensor = sensor;
+        calibration.bg = bg;
+        calibration.timestamp = timeStamp;
+        calibration.sensor_uuid = sensor.uuid;
+        calibration.uuid = UUID.randomUUID().toString();
+        calibration.intercept = intercept;
+        calibration.slope = slope;
+        calibration.estimate_raw_at_time_of_calibration = estimate_raw_at_time_of_calibration;
+        calibration.slope_confidence = slope_confidence;
+        calibration.sensor_confidence = sensor_confidence;
+        calibration.raw_timestamp = raw_timestamp;
+        calibration.check_in = false;
+        calibration.save();
+    }
+    
     public static List<Calibration> allForSensorInLastFiveDays() {
         Sensor sensor = Sensor.currentSensor();
         if (sensor == null) { return null; }
@@ -698,6 +744,6 @@ public class Calibration extends Model {
                 .where("timestamp > " + timestamp)
                 .orderBy("timestamp desc")
                 .execute();
-    }
+     }
 
 }
