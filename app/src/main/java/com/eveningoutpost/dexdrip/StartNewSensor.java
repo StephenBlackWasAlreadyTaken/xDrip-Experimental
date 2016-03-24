@@ -18,7 +18,7 @@ import com.eveningoutpost.dexdrip.UtilityModels.CollectionServiceStarter;
 import com.eveningoutpost.dexdrip.utils.ActivityWithMenu;
 
 import java.util.Calendar;
-
+import java.util.Date;
 
 public class StartNewSensor extends ActivityWithMenu {
     public static String menu_name = "Start Sensor";
@@ -96,6 +96,11 @@ public class StartNewSensor extends ActivityWithMenu {
               calendar.set(dp.getYear(), dp.getMonth(), dp.getDayOfMonth(),
               tp.getCurrentHour(), tp.getCurrentMinute(), 0);
               long startTime = calendar.getTime().getTime();
+              
+              if(new Date().getTime() + 15 * 60000 < startTime ) {
+            	  Toast.makeText(getApplicationContext(), "ERROR: SENSOR START TIME IN FUTURE", Toast.LENGTH_LONG).show();
+            	  return;
+              }
 
               Sensor.create(startTime);
               Log.d("NEW SENSOR", "Sensor started at " + startTime);
