@@ -182,6 +182,12 @@
             android:exported="true" >
         </service>
 
+        <service
+            android:name=".Services.G5CollectionService"
+            android:enabled="true"
+            android:exported="true" >
+        </service>
+
         <activity
             android:name=".ShareTest"
             android:label="@string/title_activity_share_test" >
