@@ -52,10 +52,20 @@ import com.nispok.snackbar.enums.SnackbarType;
 import com.nispok.snackbar.listeners.ActionClickListener;
 
 import java.io.File;
+import java.io.UnsupportedEncodingException;
+import java.nio.ByteBuffer;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
 import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
+
+import javax.crypto.BadPaddingException;
+import javax.crypto.Cipher;
+import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.NoSuchPaddingException;
+import javax.crypto.spec.SecretKeySpec;
 
 import lecho.lib.hellocharts.gesture.ZoomType;
 import lecho.lib.hellocharts.listener.ViewportChangeListener;
