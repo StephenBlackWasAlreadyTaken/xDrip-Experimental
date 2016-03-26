@@ -85,6 +85,7 @@ public class Home extends ActivityWithMenu {
     private Viewport tempViewport = new Viewport();
     private Viewport holdViewport = new Viewport();
     private boolean isBTShare;
+    private boolean isG5Share;
     private BroadcastReceiver _broadcastReceiver;
     private BroadcastReceiver newDataReceiver;
     private LineChartView            chart;
@@ -267,6 +268,7 @@ public class Home extends ActivityWithMenu {
         boolean isDexbridgeWixel = CollectionServiceStarter.isDexbridgeWixel(getApplicationContext());
         boolean isWifiBluetoothWixel = CollectionServiceStarter.isWifiandBTWixel(getApplicationContext());
         isBTShare = CollectionServiceStarter.isBTShare(getApplicationContext());
+        isG5Share = CollectionServiceStarter.isBTG5(getApplicationContext());
         boolean isWifiWixel = CollectionServiceStarter.isWifiWixel(getApplicationContext());
         alreadyDisplayedBgInfoCommon = false; // reset flag
         
@@ -281,6 +283,10 @@ public class Home extends ActivityWithMenu {
         } else if (isWifiWixel || isWifiBluetoothWixel) {
             updateCurrentBgInfoForWifiWixel(notificationText);
         }
+        if (isG5Share) {
+            updateCurrentBgInfoCommon(notificationText);
+        }
+
         if (mPreferences.getLong("alerts_disabled_until", 0) > new Date().getTime()) {
             notificationText.append("\n ALL ALERTS CURRENTLY DISABLED");
         } else if (mPreferences.getLong("low_alerts_disabled_until", 0) > new Date().getTime()
