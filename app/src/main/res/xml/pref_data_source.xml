@@ -26,7 +26,7 @@
             android:key="dex_txid"
             android:title="Dexcom Transmitter ID"
             android:summary="ID of your Dexcom Transmitter, eg 12AB3"
-            android:defaultValue="00000" />
+            android:defaultValue="ABCDEF" />
         <CheckBoxPreference
             android:key="display_bridge_battery"
             android:title="Display Bridge Battery"
