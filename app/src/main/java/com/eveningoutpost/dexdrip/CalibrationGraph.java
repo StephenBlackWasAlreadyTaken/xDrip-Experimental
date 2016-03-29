@@ -111,7 +111,7 @@ public class CalibrationGraph extends ActivityWithMenu {
         line.setHasLines(false);
         line.setPointRadius(4);
         line.setHasPoints(true);
-        line.setHasLabels(true);
+        //line.setHasLabels(true);
         return line;
     }
 }
