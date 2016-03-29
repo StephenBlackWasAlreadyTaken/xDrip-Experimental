@@ -7,10 +7,13 @@ import android.graphics.Color;
 import android.preference.PreferenceManager;
 import android.support.annotation.NonNull;
 import android.text.format.DateFormat;
+import android.view.View;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.eveningoutpost.dexdrip.Models.BgReading;
 import com.eveningoutpost.dexdrip.Models.Calibration;
+import com.eveningoutpost.dexdrip.R;
 
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
@@ -498,7 +501,7 @@ public class BgGraphBuilder {
 
     public class OnValueSelectTooltipListener implements LineChartOnValueSelectListener{
 
-        private Toast tooltip;
+        private Toast tooltip;// = Toast.makeText(context, resTxtId, Toast.LENGTH_LONG);
 
         @Override
         public synchronized void onValueSelected(int i, int i1, PointValue pointValue) {
@@ -509,6 +512,9 @@ public class BgGraphBuilder {
                 tooltip.cancel();
             }
             tooltip = Toast.makeText(context, timeFormat.format(time)+ ": " + Math.round(pointValue.getY()*10)/ 10d , Toast.LENGTH_LONG);
+            View view = tooltip.getView();
+            view.setBackgroundColor(Color.parseColor("#212121"));
+
             tooltip.show();
         }
 
