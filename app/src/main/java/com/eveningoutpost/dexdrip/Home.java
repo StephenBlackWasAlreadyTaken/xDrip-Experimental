@@ -52,20 +52,12 @@ import com.nispok.snackbar.enums.SnackbarType;
 import com.nispok.snackbar.listeners.ActionClickListener;
 
 import java.io.File;
-import java.io.UnsupportedEncodingException;
-import java.nio.ByteBuffer;
-import java.security.InvalidKeyException;
-import java.security.NoSuchAlgorithmException;
+
 import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
 
-import javax.crypto.BadPaddingException;
-import javax.crypto.Cipher;
-import javax.crypto.IllegalBlockSizeException;
-import javax.crypto.NoSuchPaddingException;
-import javax.crypto.spec.SecretKeySpec;
 
 import lecho.lib.hellocharts.gesture.ZoomType;
 import lecho.lib.hellocharts.listener.ViewportChangeListener;
@@ -552,16 +544,9 @@ public class Home extends ActivityWithMenu {
         if(BgGraphBuilder.isXLargeTablet(getApplicationContext()) || BgGraphBuilder.isLargeTablet(getApplicationContext())) {
             minutesString = " Min ago";
         } else {
-            if (minutes > 0) {
-                minutesString = minutes==1 ? " Minute ago":" Minutes ago";
-                notificationText.append("\n" + minutes + minutesString);
-            } else {
-                minutesString = minutes==0 ? "now": "?";
-                notificationText.append("\n" + minutesString);
-            }
-
-
+            minutesString = minutes==1 ?" Minute ago":" Minutes ago";
         }
+        notificationText.append("\n" + minutes + minutesString);
         List<BgReading> bgReadingList = BgReading.latest(2);
         if(bgReadingList != null && bgReadingList.size() == 2) {
             // same logic as in xDripWidget (refactor that to BGReadings to avoid redundancy / later inconsistencies)?
