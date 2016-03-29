@@ -166,14 +166,13 @@ public class CollectionServiceStarter {
             stopWifWixelThread();
             stopG5ShareService();
             startBtShareService();
-
-        } else if(isBTG5(collection_method)) {
+        } else if(isBTG5(collection_method, context)) {
             Log.d("DexDrip", "Starting G5 share collector");
             stopBtWixelService();
             stopWifWixelThread();
             stopBtShareService();
             startBtG5Service();
-        } else if (isWifiandBTWixel(context)) {
+        } else if (isWifiandBTWixel(collection_method, context)) {
             Log.d("DexDrip", "Starting wifi and bt wixel collector");
             stopBtWixelService();
             stopWifWixelThread();
