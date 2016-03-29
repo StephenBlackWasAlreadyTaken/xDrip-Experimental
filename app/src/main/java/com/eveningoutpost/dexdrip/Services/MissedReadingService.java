@@ -15,6 +15,7 @@ import android.preference.PreferenceManager;
 
 import com.eveningoutpost.dexdrip.Models.UserError.Log;
 import com.eveningoutpost.dexdrip.ImportedLibraries.dexcom.ReadDataShare;
+import com.eveningoutpost.dexdrip.Models.AlertType;
 import com.eveningoutpost.dexdrip.Models.BgReading;
 import com.eveningoutpost.dexdrip.Models.UserNotification;
 import com.eveningoutpost.dexdrip.Models.Sensor;
@@ -45,9 +46,8 @@ public class MissedReadingService extends IntentService {
         context = getApplicationContext();
         prefs = PreferenceManager.getDefaultSharedPreferences(context);
         bg_missed_alerts =  prefs.getBoolean("bg_missed_alerts", false);
-        bg_missed_minutes =  Integer.parseInt(prefs.getString("bg_missed_minutes", "30"));
-        otherAlertSnooze =  Integer.parseInt(prefs.getString("other_alerts_snooze", "20"));
-
+        bg_missed_minutes =  readPerfsInt(prefs, "bg_missed_minutes", 30);
+        otherAlertSnooze =  readPerfsInt(prefs, "other_alerts_snooze", 20);
         long now = new Date().getTime();
         Log.d(TAG, "MissedReadingService onHandleIntent");
         if (!bg_missed_alerts) {
@@ -56,7 +56,8 @@ public class MissedReadingService extends IntentService {
         }
 
         if (BgReading.getTimeSinceLastReading() >= (bg_missed_minutes * 1000 * 60) &&
-                prefs.getLong("alerts_disabled_until", 0) <= now) {
+                prefs.getLong("alerts_disabled_until", 0) <= now &&
+                inTimeFrame(prefs)) {
             Notifications.bgMissedAlert(context);
             checkBackAfterSnoozeTime(now);
         } else  {
@@ -67,6 +68,15 @@ public class MissedReadingService extends IntentService {
             long alarmIn = Math.max(disabletime, missedTime);
             checkBackAfterMissedTime(alarmIn);
         }
+    }
+    
+    private boolean inTimeFrame(SharedPreferences prefs) {
+        
+        int startMinutes = prefs.getInt("missed_readings_start", 0);
+        int endMinutes = prefs.getInt("missed_readings_end", 0);
+        boolean allDay = prefs.getBoolean("missed_readings_all_day", true);
+
+        return AlertType.s_in_time_frame(allDay, startMinutes, endMinutes);
     }
 
     public void checkBackAfterSnoozeTime(long now) {
@@ -85,6 +95,10 @@ public class MissedReadingService extends IntentService {
     }
 
     public void setAlarm(long alarmIn) {
+        if(alarmIn < 5 * 60 * 1000) {
+            // No need to check more than once every 5 minutes
+            alarmIn = 5 * 60 * 1000;
+        }
     	Log.d(TAG, "Setting timer to  " + alarmIn / 60000 + " minutes from now" );
         Calendar calendar = Calendar.getInstance();
         AlarmManager alarm = (AlarmManager) getSystemService(ALARM_SERVICE);
@@ -96,5 +110,14 @@ public class MissedReadingService extends IntentService {
             alarm.setExact(AlarmManager.RTC_WAKEUP, wakeTime, serviceIntent);
         } else
             alarm.set(AlarmManager.RTC_WAKEUP, wakeTime, serviceIntent);
+    }
+    
+    static public int readPerfsInt(SharedPreferences prefs, String name, int defaultValue) {
+        try {
+            return Integer.parseInt(prefs.getString(name, "" + defaultValue));
+             
+        } catch (Exception e) {
+            return defaultValue;
+        }
     }
 }

@@ -635,10 +635,10 @@ public class EditAlertActivity extends ActivityWithMenu {
         }
     }
 
-    public String timeFormatString(int hour, int minute) {
+    static public String timeFormatString(Context context, int hour, int minute) {
         SimpleDateFormat timeFormat24 = new SimpleDateFormat("HH:mm");
         String selected = hour+":" + ((minute<10)?"0":"") + minute;
-        if (!DateFormat.is24HourFormat(mContext)) {
+        if (!DateFormat.is24HourFormat(context)) {
             try {
                 Date date = timeFormat24.parse(selected);
                 SimpleDateFormat timeFormat12 = new SimpleDateFormat("hh:mm aa");
@@ -653,8 +653,8 @@ public class EditAlertActivity extends ActivityWithMenu {
     public void setTimeRanges() {
         timeInstructions.setVisibility(View.VISIBLE);
         layoutTimeBetween.setVisibility(View.VISIBLE);
-        viewTimeStart.setText(timeFormatString(startHour, startMinute));
-        viewTimeEnd.setText(timeFormatString(endHour, endMinute));
+        viewTimeStart.setText(timeFormatString(mContext, startHour, startMinute));
+        viewTimeEnd.setText(timeFormatString(mContext, endHour, endMinute));
     }
 
     public static boolean isPathRingtone(Context context, String path) {

@@ -1,3 +1,5 @@
+<!--                        android:targetPackage="@string/target_package" -->
+
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
     <PreferenceCategory
         android:title="Alerts and Notifications"
@@ -83,7 +85,16 @@
                 android:summary="Number of minutes to pass before raising the same calibration request."
                 android:defaultValue="20" />
         </PreferenceScreen>
-
+        
+S        <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
+            android:title="Missed reading Alert"
+            android:key="missed_readings_screen">
+            <intent
+                        android:action="android.intent.action.MAIN"
+			android:targetPackage="@string/target_package"
+                        android:targetClass="com.eveningoutpost.dexdrip.MissedReadingActivity"/>
+        </PreferenceScreen>
+        
         <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
             android:title="Other Alerts"
             android:key="other_alerts_screen">
@@ -103,21 +114,6 @@
                     android:defaultValue="90" />
             </PreferenceCategory>
 
-            <PreferenceCategory
-                android:title="Missed Readings">
-                <CheckBoxPreference
-                    android:key="bg_missed_alerts"
-                    android:title="Missed Reading Alerts"
-                    android:defaultValue="false" />
-                <EditTextPreference
-                    android:dependency="bg_missed_alerts"
-                    android:key="bg_missed_minutes"
-                    android:title="Minutes until alerting for missed readings"
-                    android:inputType="number"
-                    android:summary="Alert if no data receieved in x minutes"
-                    android:defaultValue="30" />
-            </PreferenceCategory>
-            
             <PreferenceCategory
                 android:title="Falling/Rising BG">
                 <CheckBoxPreference
