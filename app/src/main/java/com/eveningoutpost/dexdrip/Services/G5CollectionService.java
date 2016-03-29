@@ -68,6 +68,9 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
@@ -107,6 +110,9 @@ public class G5CollectionService extends Service {
     private int lastBattery = 216;
     private long lastRead = new Date().getTime() - (5 * 60 *1000);
 
+    private static final ScheduledExecutorService worker =
+            Executors.newSingleThreadScheduledExecutor();
+
     private AlarmManager alarm;// = (AlarmManager) getSystemService(ALARM_SERVICE);
 
     private ScanSettings settings;
@@ -133,9 +139,11 @@ public class G5CollectionService extends Service {
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-//        PowerManager powerManager = (PowerManager) getApplicationContext().getSystemService(POWER_SERVICE);
-//        PowerManager.WakeLock wakeLock = powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "DexShareCollectionStart");
-//        wakeLock.acquire(40000);
+
+        PowerManager powerManager = (PowerManager) getApplicationContext().getSystemService(POWER_SERVICE);
+        PowerManager.WakeLock wakeLock = powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, TAG);
+        wakeLock.acquire(4 * 60 * 1000);
+
         Log.d(TAG, "onG5StartCommand");
         Log.d(TAG, "SDK: " + Build.VERSION.SDK_INT);
         prefs = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
@@ -219,6 +227,17 @@ public class G5CollectionService extends Service {
         }
     }
 
+    void scanAfterDelay() {
+
+        Runnable task = new Runnable() {
+            public void run() {
+                startScan();
+            }
+        };
+        worker.schedule(task, 5, TimeUnit.SECONDS);
+
+    }
+
     private ScanCallback mScanCallback = new ScanCallback() {
         @Override
         public void onScanResult(int callbackType, ScanResult result) {
@@ -280,10 +299,10 @@ public class G5CollectionService extends Service {
             };
 
     private void connectToDevice(BluetoothDevice device) {
-        //if (mGatt == null) {
-        mGatt = device.connectGatt(getApplicationContext(), false, gattCallback);
-        stopScan();
-        //}
+        if (mGatt == null) {
+            mGatt = device.connectGatt(getApplicationContext(), false, gattCallback);
+            stopScan();
+        }
     }
 
     private final BluetoothGattCallback gattCallback = new BluetoothGattCallback() {
@@ -296,10 +315,13 @@ public class G5CollectionService extends Service {
                     break;
                 case BluetoothProfile.STATE_DISCONNECTED:
                     android.util.Log.e("gattCallback", "STATE_DISCONNECTED");
-                    device = null;
+                    if (mGatt == null) {
+                        scanAfterDelay();
+                        return;
+                    }
                     mGatt.close();
                     mGatt = null;
-                    startScan();
+                    scanAfterDelay();
                     break;
                 default:
                     android.util.Log.e("gattCallback", "STATE_OTHER");

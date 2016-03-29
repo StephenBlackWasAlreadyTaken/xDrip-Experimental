@@ -71,6 +71,7 @@ public class BgGraphBuilder {
 
     public BgGraphBuilder(Context context){
         this(context, new Date().getTime() + (60000 * 10));
+
     }
 
     public BgGraphBuilder(Context context, long end){
