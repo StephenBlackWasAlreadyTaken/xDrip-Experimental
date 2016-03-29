@@ -104,6 +104,14 @@ public class CollectionServiceStarter {
         return collection_method.equals("DexcomShare"); 
     }
 
+    public static boolean isBTG5(String collection_method, Context context) {
+       if(XDripViewer.isxDripViewerMode(context)) {
+        return false;
+       }
+        return collection_method.equals("DexcomG5");
+    }
+
+
     public static boolean isBTG5(Context context) {
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
         String collection_method = prefs.getString("dex_collection_method", "BluetoothWixel");
@@ -111,10 +119,6 @@ public class CollectionServiceStarter {
             return true;
         }
         return false;
-    }
-
-    public static boolean isBTG5(String collection_method) {
-        return collection_method.equals("DexcomG5");
     }
 
     public static boolean isWifiWixel(Context context) {
