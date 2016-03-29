@@ -16,7 +16,7 @@
         <service
             android:name=".Home"
             android:allowEmbedded="true"
-            android:label="xDrip"
+            android:label="@string/label_xdrip"
             android:permission="android.permission.BIND_WALLPAPER">
             <meta-data android:name="android.service.wallpaper"
                        android:resource="@xml/watch_face"/>
@@ -30,7 +30,7 @@
         <service
             android:name=".LargeHome"
             android:allowEmbedded="true"
-            android:label="xDrip(Large)"
+            android:label="@string/label_xdrip_large"
             android:permission="android.permission.BIND_WALLPAPER">
             <meta-data android:name="android.service.wallpaper"
                        android:resource="@xml/watch_face"/>
@@ -44,7 +44,7 @@
         <service
             android:name=".BIGChart"
             android:allowEmbedded="true"
-            android:label="xDrip(BigChart)"
+            android:label="@string/label_xdrip_big_chart"
             android:permission="android.permission.BIND_WALLPAPER">
             <meta-data android:name="android.service.wallpaper"
                 android:resource="@xml/watch_face"/>
@@ -58,7 +58,7 @@
         <service
             android:name=".CircleWatchface"
             android:allowEmbedded="true"
-            android:label="xDrip(Circle)"
+            android:label="@string/label_xdrip_circle"
             android:permission="android.permission.BIND_WALLPAPER">
             <meta-data android:name="android.service.wallpaper"
                 android:resource="@xml/watch_face"/>
@@ -77,7 +77,7 @@
         </service>
         <activity
             android:name=".NWPreferences"
-            android:label="@string/app_name" >
+            android:label="@string/label_xdrip_activity" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 

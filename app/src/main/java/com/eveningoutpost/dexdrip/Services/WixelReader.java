@@ -1,6 +1,8 @@
 package com.eveningoutpost.dexdrip.Services;
+import com.eveningoutpost.dexdrip.R;
 
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.AsyncTask;
 import android.os.PowerManager;
@@ -11,12 +13,17 @@ import com.eveningoutpost.dexdrip.Models.Calibration;
 import com.eveningoutpost.dexdrip.Models.TransmitterData;
 import com.eveningoutpost.dexdrip.Models.UserError.Log;
 import com.eveningoutpost.dexdrip.Models.Sensor;
-import com.eveningoutpost.dexdrip.utils.BgToSpeech;
+import com.eveningoutpost.dexdrip.Services.NsRestApiReader.NightscoutBg;
+import com.eveningoutpost.dexdrip.Services.NsRestApiReader.NightscoutMbg;
+import com.eveningoutpost.dexdrip.Services.NsRestApiReader.NightscoutSensor;
+import com.eveningoutpost.dexdrip.UtilityModels.Notifications;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.squareup.okhttp.OkHttpClient;
 import com.squareup.okhttp.Request;
 import com.squareup.okhttp.Response;
+import com.google.common.base.Charsets;
+import com.google.common.hash.Hashing;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -25,45 +32,38 @@ import java.io.PrintWriter;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.SocketTimeoutException;
+import java.net.URI;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+import java.util.ListIterator;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.squareup.okhttp.Interceptor;
+import com.squareup.okhttp.logging.HttpLoggingInterceptor;
+import com.squareup.okhttp.OkHttpClient;
 
 // Important note, this class is based on the fact that android will always run it one thread, which means it does not
 // need synchronization
 
-public class WixelReader extends AsyncTask<String, Void, Void > {
+public class WixelReader extends AsyncTaskBase {
 
     private final static String TAG = WixelReader.class.getName();
-    private static BgToSpeech bgToSpeech;
-
-    private static OkHttpClient httpClient = null;
-
-    private final Context mContext;
-    PowerManager.WakeLock wakeLock;
-
-    private final static long DEXCOM_PERIOD=300000;
     
-    private static int lockCounter = 0;
+    private final static long DEXCOM_PERIOD=300000;
+    private static OkHttpClient httpClient = null;
+    
     
     // This variables are for fake function only
     static int i = 0;
     static int added = 5;
 
     public WixelReader(Context ctx) {
-        mContext = ctx.getApplicationContext();
-        PowerManager pm = (PowerManager) mContext.getSystemService(Context.POWER_SERVICE);
-        wakeLock = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "WifiReader");
-        wakeLock.acquire();
-        lockCounter++;
-        Log.e(TAG,"wakelock acquired " + lockCounter);
+        super(ctx, TAG);
     }
-
-
-    
-    
     public static boolean IsConfigured(Context ctx) {
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(ctx);
         String recieversIpAddresses = prefs.getString("wifi_recievers_addresses", "");
@@ -420,20 +420,12 @@ public class WixelReader extends AsyncTask<String, Void, Void > {
         }
     }
 
-    public Void doInBackground(String... urls) {
-        try {
-            readData();
-        } finally {
-            wakeLock.release();
-            lockCounter--;
-            Log.e(TAG,"wakelock released " + lockCounter);
-        }
-        return null;
-    }
-    
-    
+    @Override
     public void readData()
     {
+        if(!WixelReader.IsConfigured(mContext)) {
+            return;
+        }
         Long LastReportedTime = 0L;
     	TransmitterData lastTransmitterData = TransmitterData.last();
     	if(lastTransmitterData != null) {
@@ -453,9 +445,7 @@ public class WixelReader extends AsyncTask<String, Void, Void > {
     	Log.d(TAG, "Starting... LastReportedReading " + LastReportedReading);
     	// try to read one object...
         TransmitterRawData[] LastReadingArr = null;
-        if(!WixelReader.IsConfigured(mContext)) {
-            return;
-        }
+
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(mContext);
         String recieversIpAddresses = prefs.getString("wifi_recievers_addresses", "");
         
@@ -499,7 +489,7 @@ public class WixelReader extends AsyncTask<String, Void, Void > {
     }
 
 
-    public void setSerialDataToTransmitterRawData(int raw_data, int filtered_data ,int sensor_battery_leve, Long CaptureTime) {
+     public void setSerialDataToTransmitterRawData(int raw_data, int filtered_data ,int sensor_battery_leve, Long CaptureTime) {
 
         TransmitterData transmitterData = TransmitterData.create(raw_data, sensor_battery_leve, CaptureTime);
         if (transmitterData != null) {
@@ -532,4 +522,9 @@ public class WixelReader extends AsyncTask<String, Void, Void > {
         setSerialDataToTransmitterRawData(fakedRaw, fakedRaw ,215, new Date().getTime());
         Log.d(TAG, "returned from setSerialDataToTransmitterRawData " + fakedRaw);
     }
+    
+
+
+    
 }
+

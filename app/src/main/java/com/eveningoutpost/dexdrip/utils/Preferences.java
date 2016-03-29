@@ -27,6 +27,7 @@ import android.widget.Toast;
 
 import com.eveningoutpost.dexdrip.Models.UserError.Log;
 import com.eveningoutpost.dexdrip.Services.MissedReadingService;
+import com.eveningoutpost.dexdrip.Services.XDripViewer;
 import com.eveningoutpost.dexdrip.R;
 import com.eveningoutpost.dexdrip.UtilityModels.CollectionServiceStarter;
 import com.eveningoutpost.dexdrip.UtilityModels.PebbleSync;
@@ -235,6 +236,7 @@ public class Preferences extends PreferenceActivity {
     }
 
 
+    // This class is used by android, so it must stay public although this will compile when it is private.
     public static class AllPrefsFragment extends PreferenceFragment {
         @Override
         public void onCreate(Bundle savedInstanceState) {
@@ -279,6 +281,7 @@ public class Preferences extends PreferenceActivity {
             final Preference displayBridgeBatt = findPreference("display_bridge_battery");
             final Preference runInForeground = findPreference("run_service_in_foreground");
             final Preference wifiRecievers = findPreference("wifi_recievers_addresses");
+            final Preference xDripViewerNsAdresses = findPreference("xdrip_viewer_ns_addresses");
             final Preference predictiveBG = findPreference("predictive_bg");
             final Preference interpretRaw = findPreference("interpret_raw");
 
@@ -378,6 +381,7 @@ public class Preferences extends PreferenceActivity {
             bindPreferenceSummaryToValue(collectionMethod);
             bindPreferenceSummaryToValue(shareKey);
             bindPreferenceSummaryToValue(wifiRecievers);
+            bindPreferenceSummaryToValue(xDripViewerNsAdresses);
             bindPreferenceSummaryToValue(transmitterId);
             transmitterId.getEditText().setFilters(new InputFilter[]{new InputFilter.AllCaps()});
             collectionMethod.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
@@ -467,6 +471,32 @@ public class Preferences extends PreferenceActivity {
                     return true;
                 }
             });
+            
+            // Remove all the parts that are not needed in xDripViewer (doing it all in one place to avoid having many ifs)
+            if(XDripViewer.isxDripViewerMode(getActivity())) {
+                collectionCategory.removePreference(collectionMethod);
+                collectionCategory.removePreference(shareKey);
+                collectionCategory.removePreference(scanShare);
+                collectionCategory.removePreference(wifiRecievers);
+                collectionCategory.removePreference(transmitterId);
+                collectionCategory.removePreference(displayBridgeBatt);
+                
+                final PreferenceCategory dataSyncCategory = (PreferenceCategory) findPreference("dataSync");
+                final Preference autoConfigure = findPreference("auto_configure");
+                final Preference cloudStorageMongo =  findPreference("cloud_storage_mongo");
+                final Preference cloudStorageApi =  findPreference("cloud_storage_api");
+                final Preference dexcomServerUploadScreen =  findPreference("dexcom_server_upload_screen");
+                final Preference xDripViewerUploadMode =  findPreference("xDripViewer_upload_mode");
+                
+                dataSyncCategory.removePreference(autoConfigure);
+                dataSyncCategory.removePreference(cloudStorageMongo);
+                dataSyncCategory.removePreference(cloudStorageApi);
+                dataSyncCategory.removePreference(dexcomServerUploadScreen);
+                dataSyncCategory.removePreference(xDripViewerUploadMode);
+                
+            } else {
+                collectionCategory.removePreference(xDripViewerNsAdresses);
+            }
         }
 
         private void bindWidgetUpdater() {

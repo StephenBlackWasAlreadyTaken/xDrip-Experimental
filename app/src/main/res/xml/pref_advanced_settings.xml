@@ -138,17 +138,12 @@
             android:title="Widget Range Lines"
             android:summary="Show a high and low line on the widget."
             android:defaultValue="false" />
-        <CheckBoxPreference
-            android:key="xDripViewer_upload_mode"
-            android:title="xDripViewer upload mode"
-            android:summary="Upload more fields needed for optimum xDripViewer functioning"
-            android:defaultValue="false" />
         <Preference
             android:title="View Recent Errors/Warnings"
             android:key="recent_errors">
             <intent
                 android:action="android.intent.action.MAIN"
-                android:targetPackage="com.eveningoutpost.dexdrip"
+                android:targetPackage="@string/target_package"
                 android:targetClass="com.eveningoutpost.dexdrip.ErrorsActivity"/>
         </Preference>
     </PreferenceCategory>
