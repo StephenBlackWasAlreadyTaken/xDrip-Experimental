@@ -14,7 +14,7 @@
             android:orientation="vertical"
             android:layout_width="fill_parent"
             android:layout_height="fill_parent"
-            android:background="#171717">
+            android:background="#212121">
 
             <RelativeLayout
                 android:layout_width="match_parent"
@@ -23,8 +23,7 @@
                 android:paddingRight="0dp"
                 android:layout_weight="0.80"
                 android:paddingTop="0dp"
-                android:layout_marginTop="0dp"
-                android:background="#171717">
+                android:layout_marginTop="0dp">
 
                 <lecho.lib.hellocharts.view.LineChartView
                     android:id="@+id/chart"
@@ -32,8 +31,7 @@
                     android:layout_alignParentStart="false"
                     android:layout_alignParentEnd="true"
                     android:layout_height="match_parent"
-                    android:layout_below="@+id/extraStatusLine"
-                    android:background="#171717"/>
+                    android:layout_below="@+id/extraStatusLine"/>
 
                 <TextView
                     android:layout_width="900dp"
@@ -46,8 +44,8 @@
                     android:gravity="left|top"
                     android:layout_alignParentLeft="true"
                     android:text="Messages"
-                    android:background="#171717"
-                    android:layout_alignParentTop="true" />
+                    android:layout_alignParentTop="true"
+                    android:background="@android:color/transparent"/>
 
 
                 <TextView
@@ -59,7 +57,7 @@
                     android:paddingEnd="20dp"
                     android:textSize="50dp"
                     android:paddingTop="0dp"
-                    android:background="#171717" />
+                    android:background="@android:color/transparent"/>
 
                 <TextView
                     android:layout_width="wrap_content"
@@ -73,7 +71,7 @@
                     android:layout_alignParentStart="true"
                     android:layout_below="@+id/notices"
                     android:text=""
-                    android:background="#171717"/>
+                    android:background="@android:color/transparent"/>
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
@@ -94,8 +92,7 @@
                 android:layout_weight=".20"
                 android:layout_alignParentBottom="true"
                 android:layout_alignParentStart="true"
-                android:layout_height="0dp"
-                android:background="#171717">
+                android:layout_height="0dp">
             </lecho.lib.hellocharts.view.PreviewLineChartView>
 
         </LinearLayout>
