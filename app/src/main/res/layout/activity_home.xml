@@ -14,7 +14,7 @@
             android:orientation="vertical"
             android:layout_width="fill_parent"
             android:layout_height="fill_parent"
-            android:background="#212121">
+            android:background="#171717">
 
             <RelativeLayout
                 android:layout_width="match_parent"
@@ -23,7 +23,8 @@
                 android:paddingRight="0dp"
                 android:layout_weight="0.80"
                 android:paddingTop="0dp"
-                android:layout_marginTop="0dp">
+                android:layout_marginTop="0dp"
+                android:background="#171717">
 
                 <lecho.lib.hellocharts.view.LineChartView
                     android:id="@+id/chart"
@@ -32,21 +33,24 @@
                     android:layout_alignParentEnd="true"
                     android:layout_height="match_parent"
                     android:layout_marginTop="55dp"
-                    android:layout_below="@+id/extraStatusLine"/>
+                    android:layout_below="@+id/extraStatusLine"
+                    android:background="#171717"/>
 
                 <TextView
                     android:layout_width="900dp"
                     android:layout_height="wrap_content"
                     android:textAppearance="?android:attr/textAppearanceSmall"
-                    android:textColor="#C30909"
+                    android:textColor="#FF0000"
                     android:id="@+id/notices"
                     android:paddingEnd="10dp"
                     android:paddingStart="10dp"
-                    android:gravity="left|top"
+                    android:gravity="center|center_vertical"
                     android:layout_alignParentLeft="true"
+                    android:text="Messages"
+                    android:background="#171717"
+                    android:textAlignment="center"
                     android:layout_alignParentTop="true"
-                    android:text="Alerts and messages"
-                    android:background="@android:color/transparent"/>
+                    android:layout_toStartOf="@+id/currentBgValueRealTime" />
 
 
                 <TextView
@@ -58,7 +62,8 @@
                     android:paddingEnd="20dp"
                     android:textSize="50dp"
                     android:paddingTop="0dp"
-                    android:background="@android:color/transparent"/>
+                    android:background="#171717"
+                    android:layout_alignTop="@+id/extraStatusLine" />
 
                 <TextView
                     android:layout_width="wrap_content"
@@ -72,12 +77,12 @@
                     android:layout_alignParentStart="true"
                     android:layout_below="@+id/notices"
                     android:text=""
-                    android:background="@android:color/transparent"/>
+                    android:background="#171717"/>
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:textAppearance="?android:attr/textAppearanceSmall"
-                    android:text="100%"
+                    android:text=""
                     android:id="@+id/textBridgeBattery"
                     android:textStyle="normal"
                     android:textSize="12sp"
@@ -93,7 +98,8 @@
                 android:layout_weight=".20"
                 android:layout_alignParentBottom="true"
                 android:layout_alignParentStart="true"
-                android:layout_height="0dp">
+                android:layout_height="0dp"
+                android:background="#171717">
             </lecho.lib.hellocharts.view.PreviewLineChartView>
 
         </LinearLayout>

@@ -262,7 +262,7 @@ public class Home extends ActivityWithMenu {
         setupCharts();
         final TextView notificationText = (TextView) findViewById(R.id.notices);
         notificationText.setText("");
-        notificationText.setTextColor(Color.RED);
+        notificationText.setTextColor(Color.parseColor("#FF0000"));
         boolean isBTWixel = CollectionServiceStarter.isBTWixel(getApplicationContext());
         boolean isDexbridgeWixel = CollectionServiceStarter.isDexbridgeWixel(getApplicationContext());
         boolean isWifiBluetoothWixel = CollectionServiceStarter.isWifiandBTWixel(getApplicationContext());
@@ -284,15 +284,15 @@ public class Home extends ActivityWithMenu {
         }
 
         if (mPreferences.getLong("alerts_disabled_until", 0) > new Date().getTime()) {
-            notificationText.append("\n ALL ALERTS CURRENTLY DISABLED");
+            notificationText.append("\n ALL ALERTS DISABLED");
         } else if (mPreferences.getLong("low_alerts_disabled_until", 0) > new Date().getTime()
 			&&
 			mPreferences.getLong("high_alerts_disabled_until", 0) > new Date().getTime()) {
-            notificationText.append("\nLOW AND HIGH ALERTS CURRENTLY DISABLED");
+            notificationText.append("\nLOW AND HIGH ALERTS DISABLED");
         } else if (mPreferences.getLong("low_alerts_disabled_until", 0) > new Date().getTime()) {
-            notificationText.append("\nLOW ALERTS CURRENTLY DISABLED");
+            notificationText.append("\nLOW ALERTS DISABLED");
         } else if (mPreferences.getLong("high_alerts_disabled_until", 0) > new Date().getTime()) {
-            notificationText.append("\nHIGH ALERTS CURRENTLY DISABLED");
+            notificationText.append("\nHIGH ALERTS DISABLED");
         }
         if(mPreferences.getBoolean("extra_status_line", false)) {
             extraStatusLineText.setText(extraStatusLine(mPreferences));
@@ -341,7 +341,7 @@ public class Home extends ActivityWithMenu {
         final long now = System.currentTimeMillis();
         if (Sensor.currentSensor().started_at + 60000 * 60 * 2 >= now) {
             double waitTime = (Sensor.currentSensor().started_at + 60000 * 60 * 2 - now) / 60000.0;
-            notificationText.setText("Please wait while sensor warms up! (" + String.format("%.2f", waitTime) + " minutes)");
+            notificationText.setText("Sensor Warmup (" + String.format("%.0f", waitTime) + " minutes remaining)");
             return;
         }
 
@@ -417,7 +417,7 @@ public class Home extends ActivityWithMenu {
             } else {
                 dexbridgeBattery.setText("xBridge Battery: " + bridgeBattery + "%");
             }
-            dexbridgeBattery.setTextColor(Color.GREEN);
+            dexbridgeBattery.setTextColor(Color.parseColor("#00FF00"));
             if (bridgeBattery < 50 && bridgeBattery >30) dexbridgeBattery.setTextColor(Color.YELLOW);
             if (bridgeBattery <= 30) dexbridgeBattery.setTextColor(Color.RED);
             dexbridgeBattery.setVisibility(View.VISIBLE);
@@ -450,7 +450,7 @@ public class Home extends ActivityWithMenu {
             extraline.append(String.format("%.2f",lastCalibration.slope));
             extraline.append(' ');
             extraline.append("inter = ");
-            extraline.append(String.format("%.2f",lastCalibration.intercept));
+            extraline.append(String.format("%.2f", lastCalibration.intercept));
         }
 
         if(prefs.getBoolean("status_line_calibration_short", false) && lastCalibration != null) {
@@ -459,7 +459,7 @@ public class Home extends ActivityWithMenu {
             extraline.append(String.format("%.2f",lastCalibration.slope));
             extraline.append(' ');
             extraline.append("i:");
-            extraline.append(String.format("%.2f",lastCalibration.intercept));
+            extraline.append(String.format("%.2f", lastCalibration.intercept));
         }
 
         if(prefs.getBoolean("status_line_avg", false)
@@ -539,9 +539,16 @@ public class Home extends ActivityWithMenu {
         if(BgGraphBuilder.isXLargeTablet(getApplicationContext()) || BgGraphBuilder.isLargeTablet(getApplicationContext())) {
             minutesString = " Min ago";
         } else {
-            minutesString = minutes==1 ?" Minute ago":" Minutes ago";
+            if (minutes > 0) {
+                minutesString = minutes==1 ? " Minute ago":" Minutes ago";
+                notificationText.append("\n" + minutes + minutesString);
+            } else {
+                minutesString = minutes==0 ? "now": "?";
+                notificationText.append("\n" + minutesString);
+            }
+
+
         }
-        notificationText.append("\n" + minutes + minutesString);
         List<BgReading> bgReadingList = BgReading.latest(2);
         if(bgReadingList != null && bgReadingList.size() == 2) {
             // same logic as in xDripWidget (refactor that to BGReadings to avoid redundancy / later inconsistencies)?
@@ -554,9 +561,9 @@ public class Home extends ActivityWithMenu {
                     bgGraphBuilder.unitizedDeltaString(true, true));
         }
         if(bgGraphBuilder.unitized(estimate) <= bgGraphBuilder.lowMark) {
-            currentBgValueText.setTextColor(Color.parseColor("#C30909"));
+            currentBgValueText.setTextColor(Color.parseColor("#FF0000"));
         } else if (bgGraphBuilder.unitized(estimate) >= bgGraphBuilder.highMark) {
-            currentBgValueText.setTextColor(Color.parseColor("#FFBB33"));
+            currentBgValueText.setTextColor(Color.parseColor("#FFFF00"));
         } else {
             currentBgValueText.setTextColor(Color.WHITE);
         }

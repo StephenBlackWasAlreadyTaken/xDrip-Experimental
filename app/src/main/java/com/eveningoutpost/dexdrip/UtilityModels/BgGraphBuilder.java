@@ -463,7 +463,7 @@ public class BgGraphBuilder {
                 df.setMaximumFractionDigits(0);
             }
 
-            return delta_sign + df.format(unitized(value)) +  (showUnit?" mg/dl":"");
+            return delta_sign + df.format(unitized(value)) +  (showUnit?" mg/dL":"");
         } else {
 
             if(highGranularity){
@@ -474,7 +474,7 @@ public class BgGraphBuilder {
 
             df.setMinimumFractionDigits(1);
             df.setMinimumIntegerDigits(1);
-            return delta_sign + df.format(unitized(value)) + (showUnit?" mmol/l":"");
+            return delta_sign + df.format(unitized(value)) + (showUnit?" mmol/L":"");
         }
     }
 
@@ -485,9 +485,9 @@ public class BgGraphBuilder {
 
     public String unit() {
         if(doMgdl){
-            return "mg/dl";
+            return "mg/dL";
         } else {
-            return "mmol";
+            return "mmol/L";
         }
 
     }
