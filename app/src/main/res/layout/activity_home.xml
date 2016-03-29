@@ -37,14 +37,14 @@
                     android:layout_width="900dp"
                     android:layout_height="wrap_content"
                     android:textAppearance="?android:attr/textAppearanceSmall"
-                    android:textColor="#C30909"
+                    android:textColor="#FF0000"
                     android:id="@+id/notices"
                     android:paddingEnd="10dp"
                     android:paddingStart="10dp"
                     android:gravity="left|top"
                     android:layout_alignParentLeft="true"
+                    android:text="Messages"
                     android:layout_alignParentTop="true"
-                    android:text="Alerts and messages"
                     android:background="@android:color/transparent"/>
 
 
@@ -76,7 +76,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:textAppearance="?android:attr/textAppearanceSmall"
-                    android:text="100%"
+                    android:text=""
                     android:id="@+id/textBridgeBattery"
                     android:textStyle="normal"
                     android:textSize="12sp"

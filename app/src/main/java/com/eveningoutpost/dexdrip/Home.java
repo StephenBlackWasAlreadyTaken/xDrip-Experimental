@@ -52,10 +52,12 @@ import com.nispok.snackbar.enums.SnackbarType;
 import com.nispok.snackbar.listeners.ActionClickListener;
 
 import java.io.File;
+
 import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
+
 
 import lecho.lib.hellocharts.gesture.ZoomType;
 import lecho.lib.hellocharts.listener.ViewportChangeListener;
@@ -75,6 +77,7 @@ public class Home extends ActivityWithMenu {
     private Viewport tempViewport = new Viewport();
     private Viewport holdViewport = new Viewport();
     private boolean isBTShare;
+    private boolean isG5Share;
     private BroadcastReceiver _broadcastReceiver;
     private BroadcastReceiver newDataReceiver;
     private LineChartView            chart;
@@ -252,11 +255,12 @@ public class Home extends ActivityWithMenu {
         setupCharts();
         final TextView notificationText = (TextView) findViewById(R.id.notices);
         notificationText.setText("");
-        notificationText.setTextColor(Color.RED);
+        notificationText.setTextColor(Color.parseColor("#FF0000"));
         boolean isBTWixel = CollectionServiceStarter.isBTWixel(getApplicationContext());
         boolean isDexbridgeWixel = CollectionServiceStarter.isDexbridgeWixel(getApplicationContext());
         boolean isWifiBluetoothWixel = CollectionServiceStarter.isWifiandBTWixel(getApplicationContext());
         isBTShare = CollectionServiceStarter.isBTShare(getApplicationContext());
+        isG5Share = CollectionServiceStarter.isBTG5(getApplicationContext());
         boolean isWifiWixel = CollectionServiceStarter.isWifiWixel(getApplicationContext());
         alreadyDisplayedBgInfoCommon = false; // reset flag
         
@@ -271,16 +275,20 @@ public class Home extends ActivityWithMenu {
         } else if (isWifiWixel || isWifiBluetoothWixel) {
             updateCurrentBgInfoForWifiWixel(notificationText);
         }
+        if (isG5Share) {
+            updateCurrentBgInfoCommon(notificationText);
+        }
+
         if (mPreferences.getLong("alerts_disabled_until", 0) > new Date().getTime()) {
-            notificationText.append("\n ALL ALERTS CURRENTLY DISABLED");
+            notificationText.append("\n ALL ALERTS DISABLED");
         } else if (mPreferences.getLong("low_alerts_disabled_until", 0) > new Date().getTime()
 			&&
 			mPreferences.getLong("high_alerts_disabled_until", 0) > new Date().getTime()) {
-            notificationText.append("\nLOW AND HIGH ALERTS CURRENTLY DISABLED");
+            notificationText.append("\nLOW AND HIGH ALERTS DISABLED");
         } else if (mPreferences.getLong("low_alerts_disabled_until", 0) > new Date().getTime()) {
-            notificationText.append("\nLOW ALERTS CURRENTLY DISABLED");
+            notificationText.append("\nLOW ALERTS DISABLED");
         } else if (mPreferences.getLong("high_alerts_disabled_until", 0) > new Date().getTime()) {
-            notificationText.append("\nHIGH ALERTS CURRENTLY DISABLED");
+            notificationText.append("\nHIGH ALERTS DISABLED");
         }
         if(mPreferences.getBoolean("extra_status_line", false)) {
             extraStatusLineText.setText(extraStatusLine(mPreferences));
@@ -338,7 +346,7 @@ public class Home extends ActivityWithMenu {
         final long now = System.currentTimeMillis();
         if (Sensor.currentSensor().started_at + 60000 * 60 * 2 >= now) {
             double waitTime = (Sensor.currentSensor().started_at + 60000 * 60 * 2 - now) / 60000.0;
-            notificationText.setText("Please wait while sensor warms up! (" + String.format("%.2f", waitTime) + " minutes)");
+            notificationText.setText("Sensor Warmup (" + String.format("%.0f", waitTime) + " minutes remaining)");
             return;
         }
 
@@ -414,7 +422,7 @@ public class Home extends ActivityWithMenu {
             } else {
                 dexbridgeBattery.setText("xBridge Battery: " + bridgeBattery + "%");
             }
-            dexbridgeBattery.setTextColor(Color.GREEN);
+            dexbridgeBattery.setTextColor(Color.parseColor("#00FF00"));
             if (bridgeBattery < 50 && bridgeBattery >30) dexbridgeBattery.setTextColor(Color.YELLOW);
             if (bridgeBattery <= 30) dexbridgeBattery.setTextColor(Color.RED);
             dexbridgeBattery.setVisibility(View.VISIBLE);
@@ -447,7 +455,7 @@ public class Home extends ActivityWithMenu {
             extraline.append(String.format("%.2f",lastCalibration.slope));
             extraline.append(' ');
             extraline.append("inter = ");
-            extraline.append(String.format("%.2f",lastCalibration.intercept));
+            extraline.append(String.format("%.2f", lastCalibration.intercept));
         }
 
         if(prefs.getBoolean("status_line_calibration_short", false) && lastCalibration != null) {
@@ -456,7 +464,7 @@ public class Home extends ActivityWithMenu {
             extraline.append(String.format("%.2f",lastCalibration.slope));
             extraline.append(' ');
             extraline.append("i:");
-            extraline.append(String.format("%.2f",lastCalibration.intercept));
+            extraline.append(String.format("%.2f", lastCalibration.intercept));
         }
 
         if(prefs.getBoolean("status_line_avg", false)
@@ -551,9 +559,9 @@ public class Home extends ActivityWithMenu {
                     bgGraphBuilder.unitizedDeltaString(true, true));
         }
         if(bgGraphBuilder.unitized(estimate) <= bgGraphBuilder.lowMark) {
-            currentBgValueText.setTextColor(Color.parseColor("#C30909"));
+            currentBgValueText.setTextColor(Color.parseColor("#FF0000"));
         } else if (bgGraphBuilder.unitized(estimate) >= bgGraphBuilder.highMark) {
-            currentBgValueText.setTextColor(Color.parseColor("#FFBB33"));
+            currentBgValueText.setTextColor(Color.parseColor("#FFFF00"));
         } else {
             currentBgValueText.setTextColor(Color.WHITE);
         }

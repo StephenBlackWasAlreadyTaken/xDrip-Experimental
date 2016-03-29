@@ -8,41 +8,61 @@
     </facet>
     <facet type="android" name="Android">
       <configuration>
-        <option name="SELECTED_BUILD_VARIANT" value="debug" />
+        <option name="SELECTED_BUILD_VARIANT" value="xdripDebug" />
         <option name="SELECTED_TEST_ARTIFACT" value="_android_test_" />
-        <option name="ASSEMBLE_TASK_NAME" value="assembleDebug" />
-        <option name="COMPILE_JAVA_TASK_NAME" value="compileDebugSources" />
-        <option name="ASSEMBLE_TEST_TASK_NAME" value="assembleDebugAndroidTest" />
-        <option name="COMPILE_JAVA_TEST_TASK_NAME" value="compileDebugAndroidTestSources" />
+        <option name="ASSEMBLE_TASK_NAME" value="assembleXdripDebug" />
+        <option name="COMPILE_JAVA_TASK_NAME" value="compileXdripDebugSources" />
+        <option name="ASSEMBLE_TEST_TASK_NAME" value="assembleXdripDebugAndroidTest" />
+        <option name="COMPILE_JAVA_TEST_TASK_NAME" value="compileXdripDebugAndroidTestSources" />
         <afterSyncTasks>
-          <task>generateDebugAndroidTestSources</task>
-          <task>generateDebugSources</task>
+          <task>generateXdripDebugAndroidTestSources</task>
+          <task>generateXdripDebugSources</task>
         </afterSyncTasks>
         <option name="ALLOW_USER_CONFIGURATION" value="false" />
         <option name="MANIFEST_FILE_RELATIVE_PATH" value="/src/main/AndroidManifest.xml" />
         <option name="RES_FOLDER_RELATIVE_PATH" value="/src/main/res" />
-        <option name="RES_FOLDERS_RELATIVE_PATH" value="file://$MODULE_DIR$/src/main/res" />
         <option name="ASSETS_FOLDER_RELATIVE_PATH" value="/src/main/assets" />
       </configuration>
     </facet>
   </component>
   <component name="NewModuleRootManager" LANGUAGE_LEVEL="JDK_1_7" inherit-compiler-output="false">
-    <output url="file://$MODULE_DIR$/build/intermediates/classes/debug" />
-    <output-test url="file://$MODULE_DIR$/build/intermediates/classes/androidTest/debug" />
+    <output url="file://$MODULE_DIR$/build/intermediates/classes/xdrip/debug" />
+    <output-test url="file://$MODULE_DIR$/build/intermediates/classes/androidTest/xdrip/debug" />
     <exclude-output />
     <content url="file://$MODULE_DIR$">
-      <sourceFolder url="file://$MODULE_DIR$/build/generated/source/r/debug" isTestSource="false" generated="true" />
-      <sourceFolder url="file://$MODULE_DIR$/build/generated/source/aidl/debug" isTestSource="false" generated="true" />
-      <sourceFolder url="file://$MODULE_DIR$/build/generated/source/buildConfig/debug" isTestSource="false" generated="true" />
-      <sourceFolder url="file://$MODULE_DIR$/build/generated/source/rs/debug" isTestSource="false" generated="true" />
-      <sourceFolder url="file://$MODULE_DIR$/build/generated/res/rs/debug" type="java-resource" />
-      <sourceFolder url="file://$MODULE_DIR$/build/generated/res/resValues/debug" type="java-resource" />
-      <sourceFolder url="file://$MODULE_DIR$/build/generated/source/r/androidTest/debug" isTestSource="true" generated="true" />
-      <sourceFolder url="file://$MODULE_DIR$/build/generated/source/aidl/androidTest/debug" isTestSource="true" generated="true" />
-      <sourceFolder url="file://$MODULE_DIR$/build/generated/source/buildConfig/androidTest/debug" isTestSource="true" generated="true" />
-      <sourceFolder url="file://$MODULE_DIR$/build/generated/source/rs/androidTest/debug" isTestSource="true" generated="true" />
-      <sourceFolder url="file://$MODULE_DIR$/build/generated/res/rs/androidTest/debug" type="java-test-resource" />
-      <sourceFolder url="file://$MODULE_DIR$/build/generated/res/resValues/androidTest/debug" type="java-test-resource" />
+      <sourceFolder url="file://$MODULE_DIR$/build/generated/source/r/xdrip/debug" isTestSource="false" generated="true" />
+      <sourceFolder url="file://$MODULE_DIR$/build/generated/source/aidl/xdrip/debug" isTestSource="false" generated="true" />
+      <sourceFolder url="file://$MODULE_DIR$/build/generated/source/buildConfig/xdrip/debug" isTestSource="false" generated="true" />
+      <sourceFolder url="file://$MODULE_DIR$/build/generated/source/rs/xdrip/debug" isTestSource="false" generated="true" />
+      <sourceFolder url="file://$MODULE_DIR$/build/generated/res/rs/xdrip/debug" type="java-resource" />
+      <sourceFolder url="file://$MODULE_DIR$/build/generated/res/resValues/xdrip/debug" type="java-resource" />
+      <sourceFolder url="file://$MODULE_DIR$/src/xdripDebug/res" type="java-resource" />
+      <sourceFolder url="file://$MODULE_DIR$/src/xdripDebug/resources" type="java-resource" />
+      <sourceFolder url="file://$MODULE_DIR$/src/xdripDebug/assets" type="java-resource" />
+      <sourceFolder url="file://$MODULE_DIR$/src/xdripDebug/aidl" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/src/xdripDebug/java" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/src/xdripDebug/jni" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/src/xdripDebug/rs" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/build/generated/source/r/androidTest/xdrip/debug" isTestSource="true" generated="true" />
+      <sourceFolder url="file://$MODULE_DIR$/build/generated/source/aidl/androidTest/xdrip/debug" isTestSource="true" generated="true" />
+      <sourceFolder url="file://$MODULE_DIR$/build/generated/source/buildConfig/androidTest/xdrip/debug" isTestSource="true" generated="true" />
+      <sourceFolder url="file://$MODULE_DIR$/build/generated/source/rs/androidTest/xdrip/debug" isTestSource="true" generated="true" />
+      <sourceFolder url="file://$MODULE_DIR$/build/generated/res/rs/androidTest/xdrip/debug" type="java-test-resource" />
+      <sourceFolder url="file://$MODULE_DIR$/build/generated/res/resValues/androidTest/xdrip/debug" type="java-test-resource" />
+      <sourceFolder url="file://$MODULE_DIR$/src/xdrip/res" type="java-resource" />
+      <sourceFolder url="file://$MODULE_DIR$/src/xdrip/resources" type="java-resource" />
+      <sourceFolder url="file://$MODULE_DIR$/src/xdrip/assets" type="java-resource" />
+      <sourceFolder url="file://$MODULE_DIR$/src/xdrip/aidl" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/src/xdrip/java" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/src/xdrip/jni" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/src/xdrip/rs" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/src/androidTestXdrip/res" type="java-test-resource" />
+      <sourceFolder url="file://$MODULE_DIR$/src/androidTestXdrip/resources" type="java-test-resource" />
+      <sourceFolder url="file://$MODULE_DIR$/src/androidTestXdrip/assets" type="java-test-resource" />
+      <sourceFolder url="file://$MODULE_DIR$/src/androidTestXdrip/aidl" isTestSource="true" />
+      <sourceFolder url="file://$MODULE_DIR$/src/androidTestXdrip/java" isTestSource="true" />
+      <sourceFolder url="file://$MODULE_DIR$/src/androidTestXdrip/jni" isTestSource="true" />
+      <sourceFolder url="file://$MODULE_DIR$/src/androidTestXdrip/rs" isTestSource="true" />
       <sourceFolder url="file://$MODULE_DIR$/src/debug/res" type="java-resource" />
       <sourceFolder url="file://$MODULE_DIR$/src/debug/resources" type="java-resource" />
       <sourceFolder url="file://$MODULE_DIR$/src/debug/assets" type="java-resource" />
@@ -65,6 +85,10 @@
       <sourceFolder url="file://$MODULE_DIR$/src/androidTest/jni" isTestSource="true" />
       <sourceFolder url="file://$MODULE_DIR$/src/androidTest/rs" isTestSource="true" />
       <excludeFolder url="file://$MODULE_DIR$/build/intermediates/assets" />
+      <excludeFolder url="file://$MODULE_DIR$/build/intermediates/classes" />
+      <excludeFolder url="file://$MODULE_DIR$/build/intermediates/debug" />
+      <excludeFolder url="file://$MODULE_DIR$/build/intermediates/dependency-cache" />
+      <excludeFolder url="file://$MODULE_DIR$/build/intermediates/dex" />
       <excludeFolder url="file://$MODULE_DIR$/build/intermediates/exploded-aar/com.android.support/recyclerview-v7/21.0.0/jars" />
       <excludeFolder url="file://$MODULE_DIR$/build/intermediates/exploded-aar/com.android.support/support-v4/22.0.0/jars" />
       <excludeFolder url="file://$MODULE_DIR$/build/intermediates/exploded-aar/com.google.android.gms/play-services-base/7.3.0/jars" />
@@ -73,10 +97,16 @@
       <excludeFolder url="file://$MODULE_DIR$/build/intermediates/exploded-aar/com.ustwo.android/clockwise-wearable/1.0.2/jars" />
       <excludeFolder url="file://$MODULE_DIR$/build/intermediates/incremental" />
       <excludeFolder url="file://$MODULE_DIR$/build/intermediates/manifests" />
+      <excludeFolder url="file://$MODULE_DIR$/build/intermediates/pre-dexed" />
+      <excludeFolder url="file://$MODULE_DIR$/build/intermediates/release" />
       <excludeFolder url="file://$MODULE_DIR$/build/intermediates/res" />
       <excludeFolder url="file://$MODULE_DIR$/build/intermediates/rs" />
       <excludeFolder url="file://$MODULE_DIR$/build/intermediates/symbols" />
+      <excludeFolder url="file://$MODULE_DIR$/build/intermediates/tmp" />
+      <excludeFolder url="file://$MODULE_DIR$/build/intermediates/xdripRelease" />
+      <excludeFolder url="file://$MODULE_DIR$/build/intermediates/xdripviewerRelease" />
       <excludeFolder url="file://$MODULE_DIR$/build/outputs" />
+      <excludeFolder url="file://$MODULE_DIR$/build/tmp" />
     </content>
     <orderEntry type="jdk" jdkName="Android API 23 Platform" jdkType="Android SDK" />
     <orderEntry type="sourceFolder" forTests="false" />

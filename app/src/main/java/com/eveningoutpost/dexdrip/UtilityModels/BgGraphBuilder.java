@@ -131,7 +131,7 @@ public class BgGraphBuilder {
 
     public Line highValuesLine() {
         Line highValuesLine = new Line(highValues);
-        highValuesLine.setColor(ChartUtils.COLOR_ORANGE);
+        highValuesLine.setColor(Color.parseColor("#FFFF00"));
         highValuesLine.setHasLines(false);
         highValuesLine.setPointRadius(pointSize);
         highValuesLine.setHasPoints(true);
@@ -140,7 +140,7 @@ public class BgGraphBuilder {
 
     public Line lowValuesLine() {
         Line lowValuesLine = new Line(lowValues);
-        lowValuesLine.setColor(Color.parseColor("#C30909"));
+        lowValuesLine.setColor(Color.parseColor("#FF0000"));
         lowValuesLine.setHasLines(false);
         lowValuesLine.setPointRadius(pointSize);
         lowValuesLine.setHasPoints(true);
@@ -149,7 +149,7 @@ public class BgGraphBuilder {
 
     public Line inRangeValuesLine() {
         Line inRangeValuesLine = new Line(inRangeValues);
-        inRangeValuesLine.setColor(ChartUtils.COLOR_BLUE);
+        inRangeValuesLine.setColor(Color.parseColor("#00FF00"));
         inRangeValuesLine.setHasLines(false);
         inRangeValuesLine.setPointRadius(pointSize);
         inRangeValuesLine.setHasPoints(true);
@@ -211,7 +211,7 @@ public class BgGraphBuilder {
         highLine.setHasPoints(false);
         highLine.setStrokeWidth(1);
         if(show) {
-            highLine.setColor(ChartUtils.COLOR_ORANGE);
+            highLine.setColor(Color.parseColor("#FFFF00"));
         } else {
             highLine.setColor(Color.TRANSPARENT);
         }
@@ -227,7 +227,7 @@ public class BgGraphBuilder {
         Line lowLine = new Line(lowLineValues);
         lowLine.setHasPoints(false);
         if(!line_only) {
-            lowLine.setAreaTransparency(50);
+            lowLine.setAreaTransparency(20);
             lowLine.setFilled(true);
         }
         lowLine.setStrokeWidth(1);
