@@ -2,7 +2,7 @@
 
     <!-- Base application theme. -->
     <style name="AppTheme" parent="android:Theme.Holo">
-        <item name="android:background">#212121</item>
+        <item name="android:background">#171717</item>
         <item name="android:actionBarStyle">@style/MyActionBar</item>
         <item name="android:textColor">@android:color/white</item>
     </style>
@@ -10,7 +10,7 @@
     <!-- ActionBar styles -->
     <style name="MyActionBar"
         parent="@android:style/Widget.Holo.ActionBar">
-        <item name="android:background">#212121</item>
+        <item name="android:background">#171717</item>
         <!--<item name="android:color">#616161</item>-->
     </style>
 </resources>
