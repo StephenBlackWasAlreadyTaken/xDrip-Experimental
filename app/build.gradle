@@ -103,8 +103,6 @@ android {
             resValue "string", "data_sync", ""
         }
     }
-    productFlavors {
-    }
 }
 
 dependencies {
