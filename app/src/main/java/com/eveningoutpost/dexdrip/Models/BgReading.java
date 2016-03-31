@@ -591,7 +591,7 @@ public class BgReading extends Model implements ShareUploadableBg{
         double timestamp = new Date().getTime();
         return new Select()
                 .from(BgReading.class)
-                .where("timestamp > " + timestamp)
+                .where("timestamp >" + timestamp)
                 .orderBy("timestamp desc")
                 .execute();
     }
@@ -766,6 +766,29 @@ public class BgReading extends Model implements ShareUploadableBg{
             save();
         }
     }
+    
+    // This function is used in order to eliminate the need to wait for two minutes if a sensor was started more than 2 hours ago. 
+    public static void moveReadingsToNewSensor(Sensor sensor, long sensorStartTime) {
+        List<BgReading> newReadings = 
+            new Select()
+                    .from(BgReading.class)
+                    .where("timestamp >= " + (sensorStartTime + 2 * 60 * 60000))
+                    .orderBy("timestamp desc")
+                    .execute();
+        if(newReadings == null) {
+            Log.e("TAG", "newReadings = null");
+            return;
+        }
+        Log.e("TAG", "newReadings size "  + newReadings.size());
+        for(BgReading bgReading : newReadings) {
+            bgReading.sensor = sensor;
+            bgReading.sensor_uuid = sensor.uuid;
+            bgReading.save();
+            
+        }
+        
+    }
+    
     public static double weightedAverageRaw(double timeA, double timeB, double calibrationTime, double rawA, double rawB) {
         double relativeSlope = (rawB -  rawA)/(timeB - timeA);
         double relativeIntercept = rawA - (relativeSlope * timeA);

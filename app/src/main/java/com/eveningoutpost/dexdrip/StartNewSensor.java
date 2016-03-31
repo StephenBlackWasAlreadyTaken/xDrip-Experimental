@@ -12,6 +12,7 @@ import android.widget.DatePicker;
 import android.widget.TimePicker;
 import android.widget.Toast;
 
+import com.eveningoutpost.dexdrip.Models.BgReading;
 import com.eveningoutpost.dexdrip.Models.UserError.Log;
 import com.eveningoutpost.dexdrip.Models.Sensor;
 import com.eveningoutpost.dexdrip.UtilityModels.CollectionServiceStarter;
@@ -102,8 +103,9 @@ public class StartNewSensor extends ActivityWithMenu {
             	  return;
               }
 
-              Sensor.create(startTime);
+              Sensor sensor = Sensor.create(startTime);
               Log.d("NEW SENSOR", "Sensor started at " + startTime);
+              BgReading.moveReadingsToNewSensor(sensor, startTime);
 
               Toast.makeText(getApplicationContext(), "NEW SENSOR STARTED", Toast.LENGTH_LONG).show();
               
