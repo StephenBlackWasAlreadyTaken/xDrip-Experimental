@@ -193,11 +193,10 @@ public class G5CollectionService extends Service {
         PowerManager powerManager = (PowerManager) getApplicationContext().getSystemService(POWER_SERVICE);
         PowerManager.WakeLock wakeLock = powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, TAG);
         wakeLock.acquire(20 * 1000);
-
         alarm = (AlarmManager) getSystemService(ALARM_SERVICE);
         if (pendingIntent != null)
             alarm.cancel(pendingIntent);
-        long wakeTime = (long) (SystemClock.elapsedRealtime() + (4.9 * 1000 * 60));
+        long wakeTime = (long) (SystemClock.elapsedRealtime() + (4.5 * 1000 * 60));
         pendingIntent = PendingIntent.getService(this, 0, new Intent(this, this.getClass()), 0);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             alarm.setExactAndAllowWhileIdle(AlarmManager.ELAPSED_REALTIME_WAKEUP, wakeTime, pendingIntent);
@@ -251,14 +250,12 @@ public class G5CollectionService extends Service {
     }
     
     void scanAfterDelay() {
-        
         Runnable task = new Runnable() {
             public void run() {
                 startScan();
             }
         };
         worker.schedule(task, 10, TimeUnit.SECONDS);
-        
     }
 
     private ScanCallback mScanCallback;
@@ -296,8 +293,12 @@ public class G5CollectionService extends Service {
             @Override
             public void onScanFailed(int errorCode) {
                 android.util.Log.e(TAG, "Scan Failed Error Code: " + errorCode);
-                stopScan();
-                scanAfterDelay();
+                if (errorCode == 1) {
+                    android.util.Log.e(TAG, "Already Scanning");
+                } else {
+                    stopScan();
+                    scanAfterDelay();
+                }
             }
         };
     }
@@ -372,9 +373,6 @@ public class G5CollectionService extends Service {
             } else {
                 Log.w(TAG, "onServicesDiscovered received: " + status);
             }
-
-
-
         }
 
         @Override
@@ -403,7 +401,6 @@ public class G5CollectionService extends Service {
 
                 }
             }
-
 //            mGatt.setCharacteristicNotification(characteristic, false);
         }
 
@@ -542,7 +539,7 @@ public class G5CollectionService extends Service {
     private void processNewTransmitterData(int raw_data , int filtered_data,int sensor_battery_level, long CaptureTime) {
 
         TransmitterData transmitterData = TransmitterData.create(raw_data, sensor_battery_level, CaptureTime);
-        if (transmitterData != null) {
+        if (transmitterData == null) {
             Log.i(TAG, "TransmitterData.create failed: Duplicate packet");
             return;
         }
