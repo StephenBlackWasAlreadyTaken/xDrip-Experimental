@@ -31,8 +31,7 @@
                     android:layout_alignParentStart="false"
                     android:layout_alignParentEnd="true"
                     android:layout_height="match_parent"
-                    android:layout_below="@+id/extraStatusLine"
-                    android:layout_marginTop="50dp"/>
+                    android:layout_below="@+id/extraStatusLine"/>
 
                 <TextView
                     android:layout_width="900dp"
