@@ -258,7 +258,7 @@ public class G5CollectionService extends Service {
                 startScan();
             }
         };
-        worker.schedule(task, 0, TimeUnit.SECONDS);
+        worker.schedule(task, 10, TimeUnit.SECONDS);
         
     }
 
@@ -396,7 +396,9 @@ public class G5CollectionService extends Service {
             if (status == BluetoothGatt.GATT_SUCCESS) {
                 if (String.valueOf(characteristic.getUuid()).equalsIgnoreCase(String.valueOf(authCharacteristic.getUuid()))) {
                     android.util.Log.i(TAG, "auth? " + String.valueOf(characteristic.getUuid()));
-                    gatt.readCharacteristic(characteristic);
+                    if (characteristic.getValue() != null && characteristic.getValue()[0] != 0x7 && characteristic.getValue()[0] != 0x6) {
+                        gatt.readCharacteristic(characteristic);
+                    }
                 } else {
                     android.util.Log.i(TAG, "control?" + String.valueOf(characteristic.getUuid()));
 
