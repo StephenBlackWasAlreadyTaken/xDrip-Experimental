@@ -109,7 +109,6 @@ public class G5CollectionService extends Service {
     private BluetoothDevice device;
     private long startTimeInterval = -1;
     private int lastBattery = 216;
-    private long lastRead = new Date().getTime() - (5 * 60 *1000);
     private Boolean isBondedOrBonding = false;
 
     private static final ScheduledExecutorService worker =
@@ -497,36 +496,25 @@ public class G5CollectionService extends Service {
             if (firstByte == 0x2f) {
                 SensorRxMessage sensorRx = new SensorRxMessage(characteristic.getValue());
 
-                long timeSince = new Date().getTime() - lastRead;
-                android.util.Log.i("ms since", Long.toString(timeSince));
-                if (timeSince > 3 * 60 * 1000) {
-                    TransmitterData txData = new TransmitterData();
-                    ByteBuffer sensorData = ByteBuffer.allocate(buffer.length);
-                    sensorData.order(ByteOrder.LITTLE_ENDIAN);
-                    sensorData.put(buffer, 0, buffer.length);
-                    txData.raw_data = sensorRx.unfiltered;
-                    txData.filtered_data = sensorRx.filtered;
+                ByteBuffer sensorData = ByteBuffer.allocate(buffer.length);
+                sensorData.order(ByteOrder.LITTLE_ENDIAN);
+                sensorData.put(buffer, 0, buffer.length);
 
-                    if (sensorRx.status == TransmitterStatus.BRICKED) {
-                        //TODO Handle this in UI/Notification
-                    } else if (sensorRx.status == TransmitterStatus.LOW) {
-                        txData.sensor_battery_level = 206;
-                    } else {
-                        txData.sensor_battery_level = 216;
-                    }
-
-                    txData.uuid = UUID.randomUUID().toString();
-                    txData.timestamp = new Date().getTime();
-                    lastRead = txData.timestamp;
-//                    lastRead = startTimeInterval + sensorRx.timestamp;
-//                    txData.timestamp = lastRead;
-                    android.util.Log.i("timestamp", Long.toString(txData.timestamp));
-
-                    processNewTransmitterData(txData, txData.timestamp);
-                    if (pendingIntent != null)
-                        alarm.cancel(pendingIntent);
-                    keepAlive();
+                int sensor_battery_level = 0;
+                if (sensorRx.status == TransmitterStatus.BRICKED) {
+                    //TODO Handle this in UI/Notification
+                } else if (sensorRx.status == TransmitterStatus.LOW) {
+                    sensor_battery_level = 206;
+                } else {
+                    sensor_battery_level = 216;
                 }
+
+                processNewTransmitterData(sensorRx.unfiltered, sensorRx.filtered, sensor_battery_level, new Date().getTime());
+                if (pendingIntent != null) {
+                    alarm.cancel(pendingIntent);
+                }
+                keepAlive();
+                
                 doDisconnectMessage(gatt, characteristic);
                 gatt.setCharacteristicNotification(characteristic, false);
             }
@@ -551,11 +539,13 @@ public class G5CollectionService extends Service {
     };
 
 
-    private void processNewTransmitterData(TransmitterData transmitterData, long timestamp) {
-        if (transmitterData == null) {
+    private void processNewTransmitterData(int raw_data , int filtered_data,int sensor_battery_level, long CaptureTime) {
+
+        TransmitterData transmitterData = TransmitterData.create(raw_data, sensor_battery_level, CaptureTime);
+        if (transmitterData != null) {
+            Log.i(TAG, "TransmitterData.create failed: Duplicate packet");
             return;
         }
-
         Sensor sensor = Sensor.currentSensor();
         if (sensor == null) {
             Log.i(TAG, "setSerialDataToTransmitterRawData: No Active Sensor, Data only stored in Transmitter Data");
@@ -565,8 +555,8 @@ public class G5CollectionService extends Service {
         Sensor.updateBatteryLevel(sensor, transmitterData.sensor_battery_level);
         android.util.Log.i("timestamp create", Long.toString(transmitterData.timestamp));
 
-        BgReading.create(transmitterData.raw_data, transmitterData.filtered_data, this, transmitterData.timestamp);
-        transmitterData.save();
+        BgReading.create(transmitterData.raw_data, filtered_data, this, transmitterData.timestamp);
+
 
     }
 
