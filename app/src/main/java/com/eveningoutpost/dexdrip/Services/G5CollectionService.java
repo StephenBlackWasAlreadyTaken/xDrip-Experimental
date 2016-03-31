@@ -521,7 +521,6 @@ public class G5CollectionService extends Service {
                     android.util.Log.i("timestamp", Long.toString(txData.timestamp));
 
                     processNewTransmitterData(txData, txData.timestamp);
-
                     if (pendingIntent != null)
                         alarm.cancel(pendingIntent);
                     keepAlive();
@@ -565,6 +564,8 @@ public class G5CollectionService extends Service {
         android.util.Log.i("timestamp create", Long.toString(transmitterData.timestamp));
 
         BgReading.create(transmitterData.raw_data, transmitterData.filtered_data, this, transmitterData.timestamp);
+        transmitterData.save();
+
     }
 
     // Sends the disconnect tx message to our bt device.
