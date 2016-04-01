@@ -110,6 +110,7 @@ public class G5CollectionService extends Service {
     private long startTimeInterval = -1;
     private int lastBattery = 216;
     private Boolean isBondedOrBonding = false;
+    private Boolean isFirstTry = true;
 
     private static final ScheduledExecutorService worker =
             Executors.newSingleThreadScheduledExecutor();
@@ -173,7 +174,14 @@ public class G5CollectionService extends Service {
             }
         }
         Log.d(TAG, "Bonded? " + isBondedOrBonding.toString());
-        setupBluetooth();
+        if (Sensor.isActive()){
+            setupBluetooth();
+            Log.d(TAG, "Active Sensor");
+
+        } else {
+            stopScan();
+            Log.d(TAG, "No Active Sensor");
+        }
         return START_STICKY;
     }
 
@@ -190,6 +198,9 @@ public class G5CollectionService extends Service {
 
     public void keepAlive() {
         Log.d(TAG, "Wake Lock & Wake Time");
+
+        isFirstTry = true;
+
         PowerManager powerManager = (PowerManager) getApplicationContext().getSystemService(POWER_SERVICE);
         PowerManager.WakeLock wakeLock = powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, TAG);
         wakeLock.acquire(20 * 1000);
@@ -235,7 +246,12 @@ public class G5CollectionService extends Service {
                 mBluetoothAdapter.stopLeScan(mLeScanCallback);
             } else {
                 Log.d(TAG, "stopScan");
-                mLEScanner.stopScan(mScanCallback);
+                try {
+                    mLEScanner.stopScan(mScanCallback);
+                } catch (NullPointerException e) {
+                    //Known bug in Samsung API 21 stack
+                    System.out.print("Caught the NullPointerException");
+                }
             }
         }
     }
@@ -245,17 +261,19 @@ public class G5CollectionService extends Service {
             mBluetoothAdapter.startLeScan(mLeScanCallback);
         } else {
             Log.d(TAG, "startScan");
+
             mLEScanner.startScan(filters, settings, mScanCallback);
         }
     }
     
     void scanAfterDelay() {
+        Log.d(TAG, "ScanDelay");
         Runnable task = new Runnable() {
             public void run() {
                 startScan();
             }
         };
-        worker.schedule(task, 10, TimeUnit.SECONDS);
+        worker.schedule(task, 1666, TimeUnit.MILLISECONDS);
     }
 
     private ScanCallback mScanCallback;
@@ -275,10 +293,15 @@ public class G5CollectionService extends Service {
                     String deviceNameLastTwo = Extensions.lastTwoCharactersOfString(btDevice.getName());
 
                     if (transmitterIdLastTwo.equals(deviceNameLastTwo)) {
-                        device = btDevice;
-                        connectToDevice(btDevice);
-                    } else {
-                        startScan();
+                        if (isFirstTry) {
+                            Log.d(TAG, "ReadDelay");
+                            isFirstTry = false;
+                            stopScan();
+                            scanAfterDelay();
+                        } else {
+                            device = btDevice;
+                            connectToDevice(btDevice);
+                        }
                     }
                 }
             }
@@ -297,7 +320,7 @@ public class G5CollectionService extends Service {
                     android.util.Log.e(TAG, "Already Scanning");
                 } else {
                     stopScan();
-                    scanAfterDelay();
+                    startScan();
                 }
             }
         };
@@ -330,6 +353,7 @@ public class G5CollectionService extends Service {
             };
 
     private void connectToDevice(BluetoothDevice device) {
+        android.util.Log.i(TAG, "Request Connect");
         if (mGatt == null) {
             mGatt = device.connectGatt(getApplicationContext(), false, gattCallback);
             stopScan();
@@ -348,7 +372,7 @@ public class G5CollectionService extends Service {
                     android.util.Log.e("gattCallback", "STATE_DISCONNECTED");
                     if (mGatt == null) {
                         scanAfterDelay();
-                        return;
+                        break;
                     }
                     mGatt.close();
                     mGatt = null;
@@ -370,6 +394,8 @@ public class G5CollectionService extends Service {
                 if (!mGatt.readCharacteristic(authCharacteristic)) {
                     android.util.Log.e(TAG, "onCharacteristicRead : ReadCharacteristicError");
                 }
+
+
             } else {
                 Log.w(TAG, "onServicesDiscovered received: " + status);
             }
@@ -553,8 +579,6 @@ public class G5CollectionService extends Service {
         android.util.Log.i("timestamp create", Long.toString(transmitterData.timestamp));
 
         BgReading.create(transmitterData.raw_data, filtered_data, this, transmitterData.timestamp);
-
-
     }
 
     // Sends the disconnect tx message to our bt device.
