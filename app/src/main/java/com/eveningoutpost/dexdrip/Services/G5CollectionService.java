@@ -112,9 +112,6 @@ public class G5CollectionService extends Service {
     private Boolean isBondedOrBonding = false;
     private Boolean isFirstTry = true;
 
-    private static final ScheduledExecutorService worker =
-            Executors.newSingleThreadScheduledExecutor();
-
     private AlarmManager alarm;// = (AlarmManager) getSystemService(ALARM_SERVICE);
 
     private ScanSettings settings;
@@ -266,14 +263,13 @@ public class G5CollectionService extends Service {
         }
     }
     
-    void scanAfterDelay() {
+    void scanAfterDelay(int delay) {
         Log.d(TAG, "ScanDelay");
-        Runnable task = new Runnable() {
+        handler.postDelayed(new Runnable() {
             public void run() {
                 startScan();
             }
-        };
-        worker.schedule(task, 1666, TimeUnit.MILLISECONDS);
+        }, delay);
     }
 
     private ScanCallback mScanCallback;
@@ -297,7 +293,7 @@ public class G5CollectionService extends Service {
                             Log.d(TAG, "ReadDelay");
                             isFirstTry = false;
                             stopScan();
-                            scanAfterDelay();
+                            scanAfterDelay(50);
                         } else {
                             device = btDevice;
                             connectToDevice(btDevice);
@@ -354,10 +350,10 @@ public class G5CollectionService extends Service {
 
     private void connectToDevice(BluetoothDevice device) {
         android.util.Log.i(TAG, "Request Connect");
-        if (mGatt == null) {
+//        if (mGatt == null) {
             mGatt = device.connectGatt(getApplicationContext(), false, gattCallback);
             stopScan();
-        }
+//        }
     }
 
     private final BluetoothGattCallback gattCallback = new BluetoothGattCallback() {
@@ -371,12 +367,12 @@ public class G5CollectionService extends Service {
                 case BluetoothProfile.STATE_DISCONNECTED:
                     android.util.Log.e("gattCallback", "STATE_DISCONNECTED");
                     if (mGatt == null) {
-                        scanAfterDelay();
+                        scanAfterDelay(0);
                         break;
                     }
                     mGatt.close();
                     mGatt = null;
-                    scanAfterDelay();
+                    scanAfterDelay(0);
                     break;
                 default:
                     android.util.Log.e("gattCallback", "STATE_OTHER");
