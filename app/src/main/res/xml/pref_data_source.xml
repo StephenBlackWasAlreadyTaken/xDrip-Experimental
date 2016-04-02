@@ -25,7 +25,11 @@
         <EditTextPreference
             android:key="dex_txid"
             android:title="Dexcom Transmitter ID"
-            android:summary="ID of your Dexcom Transmitter, eg 12AB3"
+            android:imeOptions="actionDone"
+            android:singleLine="true"
+            android:maxLines="1"
+            android:inputType="textNoSuggestions|textVisiblePassword"
+            android:summary="ID of your Dexcom Transmitter, eg 12AB3F"
             android:defaultValue="ABCDEF" />
         <CheckBoxPreference
             android:key="display_bridge_battery"

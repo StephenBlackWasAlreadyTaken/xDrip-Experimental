@@ -1,6 +1,7 @@
 package com.eveningoutpost.dexdrip.utils;
 
 import android.app.AlertDialog;
+import android.app.Dialog;
 import android.appwidget.AppWidgetManager;
 import android.content.ComponentName;
 import android.content.Context;
@@ -23,6 +24,9 @@ import android.preference.PreferenceScreen;
 import android.preference.RingtonePreference;
 import android.text.InputFilter;
 import android.text.TextUtils;
+import android.view.KeyEvent;
+import android.view.inputmethod.EditorInfo;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.eveningoutpost.dexdrip.Models.UserError.Log;
@@ -382,11 +386,32 @@ public class Preferences extends PreferenceActivity {
             bindPreferenceSummaryToValue(wifiRecievers);
             bindPreferenceSummaryToValue(xDripViewerNsAdresses);
             bindPreferenceSummaryToValue(transmitterId);
-            transmitterId.getEditText().setFilters(new InputFilter[]{new InputFilter.AllCaps()});
+
+            if(prefs.getString("dex_collection_method", "BluetoothWixel").compareTo("DexcomG5") == 0) {
+                // Transmitter Id max length is 6.
+                transmitterId.getEditText().setFilters(new InputFilter[]{new InputFilter.LengthFilter(6), new InputFilter.AllCaps()});
+            }
+            else {
+                transmitterId.getEditText().setFilters(new InputFilter[]{new InputFilter.AllCaps()});
+            }
+
+            // Allows enter to confirm for transmitterId.
+            transmitterId.getEditText().setOnEditorActionListener(new TextView.OnEditorActionListener() {
+                @Override
+                public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
+                    if (actionId == EditorInfo.IME_ACTION_DONE) {
+                        transmitterId.onClick(transmitterId.getDialog(), Dialog.BUTTON_POSITIVE);
+                        transmitterId.getDialog().dismiss();
+                        return true;
+                    }
+                    return false;
+                }
+            });
+
             collectionMethod.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
                 @Override
                 public boolean onPreferenceChange(Preference preference, Object newValue) {
-                    if(((String) newValue).compareTo("DexcomShare") != 0) { // NOT USING SHARE
+                    if (((String) newValue).compareTo("DexcomShare") != 0) { // NOT USING SHARE
                         collectionCategory.removePreference(shareKey);
                         collectionCategory.removePreference(scanShare);
                         otherCategory.removePreference(interpretRaw);
@@ -411,11 +436,11 @@ public class Preferences extends PreferenceActivity {
                     }
 
                     // jamorham always show wifi receivers option if populated as we may switch modes dynamically
-                    if((((String) newValue).compareTo("WifiWixel") != 0)
+                    if ((((String) newValue).compareTo("WifiWixel") != 0)
                             && (((String) newValue).compareTo("WifiBlueToothWixel") != 0)) {
                         String receiversIpAddresses;
                         receiversIpAddresses = prefs.getString("wifi_recievers_addresses", "");
-                        if(receiversIpAddresses == null || receiversIpAddresses.equals("") ) {
+                        if (receiversIpAddresses == null || receiversIpAddresses.equals("")) {
                             collectionCategory.removePreference(wifiRecievers);
                         } else {
                             collectionCategory.addPreference(wifiRecievers);
@@ -424,7 +449,7 @@ public class Preferences extends PreferenceActivity {
                         collectionCategory.addPreference(wifiRecievers);
                     }
 
-                    if(((String) newValue).compareTo("DexbridgeWixel") != 0) {
+                    if (((String) newValue).compareTo("DexbridgeWixel") != 0) {
                         collectionCategory.removePreference(transmitterId);
                         collectionCategory.removePreference(displayBridgeBatt);
                     } else {
@@ -432,7 +457,7 @@ public class Preferences extends PreferenceActivity {
                         collectionCategory.addPreference(displayBridgeBatt);
                     }
 
-                    if(((String) newValue).compareTo("DexcomG5") == 0) {
+                    if (((String) newValue).compareTo("DexcomG5") == 0) {
                         collectionCategory.addPreference(transmitterId);
                     }
 
@@ -462,7 +487,7 @@ public class Preferences extends PreferenceActivity {
                     } else {
                         preference.setSummary(stringValue);
                     }
-                    if(preference.getKey().equals("dex_collection_method")) {
+                    if (preference.getKey().equals("dex_collection_method")) {
                         CollectionServiceStarter.restartCollectionService(preference.getContext(), (String) newValue);
                     } else {
                         CollectionServiceStarter.restartCollectionService(preference.getContext());
