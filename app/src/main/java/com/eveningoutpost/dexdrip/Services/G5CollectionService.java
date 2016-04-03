@@ -335,6 +335,8 @@ public class G5CollectionService extends Service {
     private void connectToDevice(BluetoothDevice device) {
         android.util.Log.i(TAG, "Request Connect");
         if (mGatt == null) {
+            android.util.Log.i(TAG, "mGatt Null, connecting...");
+
             stopScan();
             mGatt = device.connectGatt(getApplicationContext(), false, gattCallback);
         }
@@ -515,7 +517,7 @@ public class G5CollectionService extends Service {
                     alarm.cancel(pendingIntent);
                 }
                 keepAlive();
-                
+
                 doDisconnectMessage(gatt, characteristic);
             }
             // Transmitter Time

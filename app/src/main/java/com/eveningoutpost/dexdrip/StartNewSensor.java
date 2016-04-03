@@ -95,16 +95,17 @@ public class StartNewSensor extends ActivityWithMenu {
         linkPickers.setChecked(prefs.getBoolean("start_sensor_link_pickers", false));
 
         button.setOnClickListener(new View.OnClickListener() {
-          public void onClick(View v) {
-              if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                  if (!LocationHelper.locationPermission(StartNewSensor.this)) {
-                      requestPermissions(new String[]{ Manifest.permission.ACCESS_FINE_LOCATION }, 0);
-                  }
-                  else {
-                      sensorButtonClick();
-                  }
-              }
-          }
+            public void onClick(View v) {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                    if (!LocationHelper.locationPermission(StartNewSensor.this)) {
+                        requestPermissions(new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, 0);
+                    } else {
+                        sensorButtonClick();
+                    }
+                } else {
+                    sensorButtonClick();
+                }
+            }
         });
     }
     
