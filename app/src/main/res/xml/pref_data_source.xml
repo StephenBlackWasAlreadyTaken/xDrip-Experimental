@@ -28,9 +28,8 @@
             android:imeOptions="actionDone"
             android:singleLine="true"
             android:maxLines="1"
-            android:inputType="textNoSuggestions|textVisiblePassword"
-            android:summary="ID of your Dexcom Transmitter, eg 12AB3F"
-            android:defaultValue="ABCDEF" />
+            android:inputType="textNoSuggestions|textVisiblePassword|textCapCharacters"
+            android:summary="ID of your Dexcom Transmitter, eg ABCDEF" />
         <CheckBoxPreference
             android:key="display_bridge_battery"
             android:title="Display Bridge Battery"

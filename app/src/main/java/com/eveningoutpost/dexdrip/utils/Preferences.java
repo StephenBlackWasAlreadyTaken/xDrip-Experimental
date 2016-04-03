@@ -392,7 +392,7 @@ public class Preferences extends PreferenceActivity {
                 transmitterId.getEditText().setFilters(new InputFilter[]{new InputFilter.LengthFilter(6), new InputFilter.AllCaps()});
             }
             else {
-                transmitterId.getEditText().setFilters(new InputFilter[]{new InputFilter.AllCaps()});
+                transmitterId.getEditText().setFilters(new InputFilter[]{new InputFilter.LengthFilter(10), new InputFilter.AllCaps()});
             }
 
             // Allows enter to confirm for transmitterId.

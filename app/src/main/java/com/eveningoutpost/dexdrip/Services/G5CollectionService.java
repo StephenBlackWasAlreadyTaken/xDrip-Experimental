@@ -114,6 +114,8 @@ public class G5CollectionService extends Service {
     private List<ScanFilter> filters;
     private SharedPreferences prefs;
 
+    private boolean isScanning = false;
+
     private Handler handler;
 
     StringBuilder log = new StringBuilder();
@@ -166,6 +168,12 @@ public class G5CollectionService extends Service {
                 }
             }
         }
+
+        if (mGatt != null) {
+            mGatt.close();
+            mGatt = null;
+        }
+
         Log.d(TAG, "Bonded? " + isBondedOrBonding.toString());
         if (Sensor.isActive()){
             setupBluetooth();
@@ -175,6 +183,7 @@ public class G5CollectionService extends Service {
             stopScan();
             Log.d(TAG, "No Active Sensor");
         }
+
         return START_STICKY;
     }
 
@@ -247,9 +256,15 @@ public class G5CollectionService extends Service {
                 }
             }
         }
+
+        isScanning = false;
     }
 
     public void startScan() {
+        if (isScanning) {
+            return;
+        }
+
         if (Build.VERSION.SDK_INT < 21) {
             mBluetoothAdapter.startLeScan(mLeScanCallback);
         } else {
@@ -257,6 +272,8 @@ public class G5CollectionService extends Service {
 
             mLEScanner.startScan(filters, settings, mScanCallback);
         }
+
+        isScanning = true;
     }
     
     void scanAfterDelay(int delay) {
@@ -299,57 +316,28 @@ public class G5CollectionService extends Service {
             }
 
             @Override
-            public void onBatchScanResults(List<ScanResult> results) {
-                for (ScanResult sr : results) {
-                    android.util.Log.i(TAG, "ScanResult - Results: " +  sr.toString());
-                }
-            }
-
-            @Override
             public void onScanFailed(int errorCode) {
                 android.util.Log.e(TAG, "Scan Failed Error Code: " + errorCode);
                 if (errorCode == 1) {
                     android.util.Log.e(TAG, "Already Scanning");
-                } else {
-                    stopScan();
-                    startScan();
+                    isScanning = true;
                 }
             }
         };
     }
 
-    private void runOnUiThread(Runnable r) {
+    /*private void runOnUiThread(Runnable r) {
         handler.post(r);
-    }
+    }*/
 
-    private BluetoothAdapter.LeScanCallback mLeScanCallback =
-            new BluetoothAdapter.LeScanCallback() {
-                @Override
-                public void onLeScan(final BluetoothDevice device, int rssi, byte[] scanRecord) {
-                    runOnUiThread(new Runnable() {
-                        public void run() {
-                            // Check if the device has a name, the Dexcom transmitter always should. Match it with the transmitter id that was entered.
-                            // We get the last 2 characters to connect to the correct transmitter if there is more than 1 active or in the room.
-                            // If they match, connect to the device.
-                            if (device.getName() != null) {
-                                String transmitterIdLastTwo = Extensions.lastTwoCharactersOfString(defaultTransmitter.transmitterId);
-                                String deviceNameLastTwo = Extensions.lastTwoCharactersOfString(device.getName());
-
-                                if (transmitterIdLastTwo.equals(deviceNameLastTwo)) {
-                                    connectToDevice(device);
-                                }
-                            }
-                        }
-                    });
-                }
-            };
+    private BluetoothAdapter.LeScanCallback mLeScanCallback = null;
 
     private void connectToDevice(BluetoothDevice device) {
         android.util.Log.i(TAG, "Request Connect");
-//        if (mGatt == null) {
-            mGatt = device.connectGatt(getApplicationContext(), false, gattCallback);
+        if (mGatt == null) {
             stopScan();
-//        }
+            mGatt = device.connectGatt(getApplicationContext(), false, gattCallback);
+        }
     }
 
     private final BluetoothGattCallback gattCallback = new BluetoothGattCallback() {
@@ -358,17 +346,13 @@ public class G5CollectionService extends Service {
             switch (newState) {
                 case BluetoothProfile.STATE_CONNECTED:
                     android.util.Log.i("gattCallback", "STATE_CONNECTED");
-                    gatt.discoverServices();
+                    mGatt.discoverServices();
                     break;
                 case BluetoothProfile.STATE_DISCONNECTED:
                     android.util.Log.e("gattCallback", "STATE_DISCONNECTED");
-                    if (mGatt == null) {
-                        scanAfterDelay(0);
-                        break;
-                    }
                     mGatt.close();
                     mGatt = null;
-                    scanAfterDelay(0);
+                    startScan();
                     break;
                 default:
                     android.util.Log.e("gattCallback", "STATE_OTHER");
@@ -378,17 +362,18 @@ public class G5CollectionService extends Service {
         @Override
         public void onServicesDiscovered(BluetoothGatt gatt, int status) {
             if (status == BluetoothGatt.GATT_SUCCESS) {
-                cgmService = gatt.getService(BluetoothServices.CGMService);
+                cgmService = mGatt.getService(BluetoothServices.CGMService);
                 authCharacteristic = cgmService.getCharacteristic(BluetoothServices.Authentication);
                 controlCharacteristic = cgmService.getCharacteristic(BluetoothServices.Control);
                 commCharacteristic = cgmService.getCharacteristic(BluetoothServices.Communication);
 
+                mGatt.setCharacteristicNotification(authCharacteristic, true);
+
                 if (!mGatt.readCharacteristic(authCharacteristic)) {
                     android.util.Log.e(TAG, "onCharacteristicRead : ReadCharacteristicError");
                 }
-
-
-            } else {
+            }
+            else {
                 Log.w(TAG, "onServicesDiscovered received: " + status);
             }
         }
@@ -396,7 +381,7 @@ public class G5CollectionService extends Service {
         @Override
         public void onDescriptorWrite(BluetoothGatt gatt, BluetoothGattDescriptor descriptor, int status) {
             if (status == BluetoothGatt.GATT_SUCCESS) {
-                gatt.writeCharacteristic(descriptor.getCharacteristic());
+                mGatt.writeCharacteristic(descriptor.getCharacteristic());
             } else {
                 Log.e(TAG, "Unknown error writing descriptor");
             }
@@ -412,18 +397,18 @@ public class G5CollectionService extends Service {
                 if (String.valueOf(characteristic.getUuid()).equalsIgnoreCase(String.valueOf(authCharacteristic.getUuid()))) {
                     android.util.Log.i(TAG, "auth? " + String.valueOf(characteristic.getUuid()));
                     if (characteristic.getValue() != null && characteristic.getValue()[0] != 0x7 && characteristic.getValue()[0] != 0x6) {
-                        gatt.readCharacteristic(characteristic);
+                        mGatt.readCharacteristic(characteristic);
                     }
                 } else {
                     android.util.Log.i(TAG, "control?" + String.valueOf(characteristic.getUuid()));
 
                 }
             }
-//            mGatt.setCharacteristicNotification(characteristic, false);
         }
 
         @Override
         public void onCharacteristicRead(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic, int status) {
+            Log.d("ReadStatus", String.valueOf(status));
             if (status == BluetoothGatt.GATT_SUCCESS) {
                 android.util.Log.i(TAG, "CharBytes-or " + Arrays.toString(characteristic.getValue()));
                 android.util.Log.i(TAG, "CharHex-or " + Extensions.bytesToHex(characteristic.getValue()));
@@ -437,6 +422,7 @@ public class G5CollectionService extends Service {
                     authStatus = new AuthStatusRxMessage(characteristic.getValue());
                     if (authStatus.authenticated == 1 && authStatus.bonded == 1) {
                         isBondedOrBonding = true;
+                        mGatt.setCharacteristicNotification(authCharacteristic, false);
                         mGatt.setCharacteristicNotification(controlCharacteristic, true);
                         BluetoothGattDescriptor descriptor = controlCharacteristic.getDescriptor(BluetoothServices.CharacteristicUpdateNotification);
                         descriptor.setValue(BluetoothGattDescriptor.ENABLE_INDICATION_VALUE);
@@ -448,7 +434,7 @@ public class G5CollectionService extends Service {
                         mGatt.writeDescriptor(descriptor);
                     } else if (authStatus.authenticated == 1) {
                         android.util.Log.i(TAG, "Let's Bond!");
-                        KeepAliveTxMessage keepAlive = new KeepAliveTxMessage(30);
+                        KeepAliveTxMessage keepAlive = new KeepAliveTxMessage(25);
                         characteristic.setValue(keepAlive.byteSequence);
                         mGatt.writeCharacteristic(characteristic);
                         mGatt.readCharacteristic(characteristic);
@@ -506,7 +492,7 @@ public class G5CollectionService extends Service {
             byte[] buffer = characteristic.getValue();
             byte firstByte = buffer[0];
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP && gatt != null) {
-                gatt.requestConnectionPriority(BluetoothGatt.CONNECTION_PRIORITY_HIGH);
+                mGatt.requestConnectionPriority(BluetoothGatt.CONNECTION_PRIORITY_HIGH);
             }
             if (firstByte == 0x2f) {
                 SensorRxMessage sensorRx = new SensorRxMessage(characteristic.getValue());
@@ -531,7 +517,6 @@ public class G5CollectionService extends Service {
                 keepAlive();
                 
                 doDisconnectMessage(gatt, characteristic);
-                gatt.setCharacteristicNotification(characteristic, false);
             }
             // Transmitter Time
             else if (firstByte == 0x25) {
@@ -575,11 +560,11 @@ public class G5CollectionService extends Service {
 
     // Sends the disconnect tx message to our bt device.
     private void doDisconnectMessage(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic) {
-        gatt.setCharacteristicNotification(controlCharacteristic, false);
+        mGatt.setCharacteristicNotification(controlCharacteristic, false);
 
         DisconnectTxMessage disconnectTx = new DisconnectTxMessage();
         characteristic.setValue(disconnectTx.byteSequence);
-        gatt.writeCharacteristic(characteristic);
+        mGatt.writeCharacteristic(characteristic);
     }
 
     @SuppressLint("GetInstance")
