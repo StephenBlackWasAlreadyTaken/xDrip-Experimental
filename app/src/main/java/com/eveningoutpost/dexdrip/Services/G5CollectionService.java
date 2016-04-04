@@ -238,13 +238,17 @@ public class G5CollectionService extends Service {
                 //Only look for CGM.
                 filters.add(new ScanFilter.Builder().setServiceUuid(new ParcelUuid(BluetoothServices.Advertisement)).build());
             }
+            if (isScanning){
+                stopScan();
+                Log.d(TAG, "Refresh Scanning");
+            }
             startScan();
         }
     }
 
     public void stopScan() {
         if (mBluetoothAdapter != null && mBluetoothAdapter.isEnabled()) {
-            if (Build.VERSION.SDK_INT < 21) {
+            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) {
                 mBluetoothAdapter.stopLeScan(mLeScanCallback);
             } else {
                 Log.d(TAG, "stopScan");
@@ -265,8 +269,10 @@ public class G5CollectionService extends Service {
             return;
         }
 
-        if (Build.VERSION.SDK_INT < 21) {
-            mBluetoothAdapter.startLeScan(mLeScanCallback);
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) {
+            setupLeScanCallback();
+
+            mBluetoothAdapter.startLeScan(new UUID[]{ BluetoothServices.Advertisement }, mLeScanCallback);
         } else {
             Log.d(TAG, "startScan");
 
@@ -283,6 +289,29 @@ public class G5CollectionService extends Service {
                 startScan();
             }
         }, delay);
+    }
+
+    // API 18 - 20
+    @TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR2)
+    private void setupLeScanCallback() {
+        if (mLeScanCallback == null) {
+            mLeScanCallback = new BluetoothAdapter.LeScanCallback() {
+                @Override
+                public void onLeScan(BluetoothDevice device, int rssi, byte[] scanRecord) {
+                    // Check if the device has a name, the Dexcom transmitter always should. Match it with the transmitter id that was entered.
+                    // We get the last 2 characters to connect to the correct transmitter if there is more than 1 active or in the room.
+                    // If they match, connect to the device.
+                    if (device.getName() != null) {
+                        String transmitterIdLastTwo = Extensions.lastTwoCharactersOfString(defaultTransmitter.transmitterId);
+                        String deviceNameLastTwo = Extensions.lastTwoCharactersOfString(device.getName());
+
+                        if (transmitterIdLastTwo.toUpperCase().equals(deviceNameLastTwo.toUpperCase())) {
+                            connectToDevice(device);
+                        }
+                    }
+                }
+            };
+        }
     }
 
     private ScanCallback mScanCallback;
@@ -506,11 +535,15 @@ public class G5CollectionService extends Service {
                 int sensor_battery_level = 0;
                 if (sensorRx.status == TransmitterStatus.BRICKED) {
                     //TODO Handle this in UI/Notification
+                    sensor_battery_level = 206;
                 } else if (sensorRx.status == TransmitterStatus.LOW) {
                     sensor_battery_level = 206;
                 } else {
                     sensor_battery_level = 216;
                 }
+
+                android.util.Log.i(TAG, "filtered: " + sensorRx.filtered);
+                android.util.Log.i(TAG, "unfiltered: " + sensorRx.unfiltered);
 
                 processNewTransmitterData(sensorRx.unfiltered, sensorRx.filtered, sensor_battery_level, new Date().getTime());
                 if (pendingIntent != null) {
