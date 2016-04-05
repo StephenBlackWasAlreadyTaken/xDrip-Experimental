@@ -8,6 +8,7 @@ import android.view.View;
 import android.widget.Toast;
 
 import com.eveningoutpost.dexdrip.R;
+import com.eveningoutpost.dexdrip.Models.AlertType;
 import com.eveningoutpost.dexdrip.Services.XDripViewer;
 
 import java.io.File;
@@ -64,7 +65,11 @@ public class SdcardImportExport extends ActivityWithMenu {
 
     public boolean savePreferencesToSD() {
         if (isExternalStorageWritable()) {
-            return dataToSDcopy(getPreferenceFileName());
+            boolean succeeded = AlertType.toSettings(getApplicationContext());
+            if (succeeded) {
+                succeeded &= dataToSDcopy(getPreferenceFileName());
+            }
+            return succeeded;
         } else {
             toast("SDcard not writable - cannot save");
             return false;
