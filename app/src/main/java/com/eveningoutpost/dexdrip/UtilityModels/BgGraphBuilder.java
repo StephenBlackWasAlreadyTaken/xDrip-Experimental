@@ -37,7 +37,7 @@ import lecho.lib.hellocharts.view.Chart;
  * Created by stephenblack on 11/15/14.
  */
 public class BgGraphBuilder {
-    public static final int FUZZER = (1000 * 30 * 5);
+    public static final float FUZZER = (1000 * 30 * 5);
     public long  end_time;
     public long  start_time;
     public Context context;
@@ -452,7 +452,7 @@ public class BgGraphBuilder {
         public synchronized void onValueSelected(int i, int i1, PointValue pointValue) {
             final java.text.DateFormat timeFormat = DateFormat.getTimeFormat(context);
             //Won't give the exact time of the reading but the time on the grid: close enough.
-            Long time = ((long)pointValue.getX())*FUZZER;
+            Long time = (long)(pointValue.getX()*FUZZER);
             if(tooltip!= null){
                 tooltip.cancel();
             }

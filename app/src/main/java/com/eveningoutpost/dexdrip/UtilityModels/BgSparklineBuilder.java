@@ -32,8 +32,8 @@ public class BgSparklineBuilder {
     private int height;
     private BgGraphBuilder bgGraphBuilder;
     private LineChartView chart;
-    private long end = new Date().getTime() / BgGraphBuilder.FUZZER;
-    private long start = end - (60000*180 / BgGraphBuilder.FUZZER); // 3h
+    private long end = new Date().getTime() / (long)BgGraphBuilder.FUZZER;
+    private long start = end - (60000*180 / (long)BgGraphBuilder.FUZZER); // 3h
     private boolean showLowLine = false;
     private boolean showHighLine = false;
     private boolean showAxes = false;
@@ -41,12 +41,12 @@ public class BgSparklineBuilder {
     private boolean useTinyDots = false;
 
     public BgSparklineBuilder setStart(long start) {
-        this.start = start / BgGraphBuilder.FUZZER;
+        this.start = start / (long)BgGraphBuilder.FUZZER;
         return this;
     }
 
     public BgSparklineBuilder setEnd(long end) {
-        this.end = end / BgGraphBuilder.FUZZER;
+        this.end = end / (long)BgGraphBuilder.FUZZER;
         return this;
     }
 
