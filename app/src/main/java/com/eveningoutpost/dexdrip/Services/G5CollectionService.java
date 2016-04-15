@@ -551,11 +551,11 @@ public class G5CollectionService extends Service {
                 int sensor_battery_level = 0;
                 if (sensorRx.status == TransmitterStatus.BRICKED) {
                     //TODO Handle this in UI/Notification
-                    sensor_battery_level = 206;
+                    sensor_battery_level = 206; //will give message "EMPTY"
                 } else if (sensorRx.status == TransmitterStatus.LOW) {
-                    sensor_battery_level = 206;
+                    sensor_battery_level = 209; //will give message "LOW"
                 } else {
-                    sensor_battery_level = 216;
+                    sensor_battery_level = 216; //no message, just system status "OK"
                 }
 
                 android.util.Log.i(TAG, "filtered: " + sensorRx.filtered);
