@@ -68,6 +68,8 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.UUID;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -190,6 +192,7 @@ public class G5CollectionService extends Service {
     @Override
     public void onDestroy() {
         super.onDestroy();
+        stopScan();
 //        close();
 //        setRetryTimer();
 //        foregroundServiceStarter.stop();
@@ -331,15 +334,15 @@ public class G5CollectionService extends Service {
                     String deviceNameLastTwo = Extensions.lastTwoCharactersOfString(btDevice.getName());
 
                     if (transmitterIdLastTwo.equals(deviceNameLastTwo)) {
-                        if (isFirstTry) {
-                            Log.d(TAG, "ReadDelay");
-                            isFirstTry = false;
-                            stopScan();
-                            scanAfterDelay(50);
-                        } else {
+//                        if (isFirstTry) {
+//                            Log.d(TAG, "ReadDelay");
+//                            isFirstTry = false;
+//                            stopScan();
+//                            scanAfterDelay(50);
+//                        } else {
                             device = btDevice;
                             connectToDevice(btDevice);
-                        }
+//                        }
                     }
                 }
             }
@@ -407,6 +410,17 @@ public class G5CollectionService extends Service {
             else {
                 Log.w(TAG, "onServicesDiscovered received: " + status);
             }
+            if (status != 0) {
+                mBluetoothAdapter.disable();
+                android.util.Log.e(TAG, "Cycling BT");
+                Timer single_timer = new Timer();
+                single_timer.schedule(new TimerTask() {
+                    @Override
+                    public void run() {
+                        mBluetoothAdapter.enable();
+                    }
+                }, 1000);
+            }
         }
 
         @Override
@@ -426,10 +440,12 @@ public class G5CollectionService extends Service {
 
             if (status == BluetoothGatt.GATT_SUCCESS) {
                 if (String.valueOf(characteristic.getUuid()).equalsIgnoreCase(String.valueOf(authCharacteristic.getUuid()))) {
+                    android.util.Log.i(TAG, "Char Value: " + Arrays.toString(characteristic.getValue()));
                     android.util.Log.i(TAG, "auth? " + String.valueOf(characteristic.getUuid()));
-                    if (characteristic.getValue() != null && characteristic.getValue()[0] != 0x7 && characteristic.getValue()[0] != 0x6) {
+                    if (characteristic.getValue() != null && characteristic.getValue()[0] != 0x6) {
                         mGatt.readCharacteristic(characteristic);
                     }
+//                    //&& characteristic.getValue()[0] != 0x7
                 } else {
                     android.util.Log.i(TAG, "control?" + String.valueOf(characteristic.getUuid()));
 
@@ -482,7 +498,7 @@ public class G5CollectionService extends Service {
                     }
                 }
 
-                if (buffer[0] == 8) {
+                if (buffer[0] == 8 || buffer[0] == 7) {
                     android.util.Log.i(TAG, "8 - Transmitter NOT already authenticated");
                     authRequest = new AuthRequestTxMessage();
                     characteristic.setValue(authRequest.byteSequence);
