@@ -19,6 +19,8 @@ import com.eveningoutpost.dexdrip.utils.ActivityWithMenu;
 
 import java.util.Calendar;
 
+import java.util.Date;
+import java.util.UUID;
 
 public class StartNewSensor extends ActivityWithMenu {
     public static String menu_name = "Start Sensor";
@@ -97,7 +99,7 @@ public class StartNewSensor extends ActivityWithMenu {
               tp.getCurrentHour(), tp.getCurrentMinute(), 0);
               long startTime = calendar.getTime().getTime();
 
-              Sensor.create(startTime);
+              Sensor sensor = Sensor.create(startTime, UUID.randomUUID().toString());
               Log.d("NEW SENSOR", "Sensor started at " + startTime);
 
               Toast.makeText(getApplicationContext(), "NEW SENSOR STARTED", Toast.LENGTH_LONG).show();
