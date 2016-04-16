@@ -20,6 +20,7 @@ import com.eveningoutpost.dexdrip.utils.ActivityWithMenu;
 
 import java.util.Calendar;
 import java.util.Date;
+import java.util.UUID;
 
 public class StartNewSensor extends ActivityWithMenu {
     public static String menu_name = "Start Sensor";
@@ -103,7 +104,7 @@ public class StartNewSensor extends ActivityWithMenu {
             	  return;
               }
 
-              Sensor sensor = Sensor.create(startTime);
+              Sensor sensor = Sensor.create(startTime, UUID.randomUUID().toString());
               Log.d("NEW SENSOR", "Sensor started at " + startTime);
               BgReading.moveReadingsToNewSensor(sensor, startTime);
 

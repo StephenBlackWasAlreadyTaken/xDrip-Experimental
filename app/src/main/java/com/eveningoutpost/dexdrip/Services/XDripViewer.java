@@ -1,5 +1,6 @@
 package com.eveningoutpost.dexdrip.Services;
 
+import java.util.Date;
 import java.util.List;
 import java.util.ListIterator;
 
@@ -25,7 +26,11 @@ import com.eveningoutpost.dexdrip.R;
 //need synchronization
 
 public class XDripViewer extends AsyncTaskBase {
-    
+
+    static Sensor sensor_exists = null; // Will hold reference to any existing sensor, to avoid looking in DB
+    static Boolean isNightScoutMode = null;
+    public final static String NIGHTSCOUT_SENSOR_UUID = "c5f1999c-4ec5-449e-adad-3980b172b921";
+
     private final static String TAG = XDripViewer.class.getName();
     
     XDripViewer(Context ctx) {
@@ -145,11 +150,14 @@ public class XDripViewer extends AsyncTaskBase {
               Log.e(TAG, "not inserting packet, since order is wrong. ");
               continue;
             }
+            
+            verifyViewerNightscoutMode(mContext, nightscoutBg);
+            
             TransmitterData.create((int)nightscoutBg.xDrip_raw, 100 /* ??????? */, nightscoutBg.date);
             BgReading.create(mContext, 
                     nightscoutBg.xDrip_raw != 0 ? nightscoutBg.xDrip_raw * 1000 : nightscoutBg.unfiltered,
                     nightscoutBg.xDrip_age_adjusted_raw_value,
-                    nightscoutBg.xDrip_raw != 0 ? nightscoutBg.xDrip_filtered * 1000 : nightscoutBg.unfiltered,
+                    nightscoutBg.xDrip_raw != 0 ? nightscoutBg.xDrip_filtered * 1000 : nightscoutBg.filtered,
                     nightscoutBg.date, 
                     nightscoutBg.xDrip_calculated_value != 0 ? nightscoutBg.xDrip_calculated_value : nightscoutBg.sgv,
                     nightscoutBg.xDrip_calculated_current_slope,
@@ -178,6 +186,71 @@ public class XDripViewer extends AsyncTaskBase {
         }
         return true;
     }
+    
+    // This function checkes if we are looking at a nightscout site that is being uploaded by dexcom.
+    // In this case, we will not see sensors, and we need to create one.
+    // We identify such a mod by the fact that there are no sensors, and by the fact that on this bg,
+    // we see device == dexcom
+    // We make sure that all decisions will be cached.
+    
+    public static boolean IsNightScoutMode(Context context) {
+        if (isNightScoutMode != null) {
+            Log.e(TAG, "IsNightScoutMode returning " + isNightScoutMode); //???
+            return isNightScoutMode;
+        }
+        if(!isxDripViewerMode(context)) {
+            return false;
+        }
+        Sensor sensor = Sensor.last();
+        if(sensor == null) {
+            return false;
+        }
+        isNightScoutMode = new Boolean( sensor.uuid.equals(NIGHTSCOUT_SENSOR_UUID));
+        Log.e(TAG, "IsNightScoutMode = " + isNightScoutMode);
+        return isNightScoutMode;
+    }
+    
+    private static void verifyViewerNightscoutMode(Context context, NightscoutBg nightscoutBg) {
+        verifyViewerNightscoutModeSensor(nightscoutBg);
+        if(!IsNightScoutMode(context)) {
+            return;
+        }
+        // There are some fields that we might be missing, fix that
+        if(nightscoutBg.unfiltered == 0 ) {
+            nightscoutBg.unfiltered = nightscoutBg.sgv;
+        }
+        if(nightscoutBg.filtered == 0 ) {
+            nightscoutBg.filtered = nightscoutBg.sgv;
+        }
+        
+      //???????? direction and xDrip_calculated_current_slope ???? look at BgReading.slopefromName
+            
+    }
+    
+    private static void verifyViewerNightscoutModeSensor(NightscoutBg nightscoutBg) {
+        if(sensor_exists != null) {
+            // We already have a cached sensor, no need to continue.
+            return;
+        }
+        sensor_exists = Sensor.last();
+        if(sensor_exists != null) {
+            // We already have a sensor, no need to continue.
+            return;
+        }
+        
+        if(nightscoutBg.device == null) {
+            return;
+        }
+        if(!nightscoutBg.device.equals("dexcom")) {
+            return;
+        }
+        // No sensor exists, uploader is dexcom, let's create one.
+        Log.e(TAG, "verifyViewerNightscoutModeSensor creating nightscout sensor");
+        Sensor.create(new Date().getTime(), NIGHTSCOUT_SENSOR_UUID);
+        isNightScoutMode = new Boolean(true);
+    }
+    
+    
 /*
  * curl examples
  * curl -X GET --header "Accept: application/json api-secret: 6aaafe81264eb79d079caa91bbf25dba379ff6e2" "https://snirdar.azurewebsites.net/api/v1/entries/cal?count=122" -k
