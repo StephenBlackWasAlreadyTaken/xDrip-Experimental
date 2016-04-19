@@ -5,8 +5,8 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
 import android.provider.BaseColumns;
-import com.eveningoutpost.dexdrip.Models.UserError.Log;
 
+import com.eveningoutpost.dexdrip.Models.UserError.Log;
 import com.activeandroid.Model;
 import com.activeandroid.annotation.Column;
 import com.activeandroid.annotation.Table;
@@ -14,6 +14,7 @@ import com.activeandroid.query.Select;
 import com.eveningoutpost.dexdrip.ImportedLibraries.dexcom.records.EGVRecord;
 import com.eveningoutpost.dexdrip.ImportedLibraries.dexcom.records.SensorRecord;
 import com.eveningoutpost.dexdrip.ShareModels.ShareUploadableBg;
+import com.eveningoutpost.dexdrip.UtilityModels.BgGraphBuilder;
 import com.eveningoutpost.dexdrip.UtilityModels.BgSendQueue;
 import com.eveningoutpost.dexdrip.UtilityModels.Constants;
 import com.eveningoutpost.dexdrip.UtilityModels.Notifications;
@@ -28,6 +29,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Random;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 @Table(name = "BgReadings", id = BaseColumns._ID)
 public class BgReading extends Model implements ShareUploadableBg{
@@ -175,18 +177,22 @@ public class BgReading extends Model implements ShareUploadableBg{
     }
 
 
-    public static double calculateSlope(BgReading current, BgReading last) {
-        if (current.timestamp == last.timestamp || current.calculated_value == last.calculated_value) {
+    public static double calculateSlope(BgReading current, BgReading last, AtomicBoolean hideSlope) {
+        
+        if (current.timestamp == last.timestamp || 
+            current.timestamp - last.timestamp > BgGraphBuilder.MAX_SLOPE_MINUTES * 60 * 1000) {
+            hideSlope.set(true);
             return 0;
-        } else {
-            return (last.calculated_value - current.calculated_value) / (last.timestamp - current.timestamp);
         }
+        hideSlope.set(false);
+        return (last.calculated_value - current.calculated_value) / (last.timestamp - current.timestamp);
     }
 
     public static double currentSlope(){
         List<BgReading> last_2 = BgReading.latest(2);
+        AtomicBoolean hideSlope = new AtomicBoolean();
         if (last_2.size() == 2) {
-            return calculateSlope(last_2.get(0), last_2.get(1));
+            return calculateSlope(last_2.get(0), last_2.get(1), hideSlope);
         } else{
             return 0d;
         }
@@ -627,15 +633,16 @@ public class BgReading extends Model implements ShareUploadableBg{
 
         assert last_2.get(0)==this : "Invariant condition not fulfilled: calculating slope and current reading wasn't saved before";
 
+        AtomicBoolean hide = new AtomicBoolean(true);
         if (last_2.size() == 2) {
-            calculated_value_slope = calculateSlope(this, last_2.get(1));
-            save();
+            calculated_value_slope = calculateSlope(this, last_2.get(1), hide);
         } else if (last_2.size() == 1) {
             calculated_value_slope = 0;
-            save();
         } else {
             Log.w(TAG, "NO BG? COULDNT FIND SLOPE!");
         }
+        hide_slope = hide.get();
+        save();
     }
 
 
