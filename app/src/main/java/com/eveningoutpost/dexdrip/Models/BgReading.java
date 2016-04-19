@@ -390,36 +390,24 @@ public class BgReading extends Model implements ShareUploadableBg{
         Calibration calibration = Calibration.last();
         if (calibration == null) {
             Log.d(TAG, "create: No calibration yet");
-            bgReading.sensor = sensor;
-            bgReading.sensor_uuid = sensor.uuid;
-            bgReading.raw_data = (raw_data / 1000);
-            bgReading.age_adjusted_raw_value = age_adjusted_raw_value;
-            bgReading.filtered_data = (filtered_data / 1000);
-            bgReading.timestamp = timestamp;
-            bgReading.uuid = UUID.randomUUID().toString();
-            bgReading.calculated_value = calculated_bg;
-            bgReading.calculated_value_slope = calculated_current_slope;
-            bgReading.hide_slope = hide_slope;
-
-            bgReading.save();
-            bgReading.perform_calculations();
         } else {
             Log.d(TAG,"Calibrations, so doing everything bgReading = " + bgReading);
-            bgReading.sensor = sensor;
-            bgReading.sensor_uuid = sensor.uuid;
             bgReading.calibration = calibration;
             bgReading.calibration_uuid = calibration.uuid;
-            bgReading.raw_data = (raw_data/1000);
-            bgReading.age_adjusted_raw_value = age_adjusted_raw_value;
-            bgReading.filtered_data = (filtered_data/1000);
-            bgReading.timestamp = timestamp;
-            bgReading.uuid = UUID.randomUUID().toString();
-            bgReading.calculated_value = calculated_bg;
-            bgReading.calculated_value_slope = calculated_current_slope;
-            bgReading.hide_slope = hide_slope;
-
-            bgReading.save();
         }
+        
+        bgReading.sensor = sensor;
+        bgReading.sensor_uuid = sensor.uuid;
+        bgReading.raw_data = (raw_data/1000);
+        bgReading.age_adjusted_raw_value = age_adjusted_raw_value;
+        bgReading.filtered_data = (filtered_data/1000);
+        bgReading.timestamp = timestamp;
+        bgReading.uuid = UUID.randomUUID().toString();
+        bgReading.calculated_value = calculated_bg;
+        bgReading.calculated_value_slope = calculated_current_slope;
+        bgReading.hide_slope = hide_slope;
+        bgReading.save();
+
         BgSendQueue.handleNewBgReading(bgReading, "create", context);
 
         Log.i("BG GSON: ",bgReading.toS());
