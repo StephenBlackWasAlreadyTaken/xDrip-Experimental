@@ -40,6 +40,7 @@ import lecho.lib.hellocharts.view.Chart;
  */
 public class BgGraphBuilder {
     public static final int FUZZER = (1000 * 30 * 5);
+    public static final int MAX_SLOPE_MINUTES = 21;
     public long  end_time;
     public long  start_time;
     public Context context;
@@ -440,7 +441,7 @@ public class BgGraphBuilder {
     public String unitizedDeltaString(boolean showUnit, boolean highGranularity) {
 
         List<BgReading> last2 = BgReading.latest(2);
-        if(last2.size() < 2 || last2.get(0).timestamp - last2.get(1).timestamp > 20 * 60 * 1000){
+        if(last2.size() < 2 || last2.get(0).timestamp - last2.get(1).timestamp > MAX_SLOPE_MINUTES * 60 * 1000){
             // don't show delta if there are not enough values or the values are more than 20 mintes apart
             return "???";
         }
