@@ -33,6 +33,7 @@ public class NsRestApiReader {
 	    double xDrip_calculated_current_slope;
 	    boolean xDrip_hide_slope;
 	    String device;
+	    String direction;
 	}
 
 	class NightscoutMbg {

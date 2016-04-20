@@ -3,6 +3,7 @@ package com.eveningoutpost.dexdrip.Services;
 import java.util.Date;
 import java.util.List;
 import java.util.ListIterator;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import android.content.Context;
 import android.content.Intent;
@@ -223,7 +224,9 @@ public class XDripViewer extends AsyncTaskBase {
             nightscoutBg.filtered = nightscoutBg.sgv;
         }
         
-      //???????? direction and xDrip_calculated_current_slope ???? look at BgReading.slopefromName
+        AtomicBoolean hide = new AtomicBoolean();
+        nightscoutBg.xDrip_calculated_current_slope = BgReading.slopefromName(nightscoutBg.direction, hide);
+        nightscoutBg.xDrip_hide_slope = hide.get();
             
     }
     
