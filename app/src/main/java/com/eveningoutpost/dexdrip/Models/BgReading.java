@@ -246,16 +246,10 @@ public class BgReading extends Model implements ShareUploadableBg{
                 bgReading.raw_calculated = (((calSlope * bgReading.raw_data) + calIntercept) - 5);
             }
             Log.i(TAG, "create: NEW VALUE CALCULATED AT: " + bgReading.calculated_value);
-            bgReading.calculated_value_slope = bgReading.slopefromName(egvRecord.getTrend().friendlyTrendName());
+            AtomicBoolean hide = new AtomicBoolean();
+            bgReading.calculated_value_slope = bgReading.slopefromName(egvRecord.getTrend().friendlyTrendName(), hide);
             bgReading.noise = egvRecord.noiseValue();
-            String friendlyName = egvRecord.getTrend().friendlyTrendName();
-            if(friendlyName.compareTo("NONE") == 0 ||
-                    friendlyName.compareTo("NOT_COMPUTABLE") == 0 ||
-                    friendlyName.compareTo("NOT COMPUTABLE") == 0 ||
-                    friendlyName.compareTo("OUT OF RANGE")   == 0 ||
-                    friendlyName.compareTo("OUT_OF_RANGE") == 0) {
-                bgReading.hide_slope = true;
-            }
+            bgReading.hide_slope = hide.get();
             bgReading.save();
             bgReading.find_new_curve();
             bgReading.find_new_raw_curve();
@@ -477,8 +471,9 @@ public class BgReading extends Model implements ShareUploadableBg{
         return arrow;
     }
 
-    public double slopefromName(String slope_name) {
+    public static double slopefromName(String slope_name, AtomicBoolean hide) {
         double slope_by_minute = 0;
+        hide.set(false);
         if (slope_name.compareTo("DoubleDown") == 0) {
             slope_by_minute = -3.5;
         } else if (slope_name.compareTo("SingleDown") == 0) {
@@ -499,6 +494,7 @@ public class BgReading extends Model implements ShareUploadableBg{
                    slope_name.compareTo("OUT OF RANGE")   == 0 ||
                    slope_name.compareTo("NONE") == 0) {
             slope_by_minute = 0;
+            hide.set(true);
         }
         return slope_by_minute /60000;
     }
