@@ -113,6 +113,9 @@ public class XDripViewer extends AsyncTaskBase {
                 Log.e(TAG, "not inserting calibratoin, since order is wrong. ");
                 continue;
             }
+            
+            verifyViewerNightscoutMode(mContext, nightscoutMbg);
+            
             Calibration.createUpdate(nightscoutMbg.xDrip_sensor_uuid, nightscoutMbg.mbg, nightscoutMbg.date, nightscoutMbg.xDrip_intercept, nightscoutMbg.xDrip_slope, nightscoutMbg.xDrip_estimate_raw_at_time_of_calibration,
                     nightscoutMbg.xDrip_slope_confidence , nightscoutMbg.xDrip_sensor_confidence, nightscoutMbg.xDrip_raw_timestamp);
             lastInserted = nightscoutMbg.date;
@@ -212,7 +215,7 @@ public class XDripViewer extends AsyncTaskBase {
     }
     
     private static void verifyViewerNightscoutMode(Context context, NightscoutBg nightscoutBg) {
-        verifyViewerNightscoutModeSensor(nightscoutBg);
+        verifyViewerNightscoutModeSensor(nightscoutBg.device);
         if(!IsNightScoutMode(context)) {
             return;
         }
@@ -230,7 +233,18 @@ public class XDripViewer extends AsyncTaskBase {
             
     }
     
-    private static void verifyViewerNightscoutModeSensor(NightscoutBg nightscoutBg) {
+    private static void verifyViewerNightscoutMode(Context context,  NightscoutMbg nightscoutMbg ) {
+        verifyViewerNightscoutModeSensor(nightscoutMbg.device);
+        if(!IsNightScoutMode(context)) {
+            return;
+        }
+        // There are some fields that we might be missing, fix that
+        nightscoutMbg.xDrip_sensor_uuid = NIGHTSCOUT_SENSOR_UUID;
+            
+    }
+   
+    
+    private static void verifyViewerNightscoutModeSensor(String device) {
         if(sensor_exists != null) {
             // We already have a cached sensor, no need to continue.
             return;
@@ -241,10 +255,10 @@ public class XDripViewer extends AsyncTaskBase {
             return;
         }
         
-        if(nightscoutBg.device == null) {
+        if(device == null) {
             return;
         }
-        if(!nightscoutBg.device.equals("dexcom")) {
+        if(!device.equals("dexcom")) {
             return;
         }
         // No sensor exists, uploader is dexcom, let's create one.

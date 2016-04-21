@@ -46,6 +46,7 @@ public class NsRestApiReader {
 	    double xDrip_sensor_confidence;
 	    long xDrip_raw_timestamp;
 	    String xDrip_sensor_uuid;
+	    String device;
 	}
 	
    class NightscoutSensor {
