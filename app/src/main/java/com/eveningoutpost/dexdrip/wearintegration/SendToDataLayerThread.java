@@ -3,7 +3,6 @@ package com.eveningoutpost.dexdrip.wearintegration;
 import android.os.AsyncTask;
 import android.util.Log;
 
-import com.eveningoutpost.dexdrip.Models.UserError;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.wearable.DataApi;
 import com.google.android.gms.wearable.DataMap;
