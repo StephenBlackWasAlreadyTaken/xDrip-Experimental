@@ -197,7 +197,7 @@ public class XDripViewer extends AsyncTaskBase {
     // we see device == dexcom
     // We make sure that all decisions will be cached.
     
-    public static boolean IsNightScoutMode(Context context) {
+    public static boolean isNightScoutMode(Context context) {
         if (isNightScoutMode != null) {
             Log.e(TAG, "IsNightScoutMode returning " + isNightScoutMode); //???
             return isNightScoutMode;
@@ -216,7 +216,7 @@ public class XDripViewer extends AsyncTaskBase {
     
     private static void verifyViewerNightscoutMode(Context context, NightscoutBg nightscoutBg) {
         verifyViewerNightscoutModeSensor(nightscoutBg.device);
-        if(!IsNightScoutMode(context)) {
+        if(!isNightScoutMode(context)) {
             return;
         }
         // There are some fields that we might be missing, fix that
@@ -235,7 +235,7 @@ public class XDripViewer extends AsyncTaskBase {
     
     private static void verifyViewerNightscoutMode(Context context,  NightscoutMbg nightscoutMbg ) {
         verifyViewerNightscoutModeSensor(nightscoutMbg.device);
-        if(!IsNightScoutMode(context)) {
+        if(!isNightScoutMode(context)) {
             return;
         }
         // There are some fields that we might be missing, fix that

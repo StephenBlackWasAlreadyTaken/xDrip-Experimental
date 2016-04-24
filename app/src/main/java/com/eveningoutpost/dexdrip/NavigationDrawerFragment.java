@@ -248,7 +248,7 @@ public class NavigationDrawerFragment extends Fragment {
         actionBar.setDisplayShowTitleEnabled(true);
         actionBar.setNavigationMode(ActionBar.NAVIGATION_MODE_STANDARD);
         String app_name = actionBar.getThemedContext().getString(R.string.app_name);
-        if(XDripViewer.IsNightScoutMode(actionBar.getThemedContext())) {
+        if(XDripViewer.isNightScoutMode(actionBar.getThemedContext())) {
             app_name = app_name + " nightscout";
         }
         actionBar.setTitle(app_name);
