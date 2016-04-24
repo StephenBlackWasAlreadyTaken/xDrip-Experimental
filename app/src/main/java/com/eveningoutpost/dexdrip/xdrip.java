@@ -6,8 +6,8 @@ import android.content.Context;
 import android.content.Intent;
 import android.support.multidex.MultiDex;
 
+import com.eveningoutpost.dexdrip.Models.AlertType;
 import com.eveningoutpost.dexdrip.Services.MissedReadingService;
-
 import com.crashlytics.android.Crashlytics;
 import com.eveningoutpost.dexdrip.UtilityModels.CollectionServiceStarter;
 import com.eveningoutpost.dexdrip.UtilityModels.IdempotentMigrations;
@@ -33,6 +33,7 @@ public class xdrip extends Application {
         PreferenceManager.setDefaultValues(this, R.xml.pref_data_source, false);
         context.startService(new Intent(context, MissedReadingService.class));	
         new IdempotentMigrations(getApplicationContext()).performAll();
+        AlertType.fromSettings(getApplicationContext());
     }
 
     @Override
