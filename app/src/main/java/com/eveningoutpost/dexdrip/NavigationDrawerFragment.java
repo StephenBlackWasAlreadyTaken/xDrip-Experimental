@@ -25,6 +25,8 @@ import android.widget.ListView;
 
 import java.util.List;
 
+import com.eveningoutpost.dexdrip.Services.XDripViewer;
+
 public class NavigationDrawerFragment extends Fragment {
     private static final String STATE_SELECTED_POSITION = "selected_navigation_drawer_position";
     private static final String PREF_USER_LEARNED_DRAWER = "navigation_drawer_learned";
@@ -245,7 +247,11 @@ public class NavigationDrawerFragment extends Fragment {
         ActionBar actionBar = getActionBar();
         actionBar.setDisplayShowTitleEnabled(true);
         actionBar.setNavigationMode(ActionBar.NAVIGATION_MODE_STANDARD);
-        actionBar.setTitle(R.string.app_name);
+        String app_name = actionBar.getThemedContext().getString(R.string.app_name);
+        if(XDripViewer.isNightScoutMode(actionBar.getThemedContext())) {
+            app_name = app_name + " nightscout";
+        }
+        actionBar.setTitle(app_name);
     }
 
     private ActionBar getActionBar() {

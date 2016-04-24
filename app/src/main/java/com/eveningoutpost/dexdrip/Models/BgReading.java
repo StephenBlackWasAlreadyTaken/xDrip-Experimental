@@ -5,8 +5,8 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
 import android.provider.BaseColumns;
-import com.eveningoutpost.dexdrip.Models.UserError.Log;
 
+import com.eveningoutpost.dexdrip.Models.UserError.Log;
 import com.activeandroid.Model;
 import com.activeandroid.annotation.Column;
 import com.activeandroid.annotation.Table;
@@ -14,6 +14,7 @@ import com.activeandroid.query.Select;
 import com.eveningoutpost.dexdrip.ImportedLibraries.dexcom.records.EGVRecord;
 import com.eveningoutpost.dexdrip.ImportedLibraries.dexcom.records.SensorRecord;
 import com.eveningoutpost.dexdrip.ShareModels.ShareUploadableBg;
+import com.eveningoutpost.dexdrip.UtilityModels.BgGraphBuilder;
 import com.eveningoutpost.dexdrip.UtilityModels.BgSendQueue;
 import com.eveningoutpost.dexdrip.UtilityModels.Constants;
 import com.eveningoutpost.dexdrip.UtilityModels.Notifications;
@@ -28,6 +29,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Random;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 @Table(name = "BgReadings", id = BaseColumns._ID)
 public class BgReading extends Model implements ShareUploadableBg{
@@ -175,18 +177,22 @@ public class BgReading extends Model implements ShareUploadableBg{
     }
 
 
-    public static double calculateSlope(BgReading current, BgReading last) {
-        if (current.timestamp == last.timestamp || current.calculated_value == last.calculated_value) {
+    public static double calculateSlope(BgReading current, BgReading last, AtomicBoolean hideSlope) {
+        
+        if (current.timestamp == last.timestamp || 
+            current.timestamp - last.timestamp > BgGraphBuilder.MAX_SLOPE_MINUTES * 60 * 1000) {
+            hideSlope.set(true);
             return 0;
-        } else {
-            return (last.calculated_value - current.calculated_value) / (last.timestamp - current.timestamp);
         }
+        hideSlope.set(false);
+        return (last.calculated_value - current.calculated_value) / (last.timestamp - current.timestamp);
     }
 
     public static double currentSlope(){
         List<BgReading> last_2 = BgReading.latest(2);
+        AtomicBoolean hideSlope = new AtomicBoolean();
         if (last_2.size() == 2) {
-            return calculateSlope(last_2.get(0), last_2.get(1));
+            return calculateSlope(last_2.get(0), last_2.get(1), hideSlope);
         } else{
             return 0d;
         }
@@ -240,16 +246,10 @@ public class BgReading extends Model implements ShareUploadableBg{
                 bgReading.raw_calculated = (((calSlope * bgReading.raw_data) + calIntercept) - 5);
             }
             Log.i(TAG, "create: NEW VALUE CALCULATED AT: " + bgReading.calculated_value);
-            bgReading.calculated_value_slope = bgReading.slopefromName(egvRecord.getTrend().friendlyTrendName());
+            AtomicBoolean hide = new AtomicBoolean();
+            bgReading.calculated_value_slope = bgReading.slopefromName(egvRecord.getTrend().friendlyTrendName(), hide);
             bgReading.noise = egvRecord.noiseValue();
-            String friendlyName = egvRecord.getTrend().friendlyTrendName();
-            if(friendlyName.compareTo("NONE") == 0 ||
-                    friendlyName.compareTo("NOT_COMPUTABLE") == 0 ||
-                    friendlyName.compareTo("NOT COMPUTABLE") == 0 ||
-                    friendlyName.compareTo("OUT OF RANGE")   == 0 ||
-                    friendlyName.compareTo("OUT_OF_RANGE") == 0) {
-                bgReading.hide_slope = true;
-            }
+            bgReading.hide_slope = hide.get();
             bgReading.save();
             bgReading.find_new_curve();
             bgReading.find_new_raw_curve();
@@ -386,44 +386,35 @@ public class BgReading extends Model implements ShareUploadableBg{
         Calibration calibration = Calibration.last();
         if (calibration == null) {
             Log.d(TAG, "create: No calibration yet");
-            bgReading.sensor = sensor;
-            bgReading.sensor_uuid = sensor.uuid;
-            bgReading.raw_data = (raw_data / 1000);
-            bgReading.age_adjusted_raw_value = age_adjusted_raw_value;
-            bgReading.filtered_data = (filtered_data / 1000);
-            bgReading.timestamp = timestamp;
-            bgReading.uuid = UUID.randomUUID().toString();
-            bgReading.calculated_value = calculated_bg;
-            bgReading.calculated_value_slope = calculated_current_slope;
-            bgReading.hide_slope = hide_slope;
-
-            bgReading.save();
-            bgReading.perform_calculations();
         } else {
             Log.d(TAG,"Calibrations, so doing everything bgReading = " + bgReading);
-            bgReading.sensor = sensor;
-            bgReading.sensor_uuid = sensor.uuid;
             bgReading.calibration = calibration;
             bgReading.calibration_uuid = calibration.uuid;
-            bgReading.raw_data = (raw_data/1000);
-            bgReading.age_adjusted_raw_value = age_adjusted_raw_value;
-            bgReading.filtered_data = (filtered_data/1000);
-            bgReading.timestamp = timestamp;
-            bgReading.uuid = UUID.randomUUID().toString();
-            bgReading.calculated_value = calculated_bg;
-            bgReading.calculated_value_slope = calculated_current_slope;
-            bgReading.hide_slope = hide_slope;
-
-            if (bgReading.calculated_value < 10) {
-                bgReading.calculated_value = 9;
-                bgReading.hide_slope = true;
-            } else {
-                bgReading.calculated_value = Math.min(400, Math.max(39, bgReading.calculated_value));
-            }
-            Log.i(TAG, "NEW VALUE CALCULATED AT: " + bgReading.calculated_value);
-
-            bgReading.save();
         }
+        
+        bgReading.sensor = sensor;
+        bgReading.sensor_uuid = sensor.uuid;
+        bgReading.raw_data = (raw_data/1000);
+        bgReading.age_adjusted_raw_value = age_adjusted_raw_value;
+        bgReading.filtered_data = (filtered_data/1000);
+        bgReading.timestamp = timestamp;
+        bgReading.uuid = UUID.randomUUID().toString();
+        bgReading.calculated_value = calculated_bg;
+        bgReading.calculated_value_slope = calculated_current_slope;
+        bgReading.hide_slope = hide_slope;
+
+        if (bgReading.calculated_value < 10) {
+            bgReading.calculated_value = 9;
+            bgReading.hide_slope = true;
+        } else {
+            bgReading.calculated_value = Math.min(400, Math.max(39, bgReading.calculated_value));
+        }
+        Log.i(TAG, "NEW VALUE CALCULATED AT: " + bgReading.calculated_value);
+
+
+
+        bgReading.save();
+
         BgSendQueue.handleNewBgReading(bgReading, "create", context);
 
         Log.i("BG GSON: ",bgReading.toS());
@@ -480,8 +471,9 @@ public class BgReading extends Model implements ShareUploadableBg{
         return arrow;
     }
 
-    public double slopefromName(String slope_name) {
+    public static double slopefromName(String slope_name, AtomicBoolean hide) {
         double slope_by_minute = 0;
+        hide.set(false);
         if (slope_name.compareTo("DoubleDown") == 0) {
             slope_by_minute = -3.5;
         } else if (slope_name.compareTo("SingleDown") == 0) {
@@ -502,6 +494,7 @@ public class BgReading extends Model implements ShareUploadableBg{
                    slope_name.compareTo("OUT OF RANGE")   == 0 ||
                    slope_name.compareTo("NONE") == 0) {
             slope_by_minute = 0;
+            hide.set(true);
         }
         return slope_by_minute /60000;
     }
@@ -643,15 +636,16 @@ public class BgReading extends Model implements ShareUploadableBg{
 
         assert last_2.get(0)==this : "Invariant condition not fulfilled: calculating slope and current reading wasn't saved before";
 
+        AtomicBoolean hide = new AtomicBoolean(true);
         if (last_2.size() == 2) {
-            calculated_value_slope = calculateSlope(this, last_2.get(1));
-            save();
+            calculated_value_slope = calculateSlope(this, last_2.get(1), hide);
         } else if (last_2.size() == 1) {
             calculated_value_slope = 0;
-            save();
         } else {
             Log.w(TAG, "NO BG? COULDNT FIND SLOPE!");
         }
+        hide_slope = hide.get();
+        save();
     }
 
 
