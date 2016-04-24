@@ -18,6 +18,8 @@ import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
+import com.eveningoutpost.dexdrip.G5Model.Extensions;
+import com.eveningoutpost.dexdrip.G5Model.Transmitter;
 import com.eveningoutpost.dexdrip.ImportedLibraries.dexcom.Constants;
 import com.eveningoutpost.dexdrip.Models.ActiveBluetoothDevice;
 import com.eveningoutpost.dexdrip.Models.BgReading;
@@ -33,6 +35,7 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
+import java.util.Set;
 
 
 public class SystemStatus extends ActivityWithMenu {
@@ -51,6 +54,7 @@ public class SystemStatus extends ActivityWithMenu {
     private ImageButton refresh;
     private SharedPreferences prefs;
     private BluetoothManager mBluetoothManager;
+    private BluetoothAdapter mBluetoothAdapter;
     private ActiveBluetoothDevice activeBluetoothDevice;
 
     @Override
@@ -187,6 +191,28 @@ public class SystemStatus extends ActivityWithMenu {
         } else {
             current_device.setText("None Set");
         }
+
+        String collection_method = prefs.getString("dex_collection_method", "BluetoothWixel");
+        if(collection_method.compareTo("DexcomG5") == 0) {
+            Transmitter defaultTransmitter = new Transmitter(prefs.getString("dex_txid", "ABCDEF"));
+            mBluetoothAdapter = mBluetoothManager.getAdapter();
+
+            Set<BluetoothDevice> pairedDevices = mBluetoothAdapter.getBondedDevices();
+            if (pairedDevices.size() > 0) {
+                for (BluetoothDevice device : pairedDevices) {
+                    if (device.getName() != null) {
+
+                        String transmitterIdLastTwo = Extensions.lastTwoCharactersOfString(defaultTransmitter.transmitterId);
+                        String deviceNameLastTwo = Extensions.lastTwoCharactersOfString(device.getName());
+
+                        if (transmitterIdLastTwo.equals(deviceNameLastTwo)) {
+                            current_device.setText(defaultTransmitter.transmitterId);
+                        }
+
+                    }
+                }
+            }
+        }
     }
 
     private void setConnectionStatus() {
@@ -202,6 +228,28 @@ public class SystemStatus extends ActivityWithMenu {
             connection_status.setText("Connected");
         } else {
             connection_status.setText("Not Connected");
+        }
+
+        String collection_method = prefs.getString("dex_collection_method", "BluetoothWixel");
+        if(collection_method.compareTo("DexcomG5") == 0) {
+            Transmitter defaultTransmitter = new Transmitter(prefs.getString("dex_txid", "ABCDEF"));
+            mBluetoothAdapter = mBluetoothManager.getAdapter();
+
+            Set<BluetoothDevice> pairedDevices = mBluetoothAdapter.getBondedDevices();
+            if (pairedDevices.size() > 0) {
+                for (BluetoothDevice device : pairedDevices) {
+                    if (device.getName() != null) {
+
+                        String transmitterIdLastTwo = Extensions.lastTwoCharactersOfString(defaultTransmitter.transmitterId);
+                        String deviceNameLastTwo = Extensions.lastTwoCharactersOfString(device.getName());
+
+                        if (transmitterIdLastTwo.equals(deviceNameLastTwo)) {
+                            connection_status.setText(device.getName() + "\nAuthenticated");
+                        }
+
+                    }
+                }
+            }
         }
     }
 
@@ -291,6 +339,32 @@ public class SystemStatus extends ActivityWithMenu {
                                 }, 5000);
                             }
                         }, 1000);
+                    }
+                }
+
+                String collection_method = prefs.getString("dex_collection_method", "BluetoothWixel");
+                if(collection_method.compareTo("DexcomG5") == 0) {
+                    Transmitter defaultTransmitter = new Transmitter(prefs.getString("dex_txid", "ABCDEF"));
+                    mBluetoothAdapter = mBluetoothManager.getAdapter();
+
+                    Set<BluetoothDevice> pairedDevices = mBluetoothAdapter.getBondedDevices();
+                    if (pairedDevices.size() > 0) {
+                        for (BluetoothDevice device : pairedDevices) {
+                            if (device.getName() != null) {
+
+                                String transmitterIdLastTwo = Extensions.lastTwoCharactersOfString(defaultTransmitter.transmitterId);
+                                String deviceNameLastTwo = Extensions.lastTwoCharactersOfString(device.getName());
+
+                                if (transmitterIdLastTwo.equals(deviceNameLastTwo)) {
+                                    try {
+                                        Method m = device.getClass().getMethod("removeBond", (Class[]) null);
+                                        m.invoke(device, (Object[]) null);
+                                        notes.append("\nG5 Transmitter unbonded, switch device mode to prevent re-pairing to G5.");
+                                    } catch (Exception e) { Log.e("SystemStatus", e.getMessage(), e); }
+                                }
+
+                            }
+                        }
                     }
                 }
             }
