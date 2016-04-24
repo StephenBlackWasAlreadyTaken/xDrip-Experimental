@@ -353,13 +353,7 @@ public class BgReading extends Model implements ShareUploadableBg{
                 }
                 bgReading.calculated_value = ((calibration.slope * bgReading.age_adjusted_raw_value) + calibration.intercept);
             }
-            if (bgReading.calculated_value < 10) {
-                bgReading.calculated_value = 9;
-                bgReading.hide_slope = true;
-            } else {
-                bgReading.calculated_value = Math.min(400, Math.max(39, bgReading.calculated_value));
-            }
-            Log.i(TAG, "NEW VALUE CALCULATED AT: " + bgReading.calculated_value);
+            updateCalculatedValue(bgReading);
 
             bgReading.save();
             bgReading.perform_calculations();
@@ -371,7 +365,17 @@ public class BgReading extends Model implements ShareUploadableBg{
 
         return bgReading;
     }
-    
+
+    static void updateCalculatedValue(BgReading bgReading ) {
+        if (bgReading.calculated_value < 10) {
+            bgReading.calculated_value = 38;
+            bgReading.hide_slope = true;
+        } else {
+            bgReading.calculated_value = Math.min(400, Math.max(39, bgReading.calculated_value));
+        }
+        Log.i(TAG, "NEW VALUE CALCULATED AT: " + bgReading.calculated_value);
+    }
+
     // Used by xDripViewer
     public static void create(Context context, double raw_data, double age_adjusted_raw_value, double filtered_data, Long timestamp,
             double calculated_bg,  double calculated_current_slope, boolean hide_slope) {
@@ -413,14 +417,6 @@ public class BgReading extends Model implements ShareUploadableBg{
             bgReading.calculated_value = calculated_bg;
             bgReading.calculated_value_slope = calculated_current_slope;
             bgReading.hide_slope = hide_slope;
-
-            if (bgReading.calculated_value < 10) {
-                bgReading.calculated_value = 9;
-                bgReading.hide_slope = true;
-            } else {
-                bgReading.calculated_value = Math.min(400, Math.max(39, bgReading.calculated_value));
-            }
-            Log.i(TAG, "NEW VALUE CALCULATED AT: " + bgReading.calculated_value);
 
             bgReading.save();
         }
