@@ -3,7 +3,6 @@ package com.eveningoutpost.dexdrip.Services;
 import java.util.Date;
 import java.util.List;
 import java.util.ListIterator;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 import android.content.Context;
 import android.content.Intent;
@@ -11,6 +10,7 @@ import android.content.SharedPreferences;
 import android.os.AsyncTask;
 import android.os.PowerManager;
 import android.preference.PreferenceManager;
+import android.util.Pair;
 
 import com.eveningoutpost.dexdrip.Models.BgReading;
 import com.eveningoutpost.dexdrip.Models.Calibration;
@@ -227,10 +227,10 @@ public class XDripViewer extends AsyncTaskBase {
             nightscoutBg.filtered = nightscoutBg.sgv;
         }
         
-        AtomicBoolean hide = new AtomicBoolean();
-        nightscoutBg.xDrip_calculated_current_slope = BgReading.slopefromName(nightscoutBg.direction, hide);
-        nightscoutBg.xDrip_hide_slope = hide.get();
-            
+        Pair<Double, Boolean> slopePair = BgReading.slopefromName(nightscoutBg.direction);
+
+        nightscoutBg.xDrip_calculated_current_slope = slopePair.first;
+        nightscoutBg.xDrip_hide_slope = slopePair.second;
     }
     
     private static void verifyViewerNightscoutMode(Context context,  NightscoutMbg nightscoutMbg ) {

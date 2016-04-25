@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
 import android.provider.BaseColumns;
+import android.util.Pair;
 
 import com.eveningoutpost.dexdrip.Models.UserError.Log;
 import com.activeandroid.Model;
@@ -29,7 +30,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Random;
 import java.util.UUID;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 @Table(name = "BgReadings", id = BaseColumns._ID)
 public class BgReading extends Model implements ShareUploadableBg{
@@ -180,23 +180,22 @@ public class BgReading extends Model implements ShareUploadableBg{
         return 0;
     }
 
-
-    public static double calculateSlope(BgReading current, BgReading last, AtomicBoolean hideSlope) {
+    public static Pair<Double, Boolean> calculateSlope(BgReading current, BgReading last) {
         
         if (current.timestamp == last.timestamp || 
             current.timestamp - last.timestamp > BgGraphBuilder.MAX_SLOPE_MINUTES * 60 * 1000) {
-            hideSlope.set(true);
-            return 0;
+            return Pair.create(0d, true);
+
         }
-        hideSlope.set(false);
-        return (last.calculated_value - current.calculated_value) / (last.timestamp - current.timestamp);
+        double slope =  (last.calculated_value - current.calculated_value) / (last.timestamp - current.timestamp);
+        return Pair.create(slope, false);
     }
 
     public static double currentSlope(){
         List<BgReading> last_2 = BgReading.latest(2);
-        AtomicBoolean hideSlope = new AtomicBoolean();
         if (last_2.size() == 2) {
-            return calculateSlope(last_2.get(0), last_2.get(1), hideSlope);
+            Pair<Double, Boolean> slopePair = calculateSlope(last_2.get(0), last_2.get(1));
+            return slopePair.first;
         } else{
             return 0d;
         }
@@ -250,10 +249,10 @@ public class BgReading extends Model implements ShareUploadableBg{
                 bgReading.raw_calculated = (((calSlope * bgReading.raw_data) + calIntercept) - 5);
             }
             Log.i(TAG, "create: NEW VALUE CALCULATED AT: " + bgReading.calculated_value);
-            AtomicBoolean hide = new AtomicBoolean();
-            bgReading.calculated_value_slope = bgReading.slopefromName(egvRecord.getTrend().friendlyTrendName(), hide);
+            Pair<Double, Boolean> slopePair = BgReading.slopefromName(egvRecord.getTrend().friendlyTrendName());
+            bgReading.calculated_value_slope = slopePair.first;
+            bgReading.hide_slope = slopePair.second;
             bgReading.noise = egvRecord.noiseValue();
-            bgReading.hide_slope = hide.get();
             bgReading.save();
             bgReading.find_new_curve();
             bgReading.find_new_raw_curve();
@@ -470,9 +469,10 @@ public class BgReading extends Model implements ShareUploadableBg{
         return arrow;
     }
 
-    public static double slopefromName(String slope_name, AtomicBoolean hide) {
+    public static  Pair<Double, Boolean> slopefromName(String slope_name) {
+
         double slope_by_minute = 0;
-        hide.set(false);
+        boolean hide = false;
         if (slope_name.compareTo("DoubleDown") == 0) {
             slope_by_minute = -3.5;
         } else if (slope_name.compareTo("SingleDown") == 0) {
@@ -493,9 +493,11 @@ public class BgReading extends Model implements ShareUploadableBg{
                    slope_name.compareTo("OUT OF RANGE")   == 0 ||
                    slope_name.compareTo("NONE") == 0) {
             slope_by_minute = 0;
-            hide.set(true);
+            hide = true;
         }
-        return slope_by_minute /60000;
+
+        slope_by_minute /= 60000;
+        return Pair.create(slope_by_minute, hide);
     }
 
     public static BgReading last() {
@@ -635,15 +637,17 @@ public class BgReading extends Model implements ShareUploadableBg{
 
         assert last_2.get(0)==this : "Invariant condition not fulfilled: calculating slope and current reading wasn't saved before";
 
-        AtomicBoolean hide = new AtomicBoolean(true);
+        hide_slope = true;
         if (last_2.size() == 2) {
-            calculated_value_slope = calculateSlope(this, last_2.get(1), hide);
+            Pair<Double, Boolean> slopePair = calculateSlope(this, last_2.get(1));
+            calculated_value_slope = slopePair.first;
+            hide_slope = slopePair.second;
         } else if (last_2.size() == 1) {
             calculated_value_slope = 0;
         } else {
             Log.w(TAG, "NO BG? COULDNT FIND SLOPE!");
+            calculated_value_slope = 0;
         }
-        hide_slope = hide.get();
         save();
     }
 
