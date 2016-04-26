@@ -74,6 +74,10 @@ public class BgReading extends Model implements ShareUploadableBg{
     public double calculated_value;
 
     @Expose
+    @Column(name = "filtered_calculated_value")
+    public double filtered_calculated_value;
+
+    @Expose
     @Column(name = "calculated_value_slope")
     public double calculated_value_slope;
 
@@ -101,7 +105,7 @@ public class BgReading extends Model implements ShareUploadableBg{
     @Column(name = "rc")
     public double rc;
     @Expose
-    @Column(name = "uuid", index = true)
+    @Column(name = "uuid", unique = true , onUniqueConflicts = Column.ConflictAction.IGNORE)
     public String uuid;
 
     @Expose
@@ -352,6 +356,7 @@ public class BgReading extends Model implements ShareUploadableBg{
                     }
                 }
                 bgReading.calculated_value = ((calibration.slope * bgReading.age_adjusted_raw_value) + calibration.intercept);
+                bgReading.filtered_calculated_value = ((calibration.slope * bgReading.ageAdjustedFiltered()) + calibration.intercept);
             }
             updateCalculatedValue(bgReading);
 
