@@ -180,37 +180,35 @@ public class BgGraphBuilder {
         return line;
     }
 
+    // Produce an array of cubic lines, split as needed
     public ArrayList<Line> filteredLines() {
-        ArrayList<Line> linearray = new ArrayList<Line>();
-        float lastx = -999999;
-        float jumpthresh = 15; // in minutes
-        List<PointValue> thesepoints = new ArrayList<PointValue>();
+        ArrayList<Line> line_array = new ArrayList<Line>();
+        float last_x_pos = -999999; // bogus mark value
+        final float jump_threshold = 15; // in minutes
+        List<PointValue> local_points = new ArrayList<PointValue>();
 
         if (filteredValues.size() > 0) {
+            final float end_marker = filteredValues.get(filteredValues.size() - 1).getX();
 
-            final float endmarker = filteredValues.get(filteredValues.size() - 1).getX();
-
-            for (PointValue thispoint : filteredValues) {
+            for (PointValue current_point : filteredValues) {
                 // a jump too far for a line? make it a new one
-                if (((lastx != -999999) && (Math.abs(thispoint.getX() - lastx) > jumpthresh))
-                        || thispoint.getX() == endmarker) {
-                    Line line = new Line(thesepoints);
+                if (((last_x_pos != -999999) && (Math.abs(current_point.getX() - last_x_pos) > jump_threshold))
+                        || current_point.getX() == end_marker) {
+                    Line line = new Line(local_points);
                     line.setHasPoints(true);
                     line.setPointRadius(2);
                     line.setStrokeWidth(1);
                     line.setColor(Color.parseColor("#a0a0a0"));
                     line.setCubic(true);
                     line.setHasLines(true);
-                    linearray.add(line);
-                    thesepoints = new ArrayList<PointValue>();
+                    line_array.add(line);
+                    local_points = new ArrayList<PointValue>();
                 }
-
-                lastx = thispoint.getX();
-                thesepoints.add(thispoint); // grow current line list
+                last_x_pos = current_point.getX();
+                local_points.add(current_point); // grow current line list
             }
         }
-
-        return linearray;
+        return line_array;
     }
 
     public Line[] calibrationValuesLine() {
