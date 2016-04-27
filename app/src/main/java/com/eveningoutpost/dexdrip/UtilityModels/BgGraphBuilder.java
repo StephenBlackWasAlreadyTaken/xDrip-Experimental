@@ -129,7 +129,7 @@ public class BgGraphBuilder {
         lines.add(highLine());
         lines.add(lowLine());
 
-        if (prefs.getBoolean("show_filtered_curve", true)) {
+        if (prefs.getBoolean("show_filtered_curve", false)) {
             final ArrayList<Line> filtered_lines = filteredLines();
             for (Line thisline : filtered_lines) {
                 lines.add(thisline);
@@ -230,27 +230,29 @@ public class BgGraphBuilder {
 
 
     private void addBgReadingValues() {
+        final boolean show_filtered = prefs.getBoolean("show_filtered_curve", false);
+
         for (BgReading bgReading : bgReadings) {
             if (bgReading.raw_calculated != 0 && prefs.getBoolean("interpret_raw", false)) {
-                rawInterpretedValues.add(new PointValue((float) (bgReading.timestamp/ FUZZER), (float) unitized(bgReading.raw_calculated)));
+                rawInterpretedValues.add(new PointValue((float) (bgReading.timestamp / FUZZER), (float) unitized(bgReading.raw_calculated)));
             } else if (bgReading.calculated_value >= 400) {
-                highValues.add(new PointValue((float) (bgReading.timestamp/ FUZZER), (float) unitized(400)));
+                highValues.add(new PointValue((float) (bgReading.timestamp / FUZZER), (float) unitized(400)));
             } else if (unitized(bgReading.calculated_value) >= highMark) {
-                highValues.add(new PointValue((float) (bgReading.timestamp/ FUZZER), (float) unitized(bgReading.calculated_value)));
+                highValues.add(new PointValue((float) (bgReading.timestamp / FUZZER), (float) unitized(bgReading.calculated_value)));
             } else if (unitized(bgReading.calculated_value) >= lowMark) {
-                inRangeValues.add(new PointValue((float) (bgReading.timestamp/ FUZZER), (float) unitized(bgReading.calculated_value)));
+                inRangeValues.add(new PointValue((float) (bgReading.timestamp / FUZZER), (float) unitized(bgReading.calculated_value)));
             } else if (bgReading.calculated_value >= 40) {
-                lowValues.add(new PointValue((float)(bgReading.timestamp/ FUZZER), (float) unitized(bgReading.calculated_value)));
+                lowValues.add(new PointValue((float) (bgReading.timestamp / FUZZER), (float) unitized(bgReading.calculated_value)));
             } else if (bgReading.calculated_value > 13) {
-                lowValues.add(new PointValue((float)(bgReading.timestamp/ FUZZER), (float) unitized(40)));
+                lowValues.add(new PointValue((float) (bgReading.timestamp / FUZZER), (float) unitized(40)));
             }
 
-            if ((bgReading.filtered_calculated_value > 0) &&(bgReading.filtered_calculated_value != bgReading.calculated_value)) {
+            if ((show_filtered) && (bgReading.filtered_calculated_value > 0) && (bgReading.filtered_calculated_value != bgReading.calculated_value)) {
                 filteredValues.add(new PointValue((float) ((bgReading.timestamp - timeshift) / FUZZER), (float) unitized(bgReading.filtered_calculated_value)));
             }
         }
         for (Calibration calibration : calibrations) {
-            calibrationValues.add(new PointValue((float)(calibration.timestamp/ FUZZER), (float) unitized(calibration.bg)));
+            calibrationValues.add(new PointValue((float) (calibration.timestamp / FUZZER), (float) unitized(calibration.bg)));
         }
     }
 
