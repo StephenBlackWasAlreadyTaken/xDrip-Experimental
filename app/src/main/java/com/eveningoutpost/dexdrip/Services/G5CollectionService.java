@@ -57,7 +57,6 @@ import com.eveningoutpost.dexdrip.G5Model.Transmitter;
 
 import com.eveningoutpost.dexdrip.UtilityModels.ForegroundServiceStarter;
 import com.eveningoutpost.dexdrip.utils.BgToSpeech;
-import com.squareup.okhttp.OkHttpClient;
 
 import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
@@ -296,6 +295,16 @@ public class G5CollectionService extends Service {
         }, delay);
     }
 
+    void connectAfterDelay(int delay, final BluetoothDevice device) {
+        Log.d(TAG, "ConnectDelay");
+        stopScan();
+        handler.postDelayed(new Runnable() {
+            public void run() {
+                connectToDevice(device);
+            }
+        }, delay);
+    }
+
     void cycleBluetoothPower() {
         lastGattStatus = 0;
         mBluetoothAdapter.disable();
@@ -352,7 +361,8 @@ public class G5CollectionService extends Service {
                     if (transmitterIdLastTwo.equals(deviceNameLastTwo)) {
 
                         device = btDevice;
-                        connectToDevice(btDevice);
+                        connectAfterDelay(2000, btDevice);
+                        //connectToDevice(btDevice);
 
                     } else {
                         stopScan();
@@ -695,17 +705,5 @@ public class G5CollectionService extends Service {
         return null;
     }
 
-    private void appendToStringBuilder(String toAppend) {
-        log.append(toAppend + '\n');
-    }
-
-    private void uploadStringBuilder() {
-        int SOCKET_TIMEOUT = 60000;
-        int CONNECTION_TIMEOUT = 30000;
-        OkHttpClient client = new OkHttpClient();
-        client.setConnectTimeout(CONNECTION_TIMEOUT, TimeUnit.MILLISECONDS);
-        client.setWriteTimeout(SOCKET_TIMEOUT, TimeUnit.MILLISECONDS);
-        client.setReadTimeout(SOCKET_TIMEOUT, TimeUnit.MILLISECONDS);
-    }
 
 }
