@@ -37,6 +37,11 @@
             android:summary="If using Share, DexDrip will show values when they are normally hidden on the receiver."
             android:defaultValue="false" />
         <CheckBoxPreference
+            android:defaultValue="false"
+            android:key="show_filtered_curve"
+            android:summary="Useful for noise and missed readings"
+            android:title="Display filtered plot" />
+        <CheckBoxPreference
             android:key="bg_to_speech"
             android:title="Speak Readings"
             android:summary="If the phone has text-to-speech capabilities it will read new readings out loud."
