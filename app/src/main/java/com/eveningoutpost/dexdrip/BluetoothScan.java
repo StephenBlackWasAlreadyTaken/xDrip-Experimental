@@ -313,6 +313,11 @@ public class BluetoothScan extends ListActivityWithMenu {
                 prefs.edit().putString("dex_collection_method", "BluetoothWixel").apply();
             }
             returnToHome();
+        } else if(device.getName().toLowerCase().contains("limitter")) {
+            if (!CollectionServiceStarter.isLimitter(getApplicationContext())) {
+                prefs.edit().putString("dex_collection_method", "LimiTTer").apply();
+            }
+            returnToHome();
         } else {
             returnToHome();
         }
