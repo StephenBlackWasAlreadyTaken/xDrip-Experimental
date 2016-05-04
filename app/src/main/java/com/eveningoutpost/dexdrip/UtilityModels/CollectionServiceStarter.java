@@ -82,7 +82,8 @@ public class CollectionServiceStarter {
         if(XDripViewer.isxDripViewerMode(context)) {
             return false;
         }
-        return collection_method.equals("BluetoothWixel"); 
+        //LimiTTer hardware emulates BTWixel packages
+        return collection_method.equals("BluetoothWixel")||collection_method.equals("LimiTTer");
     }
 
     public static boolean isDexbridgeWixel(Context context) {
