@@ -65,7 +65,7 @@ public class CollectionServiceStarter {
     * It would work without any changes but in some cases knowing that the data does not
     * come from a Dexcom sensor but from a Libre sensor might enhance the performance.
     * */
-    
+
     public static boolean isLimitter(Context context) {
         if(XDripViewer.isxDripViewerMode(context)) {
             return false;
