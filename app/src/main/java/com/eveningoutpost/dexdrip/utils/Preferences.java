@@ -429,7 +429,8 @@ public class Preferences extends PreferenceActivity {
                     if (((String) newValue).compareTo("BluetoothWixel") != 0
                             && ((String) newValue).compareTo("DexcomShare") != 0
                             && ((String) newValue).compareTo("DexbridgeWixel") != 0
-                            && ((String) newValue).compareTo("WifiBlueToothWixel") != 0) {
+                            && ((String) newValue).compareTo("WifiBlueToothWixel") != 0
+                            && ((String) newValue).compareTo("LimiTTer") != 0) {
                         collectionCategory.removePreference(runInForeground);
                     } else {
                         collectionCategory.addPreference(runInForeground);
