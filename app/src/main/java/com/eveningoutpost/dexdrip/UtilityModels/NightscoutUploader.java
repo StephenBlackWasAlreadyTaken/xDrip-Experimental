@@ -218,6 +218,7 @@ public class NightscoutUploader {
             json.put("unfiltered", record.usedRaw() * 1000);
             json.put("rssi", 100);
             json.put("noise", record.noiseValue());
+            json.put("xDrip_filtered_calculated_value", record.filtered_calculated_value);
             if(xDripViewerMode) {
 	            json.put("xDrip_raw", record.raw_data);
 	            json.put("xDrip_filtered", record.filtered_data);
@@ -349,6 +350,7 @@ public class NightscoutUploader {
                             testData.put("unfiltered", record.usedRaw() * 1000);
                             testData.put("rssi", 100);
                             testData.put("noise", record.noiseValue());
+                            testData.put("xDrip_filtered_calculated_value", record.filtered_calculated_value);
                             if(xDripViewerMode) {
 	                            testData.put("xDrip_raw", record.raw_data);
 	                            testData.put("xDrip_filtered", record.filtered_data);
