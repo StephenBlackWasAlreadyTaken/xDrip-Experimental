@@ -788,15 +788,15 @@ public class Calibration extends Model {
 }
 
 abstract class SlopeParameters {
-    protected  double LOW_SLOPE_1 = 0.95;
-    protected  double LOW_SLOPE_2 = 0.85;
-    protected  double HIGH_SLOPE_1 = 1.3;
-    protected  double HIGH_SLOPE_2 = 1.4;
-    protected  double DEFAULT_LOW_SLOPE_LOW = 1.08;
-    protected  double DEFAULT_LOW_SLOPE_HIGH = 1.15;
-    protected  int DEFAULT_SLOPE = 1;
-    protected  double DEFAULT_HIGH_SLOPE_HIGH = 1.3;
-    protected  double DEFAUL_HIGH_SLOPE_LOW = 1.2;
+    protected  double LOW_SLOPE_1;
+    protected  double LOW_SLOPE_2;
+    protected  double HIGH_SLOPE_1;
+    protected  double HIGH_SLOPE_2;
+    protected  double DEFAULT_LOW_SLOPE_LOW;
+    protected  double DEFAULT_LOW_SLOPE_HIGH;
+    protected  int DEFAULT_SLOPE;
+    protected  double DEFAULT_HIGH_SLOPE_HIGH;
+    protected  double DEFAUL_HIGH_SLOPE_LOW;
 
     public double getLowSlope1() {
         return LOW_SLOPE_1;

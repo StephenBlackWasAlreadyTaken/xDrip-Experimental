@@ -712,11 +712,11 @@ public class BgReading extends Model implements ShareUploadableBg{
 
     public void calculateAgeAdjustedRawValue(Context context){
         double adjust_for = AGE_ADJUSTMENT_TIME - time_since_sensor_started;
-        if (adjust_for > 0 && !CollectionServiceStarter.isLimitter(context)) {
-            age_adjusted_raw_value = ((AGE_ADJUSTMENT_FACTOR * (adjust_for / AGE_ADJUSTMENT_TIME)) * raw_data) + raw_data;
-            Log.i(TAG, "calculateAgeAdjustedRawValue: RAW VALUE ADJUSTMENT FROM:" + raw_data + " TO: " + age_adjusted_raw_value);
-        } else {
-            age_adjusted_raw_value = raw_data;
+        if (adjust_for <= 0 || CollectionServiceStarter.isLimitter(context)) {
+                age_adjusted_raw_value = raw_data;
+            } else {
+                age_adjusted_raw_value = ((AGE_ADJUSTMENT_FACTOR * (adjust_for / AGE_ADJUSTMENT_TIME)) * raw_data) + raw_data;
+                Log.i(TAG, "calculateAgeAdjustedRawValue: RAW VALUE ADJUSTMENT FROM:" + raw_data + " TO: " + age_adjusted_raw_value);
         }
     }
 
