@@ -32,6 +32,7 @@ public class NsRestApiReader {
 	    double xDrip_calculated_value;
 	    double xDrip_calculated_current_slope;
 	    boolean xDrip_hide_slope;
+	    double xDrip_filtered_calculated_value;
 	    String device;
 	    String direction;
 	}
