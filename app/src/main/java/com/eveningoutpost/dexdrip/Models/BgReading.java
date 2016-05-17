@@ -17,6 +17,7 @@ import com.eveningoutpost.dexdrip.ImportedLibraries.dexcom.records.SensorRecord;
 import com.eveningoutpost.dexdrip.ShareModels.ShareUploadableBg;
 import com.eveningoutpost.dexdrip.UtilityModels.BgGraphBuilder;
 import com.eveningoutpost.dexdrip.UtilityModels.BgSendQueue;
+import com.eveningoutpost.dexdrip.UtilityModels.CollectionServiceStarter;
 import com.eveningoutpost.dexdrip.UtilityModels.Constants;
 import com.eveningoutpost.dexdrip.UtilityModels.Notifications;
 import com.google.gson.Gson;
@@ -230,7 +231,7 @@ public class BgReading extends Model implements ShareUploadableBg{
                 bgReading.uuid = UUID.randomUUID().toString();
                 bgReading.time_since_sensor_started = bgReading.timestamp - sensor.started_at;
                 bgReading.synced = false;
-                bgReading.calculateAgeAdjustedRawValue();
+                bgReading.calculateAgeAdjustedRawValue(context);
                 bgReading.save();
             }
         }
@@ -322,7 +323,7 @@ public class BgReading extends Model implements ShareUploadableBg{
             bgReading.synced = false;
             bgReading.calibration_flag = false;
 
-            bgReading.calculateAgeAdjustedRawValue();
+            bgReading.calculateAgeAdjustedRawValue(context);
 
             bgReading.save();
             bgReading.perform_calculations();
@@ -339,7 +340,7 @@ public class BgReading extends Model implements ShareUploadableBg{
             bgReading.time_since_sensor_started = bgReading.timestamp - sensor.started_at;
             bgReading.synced = false;
 
-            bgReading.calculateAgeAdjustedRawValue();
+            bgReading.calculateAgeAdjustedRawValue(context);
 
             if(calibration.check_in) {
                 double firstAdjSlope = calibration.first_slope + (calibration.first_decay * (Math.ceil(new Date().getTime() - calibration.timestamp)/(1000 * 60 * 10)));
@@ -705,13 +706,13 @@ public class BgReading extends Model implements ShareUploadableBg{
         }
     }
 
-    public void calculateAgeAdjustedRawValue(){
+    public void calculateAgeAdjustedRawValue(Context context){
         double adjust_for = AGE_ADJUSTMENT_TIME - time_since_sensor_started;
-        if (adjust_for > 0) {
-            age_adjusted_raw_value = ((AGE_ADJUSTMENT_FACTOR * (adjust_for / AGE_ADJUSTMENT_TIME)) * raw_data) + raw_data;
-            Log.i(TAG, "calculateAgeAdjustedRawValue: RAW VALUE ADJUSTMENT FROM:" + raw_data + " TO: " + age_adjusted_raw_value);
-        } else {
-            age_adjusted_raw_value = raw_data;
+        if (adjust_for <= 0 || CollectionServiceStarter.isLimitter(context)) {
+                age_adjusted_raw_value = raw_data;
+            } else {
+                age_adjusted_raw_value = ((AGE_ADJUSTMENT_FACTOR * (adjust_for / AGE_ADJUSTMENT_TIME)) * raw_data) + raw_data;
+                Log.i(TAG, "calculateAgeAdjustedRawValue: RAW VALUE ADJUSTMENT FROM:" + raw_data + " TO: " + age_adjusted_raw_value);
         }
     }
 

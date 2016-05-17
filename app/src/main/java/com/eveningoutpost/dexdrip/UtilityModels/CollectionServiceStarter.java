@@ -54,7 +54,25 @@ public class CollectionServiceStarter {
         }
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
         String collection_method = prefs.getString("dex_collection_method", "BluetoothWixel");
-        if(collection_method.compareTo("BluetoothWixel") == 0) {
+        if(collection_method.compareTo("BluetoothWixel") == 0 || isLimitter(context)) {
+            return true;
+        }
+        return false;
+    }
+
+    /*
+    * LimiTTer emulates a BT-Wixel and works with the BT-Wixel service.
+    * It would work without any changes but in some cases knowing that the data does not
+    * come from a Dexcom sensor but from a Libre sensor might enhance the performance.
+    * */
+
+    public static boolean isLimitter(Context context) {
+        if(XDripViewer.isxDripViewerMode(context)) {
+            return false;
+        }
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
+        String collection_method = prefs.getString("dex_collection_method", "BluetoothWixel");
+        if(collection_method.compareTo("LimiTTer") == 0) {
             return true;
         }
         return false;
@@ -64,7 +82,8 @@ public class CollectionServiceStarter {
         if(XDripViewer.isxDripViewerMode(context)) {
             return false;
         }
-        return collection_method.equals("BluetoothWixel"); 
+        //LimiTTer hardware emulates BTWixel packages
+        return collection_method.equals("BluetoothWixel")||collection_method.equals("LimiTTer");
     }
 
     public static boolean isDexbridgeWixel(Context context) {
@@ -287,7 +306,6 @@ public class CollectionServiceStarter {
         Log.d(TAG, "starting wifi wixel service");
         mContext.startService(new Intent(mContext, WifiCollectionService.class));
     }
-
     private void stopWifWixelThread() {
         Log.d(TAG, "stopping wifi wixel service");
         mContext.stopService(new Intent(mContext, WifiCollectionService.class));
@@ -297,5 +315,6 @@ public class CollectionServiceStarter {
         Log.d(TAG, "stopping G5  service");
         mContext.stopService(new Intent(mContext, G5CollectionService.class));
     }
+
 
 }
