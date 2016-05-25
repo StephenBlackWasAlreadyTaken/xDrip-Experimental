@@ -1,13 +1,21 @@
 package com.eveningoutpost.dexdrip.UtilityModels;
 
+import android.app.Activity;
+import android.app.AlarmManager;
+import android.app.PendingIntent;
 import android.app.Service;
+import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.graphics.Bitmap;
+import android.net.Uri;
 import android.os.BatteryManager;
+import android.os.Build;
 import android.os.IBinder;
 import android.preference.PreferenceManager;
+import android.widget.Toast;
+
 import com.eveningoutpost.dexdrip.Models.UserError.Log;
 import com.eveningoutpost.dexdrip.Models.BgReading;
 import com.eveningoutpost.dexdrip.Models.Sensor;
@@ -15,6 +23,11 @@ import com.getpebble.android.kit.PebbleKit;
 import com.getpebble.android.kit.util.PebbleDictionary;
 
 import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.nio.ByteBuffer;
 import java.util.Date;
 import java.util.TimeZone;
@@ -38,7 +51,9 @@ public class PebbleSync extends Service {
     public static final int TREND_END_KEY = 9;
     public static final int MESSAGE_KEY = 10;
     public static final int VIBE_KEY = 11;
-    public static final int SYNC_KEY = 0xd1abada5;
+    public static final int SYNC_KEY = 1000;
+    public static final int PLATFORM_KEY = 1001;
+    public static final int VERSION_KEY = 1002;
 
     public static final int CHUNK_SIZE = 100;
 
@@ -60,9 +75,19 @@ public class PebbleSync extends Service {
     private static ByteArrayOutputStream stream = null;
     public static int retries = 0;
     private boolean no_signal = false;
+    private static long pebble_platform = 0;
+    private static String pebble_app_version = "";
+    private static long pebble_sync_value = 0;
 
     private static short sendStep = 5;
     private PebbleDictionary dictionary = new PebbleDictionary();
+//    private AlarmManager alarm = (AlarmManager) getSystemService(ALARM_SERVICE);
+    private static boolean sentInitialSync = false;
+
+
+    // local statics for Pebble side load from app.
+    private static final String WATCHAPP_FILENAME = "xDrip-pebble2.pbw";
+
 
     @Override
     public void onCreate() {
@@ -81,14 +106,23 @@ public class PebbleSync extends Service {
         }
         bgGraphBuilder = new BgGraphBuilder(mContext);
 
-        Log.i(TAG, "onStartCommand called.  Sending Data");
+        Log.i(TAG, "onStartCommand called.  Sending Sync Request");
         transactionFailed = false;
         transactionOk = false;
         sendStep = 5;
         messageInTransit = false;
         done = true;
         sendingData = false;
-        sendData();
+        dictionary.addInt32(SYNC_KEY, 0);
+        PebbleKit.sendDataToPebble(mContext, PEBBLEAPP_UUID, dictionary);
+        dictionary.remove(SYNC_KEY);
+        /*if(pebble_app_version.isEmpty() && !sentInitialSync){
+            setResponseTImer();
+        }*/
+        if(pebble_app_version.isEmpty() && sentInitialSync){
+            Log.d(TAG, "onStartCommand: No Response and no pebble_app_version.  Sideloading...");
+        }
+        Log.d(TAG, "onStart: Pebble App Version not known.  Sending Version Request");
         return START_STICKY;
     }
     @Override
@@ -111,11 +145,23 @@ public class PebbleSync extends Service {
                 Log.d(TAG, "receiveData: transactionId is " + String.valueOf(transactionId));
                 lastTransactionId = transactionId;
                 Log.d(TAG, "Received Query. data: " + data.size() + ".");
+                if(data.size() >0){
+                    pebble_sync_value = data.getUnsignedIntegerAsLong(SYNC_KEY);
+                    pebble_platform = data.getUnsignedIntegerAsLong(PLATFORM_KEY);
+                    pebble_app_version = data.getString(VERSION_KEY);
+                    Log.d(TAG,"receiveData: pebble_sync_value="+pebble_sync_value+", pebble_platform="+pebble_platform+", pebble_app_version="+pebble_app_version);
+                } else {
+                    Log.d(TAG,"receiveData: pebble_app_version not known");
+                }
                 PebbleKit.sendAckToPebble(context, transactionId);
                 transactionFailed = false;
                 transactionOk = false;
                 messageInTransit = false;
                 sendStep = 5;
+                /*if (pebble_app_version.isEmpty()) {
+                    Log.i(TAG,"receiveData: Side Loading Pebble App");
+                    //sideloadInstall(mContext, WATCHAPP_FILENAME);
+                }*/
                 sendData();
             }
         });
@@ -198,6 +244,7 @@ public class PebbleSync extends Service {
             Log.v(TAG, "buildDictionary: latest mBgReading is null, so sending default values");
             dictionary.addString(ICON_KEY, slopeOrdinal());
             dictionary.addString(BG_KEY, "?SN");
+            //dictionary.addString(BG_KEY, bgReading());
             dictionary.addUint32(RECORD_TIME_KEY, (int) ((new Date().getTime() + offsetFromUTC / 1000)));
             dictionary.addString(BG_DELTA_KEY, "No Sensor");
             dictionary.addString(MESSAGE_KEY, "");
@@ -244,7 +291,12 @@ public class PebbleSync extends Service {
                         .setSmallDots()
                         .build();
                 //encode the trend bitmap as a PNG
-                byte [] img = SimpleImageEncoder.encodeBitmapAsPNG(bgTrend,true,16,true);
+                int depth = 16;
+                if(pebble_platform == 0) {
+                    Log.d(TAG,"sendTrendToPebble: Encoding trend as Monochrome.");
+                    depth = 2;
+                }
+                byte[] img = SimpleImageEncoder.encodeBitmapAsPNG(bgTrend, true, depth, true);
                 image_size = img.length;
                 buff = ByteBuffer.wrap(img);
                 bgTrend.recycle();
@@ -386,7 +438,17 @@ public class PebbleSync extends Service {
     }
 
     public String bgReading() {
-        if(PreferenceManager.getDefaultSharedPreferences(mContext).getString("dex_collection_method", "DexbridgeWixel").compareTo("DexbridgeWixel")==0 && !(new Sensor().isActive())) return "?SN";
+        Sensor sensor = new Sensor();
+        if(PreferenceManager.getDefaultSharedPreferences(mContext).getString("dex_collection_method", "DexbridgeWixel").compareTo("DexbridgeWixel")==0 ) {
+            Log.d(TAG, "bgReading: found xBridge wixel, sensor.isActive=" +sensor.isActive()+", sensor.stopped_at="+sensor.currentSensor().stopped_at+", sensor.started_at="+sensor.currentSensor().started_at);
+            if (!(sensor.isActive())) {
+                Log.d(TAG, "bgReading: No active Sensor");
+                return "?SN";
+            }
+            if ((sensor.currentSensor().started_at + 60000 * 60 * 2 >= System.currentTimeMillis())) {
+                return "?CD";
+            }
+        }
         return bgGraphBuilder.unitized_string(mBgReading.calculated_value);
     }
 
@@ -434,5 +496,38 @@ public class PebbleSync extends Service {
         if(arrow_name.compareTo("9")==0) return arrow_name;
         return "0";
     }
+
+    public static void sideloadInstall(Context ctx, String assetFilename) {
+        try {
+            // Read .pbw from assets/
+            Intent intent = new Intent(Intent.ACTION_VIEW);
+            File file = new File(ctx.getExternalFilesDir(null), assetFilename);
+            InputStream is = ctx.getResources().getAssets().open(assetFilename);
+            OutputStream os = new FileOutputStream(file);
+            byte[] pbw = new byte[is.available()];
+            is.read(pbw);
+            os.write(pbw);
+            is.close();
+            os.close();
+
+            // Install via Pebble Android app
+            intent.setDataAndType(Uri.fromFile(file), "application/pbw");
+            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            ctx.startActivity(intent);
+        } catch (IOException e) {
+            Toast.makeText(ctx, "App install failed: " + e.getLocalizedMessage(), Toast.LENGTH_LONG).show();
+        }
+    }
+    /*public void setResponseTImer(){
+        long wakeTime = new Date().getTime() + 3000;
+        PendingIntent serviceIntent = PendingIntent.getService(this, 0, new Intent(this, this.getClass()), 0);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            alarm.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, wakeTime, serviceIntent);
+        } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+            alarm.setExact(AlarmManager.RTC_WAKEUP, wakeTime, serviceIntent);
+        } else
+            alarm.set(AlarmManager.RTC_WAKEUP, wakeTime, serviceIntent);
+
+    }*/
 }
 
