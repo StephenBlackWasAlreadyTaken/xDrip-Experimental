@@ -402,6 +402,17 @@ public class G5CollectionService extends Service {
                 default:
                     android.util.Log.e("gattCallback", "STATE_OTHER");
             }
+            if (status == 133) {
+                mBluetoothAdapter.disable();
+                android.util.Log.e(TAG, "Cycling BT");
+                Timer single_timer = new Timer();
+                single_timer.schedule(new TimerTask() {
+                    @Override
+                    public void run() {
+                        mBluetoothAdapter.enable();
+                    }
+                }, 1000);
+            }
         }
 
         public void authenticate() {
@@ -431,7 +442,12 @@ public class G5CollectionService extends Service {
 
                 switch (lastGattStatus) {
                     case 0: case 19: case 22:
-                        getSensorData();
+                        getTransmitterDetails();
+                        if (isBondedOrBonding) {
+                            getSensorData();
+                        } else {
+                            authenticate();
+                        }
                         break;
                     default:
                         authenticate();
@@ -507,13 +523,14 @@ public class G5CollectionService extends Service {
                         mGatt.writeDescriptor(descriptor);
                     }
                     authStatus = new AuthStatusRxMessage(characteristic.getValue());
+
                     if (authStatus.authenticated == 1 && authStatus.bonded == 1) {
                         isBondedOrBonding = true;
                         getSensorData();
                     } else if (authStatus.authenticated == 1) {
                         android.util.Log.i(TAG, "Let's Bond!");
                         BondRequestTxMessage bondRequest = new BondRequestTxMessage();
-                        authCharacteristic.setValue(bondRequest.byteSequence);
+                        characteristic.setValue(bondRequest.byteSequence);
                         mGatt.writeCharacteristic(characteristic);
                         device.createBond();
                     } else {
