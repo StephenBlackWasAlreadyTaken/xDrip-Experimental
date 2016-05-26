@@ -218,7 +218,7 @@ public class G5CollectionService extends Service {
         alarm = (AlarmManager) getSystemService(ALARM_SERVICE);
         if (pendingIntent != null)
             alarm.cancel(pendingIntent);
-        long wakeTime = (long) (SystemClock.elapsedRealtime() + (4.5 * 1000 * 60));
+        long wakeTime = (long) (SystemClock.elapsedRealtime() + (4.75 * 1000 * 60));
         pendingIntent = PendingIntent.getService(this, 0, new Intent(this, this.getClass()), 0);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             alarm.setExactAndAllowWhileIdle(AlarmManager.ELAPSED_REALTIME_WAKEUP, wakeTime, pendingIntent);
@@ -234,6 +234,7 @@ public class G5CollectionService extends Service {
     }
 
     public void setupBluetooth() {
+        getTransmitterDetails();
         if (mBluetoothAdapter == null || !mBluetoothAdapter.isEnabled()) {
             //First time using the app or bluetooth was turned off?
             Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
@@ -245,7 +246,9 @@ public class G5CollectionService extends Service {
                         .build();
                 filters = new ArrayList<>();
                 //Only look for CGM.
-                filters.add(new ScanFilter.Builder().setServiceUuid(new ParcelUuid(BluetoothServices.Advertisement)).build());
+                //filters.add(new ScanFilter.Builder().setServiceUuid(new ParcelUuid(BluetoothServices.Advertisement)).build());
+                String transmitterIdLastTwo = Extensions.lastTwoCharactersOfString(defaultTransmitter.transmitterId);
+                filters.add(new ScanFilter.Builder().setDeviceName("Dexcom"+transmitterIdLastTwo).build());
             }
             if (isScanning){
                 stopScan();
@@ -606,7 +609,7 @@ public class G5CollectionService extends Service {
 
                 android.util.Log.i(TAG, "filtered: " + sensorRx.filtered);
                 android.util.Log.i(TAG, "unfiltered: " + sensorRx.unfiltered);
-
+                doDisconnectMessage(gatt, characteristic);
                 processNewTransmitterData(sensorRx.unfiltered, sensorRx.filtered, sensor_battery_level, new Date().getTime());
                 if (pendingIntent != null) {
                     alarm.cancel(pendingIntent);
@@ -614,7 +617,7 @@ public class G5CollectionService extends Service {
                 keepAlive();
 
             }
-            doDisconnectMessage(gatt, characteristic);
+
 
 
         }
