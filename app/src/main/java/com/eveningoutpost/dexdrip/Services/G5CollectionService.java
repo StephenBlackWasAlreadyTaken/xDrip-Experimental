@@ -346,6 +346,9 @@ public class G5CollectionService extends Service {
                         device = btDevice;
                         connectToDevice(btDevice);
 
+                    } else {
+                        stopScan();
+                        scanAfterDelay(10000);
                     }
                 }
             }
@@ -371,7 +374,6 @@ public class G5CollectionService extends Service {
         android.util.Log.i(TAG, "Request Connect");
         if (mGatt == null) {
             android.util.Log.i(TAG, "mGatt Null, connecting...");
-
             stopScan();
             mGatt = device.connectGatt(getApplicationContext(), false, gattCallback);
         }
@@ -641,7 +643,6 @@ public class G5CollectionService extends Service {
     // Sends the disconnect tx message to our bt device.
     private void doDisconnectMessage(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic) {
         mGatt.setCharacteristicNotification(controlCharacteristic, false);
-
         DisconnectTxMessage disconnectTx = new DisconnectTxMessage();
         characteristic.setValue(disconnectTx.byteSequence);
         mGatt.writeCharacteristic(characteristic);
