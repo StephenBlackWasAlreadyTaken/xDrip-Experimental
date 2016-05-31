@@ -19,12 +19,14 @@ import com.eveningoutpost.dexdrip.R;
 import com.eveningoutpost.dexdrip.Services.SnoozeOnNotificationDismissService;
 import com.eveningoutpost.dexdrip.SnoozeActivity;
 
+import java.text.SimpleDateFormat;
 import java.util.Date;
 
 public class AlertPlayer {
 
     static AlertPlayer singletone;
 
+    private final static SimpleDateFormat dateFormat = new SimpleDateFormat("HH:mm");
     private final static String TAG = AlertPlayer.class.getSimpleName();
     private MediaPlayer mediaPlayer;
     int volumeBeforeAlert;
@@ -233,8 +235,9 @@ public class AlertPlayer {
             timeFromStartPlaying = MAX_ASCENDING;
         }
 
+        Date now = new Date();
         String title = bgValue + " " + alert.name;
-        String content = "BG LEVEL ALERT: " + bgValue;
+        String content = "BG LEVEL ALERT (" + dateFormat.format(now) + "): " + bgValue;
         Intent intent = new Intent(ctx, SnoozeActivity.class);
 
         NotificationCompat.Builder  builder = new NotificationCompat.Builder(ctx)
