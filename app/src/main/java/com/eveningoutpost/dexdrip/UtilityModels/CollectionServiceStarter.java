@@ -49,7 +49,7 @@ public class CollectionServiceStarter {
     }
 
     
-    private static boolean isWifiandDexbridgeWixel(Context context) {
+    public static boolean isWifiandDexbridgeWixel(Context context) {
         if(XDripViewer.isxDripViewerMode(context)) {
             return false;
         }
