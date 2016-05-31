@@ -256,9 +256,8 @@ public class Home extends ActivityWithMenu {
         final TextView notificationText = (TextView) findViewById(R.id.notices);
         notificationText.setText("");
         notificationText.setTextColor(Color.parseColor("#FF0000"));
-        boolean isBTWixel = CollectionServiceStarter.isBTWixel(getApplicationContext());
-        boolean isDexbridgeWixel = CollectionServiceStarter.isDexbridgeWixel(getApplicationContext());
-        boolean isWifiBluetoothWixel = CollectionServiceStarter.isWifiandBTWixel(getApplicationContext());
+        boolean isBTWixel = CollectionServiceStarter.isBteWixelorWifiandBtWixel(getApplicationContext());
+        boolean isDexbridgeWixel = CollectionServiceStarter.isDexbridgeWixelorWifiandDexbridgeWixel(getApplicationContext());
         isBTShare = CollectionServiceStarter.isBTShare(getApplicationContext());
         isG5Share = CollectionServiceStarter.isBTG5(getApplicationContext());
         boolean isWifiWixel = CollectionServiceStarter.isWifiWixel(getApplicationContext());
@@ -270,9 +269,9 @@ public class Home extends ActivityWithMenu {
             updateCurrentBgInfoForxDripViewer(notificationText);
         } else if (isBTShare) {
             updateCurrentBgInfoForBtShare(notificationText);
-        } else if (isBTWixel || isDexbridgeWixel ||  isWifiBluetoothWixel) {
+        } else if (isBTWixel || isDexbridgeWixel) {
             updateCurrentBgInfoForBtBasedWixel(notificationText);
-        } else if (isWifiWixel || isWifiBluetoothWixel) {
+        } else if (isWifiWixel) {
             updateCurrentBgInfoForWifiWixel(notificationText);
         }
         if (isG5Share) {
@@ -406,7 +405,7 @@ public class Home extends ActivityWithMenu {
         DecimalFormat df = new DecimalFormat("#");
         df.setMaximumFractionDigits(0);
 
-        boolean isDexbridge = CollectionServiceStarter.isDexbridgeWixel(getApplicationContext());
+        boolean isDexbridge = CollectionServiceStarter.isDexbridgeWixelorWifiandDexbridgeWixel(getApplicationContext());
         boolean displayBattery = mPreferences.getBoolean("display_bridge_battery",false);
         int bridgeBattery = mPreferences.getInt("bridge_battery", 0);
 
