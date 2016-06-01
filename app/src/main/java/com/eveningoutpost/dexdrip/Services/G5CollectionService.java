@@ -238,6 +238,19 @@ public class G5CollectionService extends Service {
         if (mBluetoothAdapter == null || !mBluetoothAdapter.isEnabled()) {
             //First time using the app or bluetooth was turned off?
             Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
+            Timer single_timer = new Timer();
+                single_timer.schedule(new TimerTask() {
+                    @Override
+                    public void run() {
+                        mBluetoothAdapter.enable();
+                    }
+                }, 1000);
+            single_timer.schedule(new TimerTask() {
+                @Override
+                public void run() {
+                    setupBluetooth();
+                }
+            }, 10000);
         } else {
             if (Build.VERSION.SDK_INT >= 21) {
                 mLEScanner = mBluetoothAdapter.getBluetoothLeScanner();
@@ -297,10 +310,19 @@ public class G5CollectionService extends Service {
     }
     
     void scanAfterDelay(int delay) {
-        Log.d(TAG, "ScanDelay");
+        Log.i(TAG, "ScanDelay");
         handler.postDelayed(new Runnable() {
             public void run() {
                 startScan();
+            }
+        }, delay);
+    }
+
+    void connectAfterDelay(int delay) {
+        Log.i(TAG, "ConnnectDelay");
+        handler.postDelayed(new Runnable() {
+            public void run() {
+                connectToDevice(device);
             }
         }, delay);
     }
@@ -347,6 +369,8 @@ public class G5CollectionService extends Service {
                     if (transmitterIdLastTwo.equals(deviceNameLastTwo)) {
 
                         device = btDevice;
+                        stopScan();
+                        //connectAfterDelay(1000);
                         connectToDevice(btDevice);
 
                     } else {
@@ -385,7 +409,7 @@ public class G5CollectionService extends Service {
     private final BluetoothGattCallback gattCallback = new BluetoothGattCallback() {
         @Override
         public void onConnectionStateChange(BluetoothGatt gatt, int status, int newState) {
-            android.util.Log.i(TAG, "last disconnect status? " + lastGattStatus);
+            Log.e(TAG, "last disconnect status? " + lastGattStatus);
             switch (newState) {
                 case BluetoothProfile.STATE_CONNECTED:
                     android.util.Log.i("gattCallback", "STATE_CONNECTED");
@@ -393,31 +417,41 @@ public class G5CollectionService extends Service {
                     break;
                 case BluetoothProfile.STATE_DISCONNECTED:
                     android.util.Log.e("gattCallback", "STATE_DISCONNECTED");
+                    Log.e(TAG, "current disconnect status? " + status);
                     lastGattStatus = status;
                     mGatt.close();
                     mGatt = null;
-                    if (status == 19) {
+                    if (status != 133 ) {// || status == 59) {
                         android.util.Log.i(TAG, "scan after delay");
                         scanAfterDelay(15000);
-                    } else {
-                        startScan();
+                    }
+                    else {
+                        mBluetoothAdapter.disable();
+                        Log.e(TAG, "Cycling BT-gatt");
+                        Timer single_timer = new Timer();
+                        single_timer.schedule(new TimerTask() {
+                            @Override
+                            public void run() {
+                                mBluetoothAdapter.enable();
+                            }
+                        }, 1000);
                     }
 
                     break;
                 default:
-                    android.util.Log.e("gattCallback", "STATE_OTHER");
+                    Log.e("gattCallback", "STATE_OTHER");
             }
-            if (status == 133) {
-                mBluetoothAdapter.disable();
-                android.util.Log.e(TAG, "Cycling BT");
-                Timer single_timer = new Timer();
-                single_timer.schedule(new TimerTask() {
-                    @Override
-                    public void run() {
-                        mBluetoothAdapter.enable();
-                    }
-                }, 1000);
-            }
+//            if (status == 133) {
+//                mBluetoothAdapter.disable();
+//                Log.e(TAG, "Cycling BT-gatt");
+//                Timer single_timer = new Timer();
+//                single_timer.schedule(new TimerTask() {
+//                    @Override
+//                    public void run() {
+//                        mBluetoothAdapter.enable();
+//                    }
+//                }, 1000);
+//            }
         }
 
         public void authenticate() {
@@ -438,7 +472,7 @@ public class G5CollectionService extends Service {
 
         @Override
         public void onServicesDiscovered(BluetoothGatt gatt, int status) {
-            Log.w(TAG, "onServicesDiscovered lastgatt: " + lastGattStatus);
+            Log.e(TAG, "onServicesDiscovered: " + status);
             if (status == BluetoothGatt.GATT_SUCCESS) {
                 cgmService = mGatt.getService(BluetoothServices.CGMService);
                 authCharacteristic = cgmService.getCharacteristic(BluetoothServices.Authentication);
@@ -446,7 +480,7 @@ public class G5CollectionService extends Service {
                 commCharacteristic = cgmService.getCharacteristic(BluetoothServices.Communication);
 
                 switch (lastGattStatus) {
-                    case 0: case 19: case 22:
+                    case 0: case 19: case 22: case 59:
                         getTransmitterDetails();
                         if (isBondedOrBonding) {
                             getSensorData();
@@ -462,24 +496,24 @@ public class G5CollectionService extends Service {
             } else {
                 Log.w(TAG, "onServicesDiscovered received: " + status);
             }
-            if (status != 0) {
-                mBluetoothAdapter.disable();
-                android.util.Log.e(TAG, "Cycling BT");
-                Timer single_timer = new Timer();
-                single_timer.schedule(new TimerTask() {
-                    @Override
-                    public void run() {
-                        mBluetoothAdapter.enable();
-                    }
-                }, 1000);
-            }
+//            if (status == 133) {
+//                mBluetoothAdapter.disable();
+//                Log.w(TAG, "Cycling BT-svc");
+//                Timer single_timer = new Timer();
+//                single_timer.schedule(new TimerTask() {
+//                    @Override
+//                    public void run() {
+//                        mBluetoothAdapter.enable();
+//                    }
+//                }, 1000);
+//            }
         }
 
         @Override
         public void onDescriptorWrite(BluetoothGatt gatt, BluetoothGattDescriptor descriptor, int status) {
             if (status == BluetoothGatt.GATT_SUCCESS) {
                 mGatt.writeCharacteristic(descriptor.getCharacteristic());
-                Log.e(TAG, "Writing descriptor");
+                Log.w(TAG, "Writing descriptor");
             } else {
                 Log.e(TAG, "Unknown error writing descriptor");
             }
@@ -488,8 +522,8 @@ public class G5CollectionService extends Service {
 
         @Override
         public void onCharacteristicWrite(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic, int status) {
-            android.util.Log.i(TAG, "Success Write " +  String.valueOf(status));
-            android.util.Log.i(TAG, "Characteristic " + String.valueOf(characteristic.getUuid()));
+            Log.e(TAG, "Success Write " +  String.valueOf(status));
+            Log.e(TAG, "Characteristic " + String.valueOf(characteristic.getUuid()));
 
             if (status == BluetoothGatt.GATT_SUCCESS) {
                 if (String.valueOf(characteristic.getUuid()).equalsIgnoreCase(String.valueOf(authCharacteristic.getUuid()))) {
@@ -508,9 +542,9 @@ public class G5CollectionService extends Service {
 
         @Override
         public void onCharacteristicRead(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic, int status) {
-            Log.d("ReadStatus", String.valueOf(status));
+            Log.e("ReadStatus", String.valueOf(status));
             if (status == BluetoothGatt.GATT_SUCCESS) {
-                android.util.Log.i(TAG, "CharBytes-or " + Arrays.toString(characteristic.getValue()));
+                Log.e(TAG, "CharBytes-or " + Arrays.toString(characteristic.getValue()));
                 android.util.Log.i(TAG, "CharHex-or " + Extensions.bytesToHex(characteristic.getValue()));
 
                 byte [] buffer = characteristic.getValue();
@@ -582,7 +616,7 @@ public class G5CollectionService extends Service {
         @Override
         // Characteristic notification
         public void onCharacteristicChanged(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic) {
-            android.util.Log.i(TAG, "CharBytes-nfy" + Arrays.toString(characteristic.getValue()));
+            Log.e(TAG, "CharBytes-nfy" + Arrays.toString(characteristic.getValue()));
             android.util.Log.i(TAG, "CharHex-nfy" + Extensions.bytesToHex(characteristic.getValue()));
 
             byte[] buffer = characteristic.getValue();
@@ -607,8 +641,8 @@ public class G5CollectionService extends Service {
                     sensor_battery_level = 216; //no message, just system status "OK"
                 }
 
-                android.util.Log.i(TAG, "filtered: " + sensorRx.filtered);
-                android.util.Log.i(TAG, "unfiltered: " + sensorRx.unfiltered);
+                Log.e(TAG, "filtered: " + sensorRx.filtered);
+                Log.e(TAG, "unfiltered: " + sensorRx.unfiltered);
                 doDisconnectMessage(gatt, characteristic);
                 processNewTransmitterData(sensorRx.unfiltered, sensorRx.filtered, sensor_battery_level, new Date().getTime());
                 if (pendingIntent != null) {
@@ -628,12 +662,12 @@ public class G5CollectionService extends Service {
 
         TransmitterData transmitterData = TransmitterData.create(raw_data, sensor_battery_level, CaptureTime);
         if (transmitterData == null) {
-            Log.i(TAG, "TransmitterData.create failed: Duplicate packet");
+            Log.e(TAG, "TransmitterData.create failed: Duplicate packet");
             return;
         }
         Sensor sensor = Sensor.currentSensor();
         if (sensor == null) {
-            Log.i(TAG, "setSerialDataToTransmitterRawData: No Active Sensor, Data only stored in Transmitter Data");
+            Log.e(TAG, "setSerialDataToTransmitterRawData: No Active Sensor, Data only stored in Transmitter Data");
             return;
         }
 
@@ -645,7 +679,7 @@ public class G5CollectionService extends Service {
 
     // Sends the disconnect tx message to our bt device.
     private void doDisconnectMessage(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic) {
-        mGatt.setCharacteristicNotification(controlCharacteristic, false);
+        //mGatt.setCharacteristicNotification(controlCharacteristic, false);
         DisconnectTxMessage disconnectTx = new DisconnectTxMessage();
         characteristic.setValue(disconnectTx.byteSequence);
         mGatt.writeCharacteristic(characteristic);
