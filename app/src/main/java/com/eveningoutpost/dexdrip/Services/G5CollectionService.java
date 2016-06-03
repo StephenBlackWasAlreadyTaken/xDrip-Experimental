@@ -29,6 +29,7 @@ import android.content.SharedPreferences;
 import android.os.Build;
 import android.os.Handler;
 import android.os.IBinder;
+import android.os.Looper;
 import android.os.ParcelUuid;
 import android.os.PowerManager;
 import android.os.SystemClock;
@@ -391,7 +392,7 @@ public class G5CollectionService extends Service {
                         device = btDevice;
                         stopScan();
 //                        Random ran = new Random();
-//                        int x = ran.nextInt(1000);// + 1000;
+//                        int x = ran.nextInt(7000);// + 1000;
 //                        android.util.Log.e(TAG, "Delay is: " + x);
 //                        connectAfterDelay(x);
                         connectToDevice(btDevice);
@@ -439,22 +440,19 @@ public class G5CollectionService extends Service {
 
     private void connectToDevice(BluetoothDevice device) {
         android.util.Log.i(TAG, "Request Connect");
-        if (mGatt == null) {
-            android.util.Log.i(TAG, "mGatt Null, connecting...");
-            mGatt = device.connectGatt(getApplicationContext(), false, gattCallback);
-//            handler.postDelayed(watchDog, 3000);
-        }
+        Handler iHandler = new Handler(Looper.getMainLooper());
+        final BluetoothDevice mDevice = device;
+        iHandler.post(new Runnable() {
+            @Override
+            public void run() {
+                if (mGatt == null) {
+                    android.util.Log.i(TAG, "mGatt Null, connecting...");
+                    android.util.Log.i(TAG, "connectToDevice On Main Thread? " + isOnMainThread());
+                    mGatt = mDevice.connectGatt(getApplicationContext(), false, gattCallback);
+                }
+            }
+        });
     }
-
-    // runnable to detect the lack of activity:
-    private final Runnable watchDog = new Runnable() {
-        @Override
-        public void run() {
-            Log.d("BLE_CONTROLLER", "PROBE WITH NO ACTIVITY");
-            mGatt = null;
-            connectToDevice(device);
-        }
-    };
 
     // Sends the disconnect tx message to our bt device.
     private void doDisconnectMessage(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic) {
@@ -470,10 +468,18 @@ public class G5CollectionService extends Service {
         @Override
         public void onConnectionStateChange(BluetoothGatt gatt, int status, int newState) {
             //Log.e(TAG, "last disconnect status? " + lastGattStatus);
+            android.util.Log.i(TAG, "onConnectionStateChange On Main Thread? " + isOnMainThread());
             switch (newState) {
                 case BluetoothProfile.STATE_CONNECTED:
                     android.util.Log.i("gattCallback", "STATE_CONNECTED");
-                    mGatt.discoverServices();
+                    Handler iHandler = new Handler(Looper.getMainLooper());
+                    iHandler.post(new Runnable() {
+                        @Override
+                        public void run() {
+                            android.util.Log.i(TAG, "discoverServices On Main Thread? " + isOnMainThread());
+                            mGatt.discoverServices();
+                        }
+                    });
                     stopScan();
                     break;
                 case BluetoothProfile.STATE_DISCONNECTED:
@@ -502,6 +508,8 @@ public class G5CollectionService extends Service {
 
         @Override
         public void onServicesDiscovered(BluetoothGatt gatt, int status) {
+            
+            android.util.Log.i(TAG, "onServicesDiscovered On Main Thread? " + isOnMainThread());
             Log.e(TAG, "onServicesDiscovered: " + status);
             if (status == BluetoothGatt.GATT_SUCCESS) {
                 cgmService = mGatt.getService(BluetoothServices.CGMService);
@@ -527,6 +535,7 @@ public class G5CollectionService extends Service {
 
         @Override
         public void onDescriptorWrite(BluetoothGatt gatt, BluetoothGattDescriptor descriptor, int status) {
+            android.util.Log.i(TAG, "onDescriptorWrite On Main Thread? " + isOnMainThread());
             if (status == BluetoothGatt.GATT_SUCCESS) {
                 mGatt.writeCharacteristic(descriptor.getCharacteristic());
                 Log.w(TAG, "Writing descriptor: " + status);
@@ -543,6 +552,7 @@ public class G5CollectionService extends Service {
         public void onCharacteristicWrite(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic, int status) {
             Log.e(TAG, "Success Write " +  String.valueOf(status));
             Log.e(TAG, "Characteristic " + String.valueOf(characteristic.getUuid()));
+            android.util.Log.i(TAG, "onCharacteristicWrite On Main Thread? " + isOnMainThread());
 
             if (status == BluetoothGatt.GATT_SUCCESS) {
                 if (String.valueOf(characteristic.getUuid()).equalsIgnoreCase(String.valueOf(authCharacteristic.getUuid()))) {
@@ -570,6 +580,7 @@ public class G5CollectionService extends Service {
         @Override
         public void onCharacteristicRead(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic, int status) {
             Log.e(TAG, "ReadStatus: " + String.valueOf(status));
+            android.util.Log.i(TAG, "onCharacteristicRead On Main Thread? " + isOnMainThread());
 
             if (status == BluetoothGatt.GATT_SUCCESS) {
                 Log.e(TAG, "CharBytes-or " + Arrays.toString(characteristic.getValue()));
@@ -652,6 +663,8 @@ public class G5CollectionService extends Service {
         public void onCharacteristicChanged(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic) {
             Log.e(TAG, "CharBytes-nfy" + Arrays.toString(characteristic.getValue()));
             android.util.Log.i(TAG, "CharHex-nfy" + Extensions.bytesToHex(characteristic.getValue()));
+
+            android.util.Log.i(TAG, "onCharacteristicChanged On Main Thread? " + isOnMainThread());
 
             byte[] buffer = characteristic.getValue();
             byte firstByte = buffer[0];
@@ -756,17 +769,9 @@ public class G5CollectionService extends Service {
         return null;
     }
 
-    private void appendToStringBuilder(String toAppend) {
-        log.append(toAppend + '\n');
-    }
-
-    private void uploadStringBuilder() {
-        int SOCKET_TIMEOUT = 60000;
-        int CONNECTION_TIMEOUT = 30000;
-        OkHttpClient client = new OkHttpClient();
-        client.setConnectTimeout(CONNECTION_TIMEOUT, TimeUnit.MILLISECONDS);
-        client.setWriteTimeout(SOCKET_TIMEOUT, TimeUnit.MILLISECONDS);
-        client.setReadTimeout(SOCKET_TIMEOUT, TimeUnit.MILLISECONDS);
+    public static boolean isOnMainThread()
+    {
+        return Looper.getMainLooper().getThread() == Thread.currentThread();
     }
 
 }
