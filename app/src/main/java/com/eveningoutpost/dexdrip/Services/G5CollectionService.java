@@ -465,151 +465,189 @@ public class G5CollectionService extends Service {
 
 
     private final BluetoothGattCallback gattCallback = new BluetoothGattCallback() {
-        @Override
-        public void onConnectionStateChange(BluetoothGatt gatt, int status, int newState) {
-            //Log.e(TAG, "last disconnect status? " + lastGattStatus);
-            android.util.Log.i(TAG, "onConnectionStateChange On Main Thread? " + isOnMainThread());
-            switch (newState) {
-                case BluetoothProfile.STATE_CONNECTED:
-                    android.util.Log.i("gattCallback", "STATE_CONNECTED");
-                    Handler iHandler = new Handler(Looper.getMainLooper());
-                    iHandler.post(new Runnable() {
-                        @Override
-                        public void run() {
-                            android.util.Log.i(TAG, "discoverServices On Main Thread? " + isOnMainThread());
-                            mGatt.discoverServices();
-                        }
-                    });
-                    stopScan();
-                    break;
-                case BluetoothProfile.STATE_DISCONNECTED:
-                    android.util.Log.e("gattCallback", "STATE_DISCONNECTED");
-                    Log.e(TAG, "current disconnect status? " + status);
-                    lastGattStatus = status;
-                    mGatt.close();
-                    mGatt = null;
-                    if (status == 0 && !encountered133) {// || status == 59) {
-                        android.util.Log.i(TAG, "scan after delay");
-                        scanAfterDelay(15000);
-                    }
-                    else if (status == 133 || encountered133) {
-                        Log.e(TAG, "Encountered 133: " + encountered133);
-                        cycleBT();
-                    } else {
-                        startScan();
-                    }
 
-                    break;
-                default:
-                    Log.e("gattCallback", "STATE_OTHER");
-            }
+        @Override
+        public void onConnectionStateChange(BluetoothGatt gatt, final int status, final int newState) {
+            Handler iHandler = new Handler(Looper.getMainLooper());
+            iHandler.post(new Runnable() {
+                              @Override
+                              public void run() { //Log.e(TAG, "last disconnect status? " + lastGattStatus);
+                                  android.util.Log.i(TAG, "onConnectionStateChange On Main Thread? " + isOnMainThread());
+                                  switch (newState) {
+                                      case BluetoothProfile.STATE_CONNECTED:
+                                          android.util.Log.i("gattCallback", "STATE_CONNECTED");
+                                          Handler iHandler = new Handler(Looper.getMainLooper());
+                                          iHandler.post(new Runnable() {
+                                              @Override
+                                              public void run() {
+                                                  android.util.Log.i(TAG, "discoverServices On Main Thread? " + isOnMainThread());
+                                                  mGatt.discoverServices();
+                                              }
+                                          });
+                                          stopScan();
+                                          break;
+                                      case BluetoothProfile.STATE_DISCONNECTED:
+                                          android.util.Log.e("gattCallback", "STATE_DISCONNECTED");
+                                          Log.e(TAG, "current disconnect status? " + status);
+                                          lastGattStatus = status;
+                                          mGatt.close();
+                                          mGatt = null;
+                                          if (status == 0 && !encountered133) {// || status == 59) {
+                                              android.util.Log.i(TAG, "scan after delay");
+                                              scanAfterDelay(15000);
+                                          } else if (status == 133 || encountered133) {
+                                              Log.e(TAG, "Encountered 133: " + encountered133);
+                                              cycleBT();
+                                          } else {
+                                              startScan();
+                                          }
+
+                                          break;
+                                      default:
+                                          Log.e("gattCallback", "STATE_OTHER");
+                                  }
+                              }
+                          }
+            );
         }
 
 
+//        Handler iHandler = new Handler(Looper.getMainLooper());
+//        iHandler.post(new Runnable() {
+//            @Override
+//            public void run() {
+//
+//            }
+//        });
+
+
         @Override
-        public void onServicesDiscovered(BluetoothGatt gatt, int status) {
-            
-            android.util.Log.i(TAG, "onServicesDiscovered On Main Thread? " + isOnMainThread());
-            Log.e(TAG, "onServicesDiscovered: " + status);
-            if (status == BluetoothGatt.GATT_SUCCESS) {
-                cgmService = mGatt.getService(BluetoothServices.CGMService);
-                authCharacteristic = cgmService.getCharacteristic(BluetoothServices.Authentication);
-                controlCharacteristic = cgmService.getCharacteristic(BluetoothServices.Control);
-                commCharacteristic = cgmService.getCharacteristic(BluetoothServices.Communication);
-                mBluetoothAdapter.cancelDiscovery();
+        public void onServicesDiscovered(BluetoothGatt gatt, final int status) {
+            Handler iHandler = new Handler(Looper.getMainLooper());
+            iHandler.post(new Runnable() {
+                @Override
+                public void run() {
+                    android.util.Log.i(TAG, "onServicesDiscovered On Main Thread? " + isOnMainThread());
+                    Log.e(TAG, "onServicesDiscovered: " + status);
+                    if (status == BluetoothGatt.GATT_SUCCESS) {
+                        cgmService = mGatt.getService(BluetoothServices.CGMService);
+                        authCharacteristic = cgmService.getCharacteristic(BluetoothServices.Authentication);
+                        controlCharacteristic = cgmService.getCharacteristic(BluetoothServices.Control);
+                        commCharacteristic = cgmService.getCharacteristic(BluetoothServices.Communication);
+                        mBluetoothAdapter.cancelDiscovery();
 
 //                if (isBondedOrBonding) {
 //                    getSensorData();
 //                } else {
-                    authenticate();
+                        authenticate();
 //                }
 
-            } else {
-                Log.w(TAG, "onServicesDiscovered received: " + status);
-            }
-
-            if (status == 133) {
-                encountered133 = true;
-            }
-        }
-
-        @Override
-        public void onDescriptorWrite(BluetoothGatt gatt, BluetoothGattDescriptor descriptor, int status) {
-            android.util.Log.i(TAG, "onDescriptorWrite On Main Thread? " + isOnMainThread());
-            if (status == BluetoothGatt.GATT_SUCCESS) {
-                mGatt.writeCharacteristic(descriptor.getCharacteristic());
-                Log.w(TAG, "Writing descriptor: " + status);
-            } else {
-                Log.e(TAG, "Unknown error writing descriptor");
-            }
-
-            if (status == 133) {
-                encountered133 = true;
-            }
-        }
-
-        @Override
-        public void onCharacteristicWrite(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic, int status) {
-            Log.e(TAG, "Success Write " +  String.valueOf(status));
-            Log.e(TAG, "Characteristic " + String.valueOf(characteristic.getUuid()));
-            android.util.Log.i(TAG, "onCharacteristicWrite On Main Thread? " + isOnMainThread());
-
-            if (status == BluetoothGatt.GATT_SUCCESS) {
-                if (String.valueOf(characteristic.getUuid()).equalsIgnoreCase(String.valueOf(authCharacteristic.getUuid()))) {
-                    android.util.Log.i(TAG, "Char Value: " + Arrays.toString(characteristic.getValue()));
-                    android.util.Log.i(TAG, "auth? " + String.valueOf(characteristic.getUuid()));
-                    //&& characteristic.getValue()[0] != 0x7
-                    if (characteristic.getValue() != null  &&  characteristic.getValue()[0] != 0x6) {
-                        mGatt.readCharacteristic(characteristic);
+                    } else {
+                        Log.w(TAG, "onServicesDiscovered received: " + status);
                     }
+
+                    if (status == 133) {
+                        encountered133 = true;
+                    }
+                }
+            });
+
+        }
+
+        @Override
+        public void onDescriptorWrite(BluetoothGatt gatt, final BluetoothGattDescriptor descriptor, final int status) {
+            Handler iHandler = new Handler(Looper.getMainLooper());
+            iHandler.post(new Runnable() {
+                @Override
+                public void run() {
+                    android.util.Log.i(TAG, "onDescriptorWrite On Main Thread? " + isOnMainThread());
+                    if (status == BluetoothGatt.GATT_SUCCESS) {
+                        mGatt.writeCharacteristic(descriptor.getCharacteristic());
+                        Log.w(TAG, "Writing descriptor: " + status);
+                    } else {
+                        Log.e(TAG, "Unknown error writing descriptor");
+                    }
+
+                    if (status == 133) {
+                        encountered133 = true;
+                    }
+                }
+            });
+        }
+
+        @Override
+        public void onCharacteristicWrite(BluetoothGatt gatt, final BluetoothGattCharacteristic characteristic, final int status) {
+            Handler iHandler = new Handler(Looper.getMainLooper());
+            iHandler.post(new Runnable() {
+                @Override
+                public void run() {
+                    Log.e(TAG, "Success Write " + String.valueOf(status));
+                    Log.e(TAG, "Characteristic " + String.valueOf(characteristic.getUuid()));
+                    android.util.Log.i(TAG, "onCharacteristicWrite On Main Thread? " + isOnMainThread());
+
+                    if (status == BluetoothGatt.GATT_SUCCESS) {
+                        if (String.valueOf(characteristic.getUuid()).equalsIgnoreCase(String.valueOf(authCharacteristic.getUuid()))) {
+                            android.util.Log.i(TAG, "Char Value: " + Arrays.toString(characteristic.getValue()));
+                            android.util.Log.i(TAG, "auth? " + String.valueOf(characteristic.getUuid()));
+                            //&& characteristic.getValue()[0] != 0x7
+                            if (characteristic.getValue() != null && characteristic.getValue()[0] != 0x6) {
+                                mGatt.readCharacteristic(characteristic);
+                            }
 //                    if (characteristic.getValue()[0] == 0x7) {
 //                        getSensorData();
 //                    }
 
-                } else {
-                    android.util.Log.i(TAG, "control? " + String.valueOf(characteristic.getUuid()));
-                    android.util.Log.i(TAG, "status? " + status);
-                }
-            }
+                        } else {
+                            android.util.Log.i(TAG, "control? " + String.valueOf(characteristic.getUuid()));
+                            android.util.Log.i(TAG, "status? " + status);
+                        }
+                    }
 
-            if (status == 133) {
-                encountered133 = true;
-            }
+                    if (status == 133) {
+                        encountered133 = true;
+                    }
+                }
+            });
+
         }
 
         @Override
-        public void onCharacteristicRead(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic, int status) {
-            Log.e(TAG, "ReadStatus: " + String.valueOf(status));
-            android.util.Log.i(TAG, "onCharacteristicRead On Main Thread? " + isOnMainThread());
+        public void onCharacteristicRead(BluetoothGatt gatt, final BluetoothGattCharacteristic characteristic, final int status) {
+            Handler iHandler = new Handler(Looper.getMainLooper());
+            iHandler.post(new Runnable() {
+                @Override
+                public void run() {
+                    Log.e(TAG, "ReadStatus: " + String.valueOf(status));
+                    android.util.Log.i(TAG, "onCharacteristicRead On Main Thread? " + isOnMainThread());
 
-            if (status == BluetoothGatt.GATT_SUCCESS) {
-                Log.e(TAG, "CharBytes-or " + Arrays.toString(characteristic.getValue()));
-                android.util.Log.i(TAG, "CharHex-or " + Extensions.bytesToHex(characteristic.getValue()));
+                    if (status == BluetoothGatt.GATT_SUCCESS) {
+                        Log.e(TAG, "CharBytes-or " + Arrays.toString(characteristic.getValue()));
+                        android.util.Log.i(TAG, "CharHex-or " + Extensions.bytesToHex(characteristic.getValue()));
 
-                byte[] buffer = characteristic.getValue();
-                byte code = buffer[0];
+                        byte[] buffer = characteristic.getValue();
+                        byte code = buffer[0];
 
-                switch (code) {
-                    case 5:
-                        authStatus = new AuthStatusRxMessage(characteristic.getValue());
-                        if (authStatus.authenticated == 1 && authStatus.bonded == 1) {
-                            isBondedOrBonding = true;
-                            getSensorData();
-                        } else if (authStatus.authenticated == 1 && authStatus.bonded == 2) {
-                            android.util.Log.i(TAG, "Let's Bond!");
-                            BondRequestTxMessage bondRequest = new BondRequestTxMessage();
-                            characteristic.setValue(bondRequest.byteSequence);
-                            mGatt.writeCharacteristic(characteristic);
-                            isBondedOrBonding = true;
-                            device.createBond();
-                        } else {
-                            android.util.Log.i(TAG, "Transmitter NOT already authenticated");
-                            authRequest = new AuthRequestTxMessage();
-                            characteristic.setValue(authRequest.byteSequence);
-                            android.util.Log.i(TAG, authRequest.byteSequence.toString());
-                            mGatt.writeCharacteristic(characteristic);
-                        }
-                        break;
+                        switch (code) {
+                            case 5:
+                                authStatus = new AuthStatusRxMessage(characteristic.getValue());
+                                if (authStatus.authenticated == 1 && authStatus.bonded == 1) {
+                                    isBondedOrBonding = true;
+                                    getSensorData();
+                                } else if (authStatus.authenticated == 1 && authStatus.bonded == 2) {
+                                    android.util.Log.i(TAG, "Let's Bond!");
+                                    BondRequestTxMessage bondRequest = new BondRequestTxMessage();
+                                    characteristic.setValue(bondRequest.byteSequence);
+                                    mGatt.writeCharacteristic(characteristic);
+                                    isBondedOrBonding = true;
+                                    device.createBond();
+                                } else {
+                                    android.util.Log.i(TAG, "Transmitter NOT already authenticated");
+                                    authRequest = new AuthRequestTxMessage();
+                                    characteristic.setValue(authRequest.byteSequence);
+                                    android.util.Log.i(TAG, authRequest.byteSequence.toString());
+                                    mGatt.writeCharacteristic(characteristic);
+                                }
+                                break;
 
 //                    case -1:
 //                        if (buffer[0] == -1) {
@@ -622,81 +660,89 @@ public class G5CollectionService extends Service {
 //                        }
 //                        break;
 
-                    case 3:
-                        AuthChallengeRxMessage authChallenge = new AuthChallengeRxMessage(characteristic.getValue());
-                        if (authRequest == null) {
-                            authRequest = new AuthRequestTxMessage();
-                        }
-                        android.util.Log.i(TAG, "tokenHash " + Arrays.toString(authChallenge.tokenHash));
-                        android.util.Log.i(TAG, "singleUSe " + Arrays.toString(calculateHash(authRequest.singleUseToken)));
+                            case 3:
+                                AuthChallengeRxMessage authChallenge = new AuthChallengeRxMessage(characteristic.getValue());
+                                if (authRequest == null) {
+                                    authRequest = new AuthRequestTxMessage();
+                                }
+                                android.util.Log.i(TAG, "tokenHash " + Arrays.toString(authChallenge.tokenHash));
+                                android.util.Log.i(TAG, "singleUSe " + Arrays.toString(calculateHash(authRequest.singleUseToken)));
 
-                        byte[] challengeHash = calculateHash(authChallenge.challenge);
-                        android.util.Log.d(TAG, "challenge hash" + Arrays.toString(challengeHash));
-                        if (challengeHash != null) {
-                            android.util.Log.d(TAG, "Transmitter try auth challenge");
-                            AuthChallengeTxMessage authChallengeTx = new AuthChallengeTxMessage(challengeHash);
-                            android.util.Log.i(TAG, "Auth Challenge: " + Arrays.toString(authChallengeTx.byteSequence));
-                            characteristic.setValue(authChallengeTx.byteSequence);
-                            mGatt.writeCharacteristic(characteristic);
-                        }
-                        break;
+                                byte[] challengeHash = calculateHash(authChallenge.challenge);
+                                android.util.Log.d(TAG, "challenge hash" + Arrays.toString(challengeHash));
+                                if (challengeHash != null) {
+                                    android.util.Log.d(TAG, "Transmitter try auth challenge");
+                                    AuthChallengeTxMessage authChallengeTx = new AuthChallengeTxMessage(challengeHash);
+                                    android.util.Log.i(TAG, "Auth Challenge: " + Arrays.toString(authChallengeTx.byteSequence));
+                                    characteristic.setValue(authChallengeTx.byteSequence);
+                                    mGatt.writeCharacteristic(characteristic);
+                                }
+                                break;
 
-                    default:
-                        android.util.Log.i(TAG, code + " - Transmitter NOT already authenticated");
-                        authRequest = new AuthRequestTxMessage();
-                        characteristic.setValue(authRequest.byteSequence);
-                        android.util.Log.i(TAG, authRequest.byteSequence.toString());
-                        //isBondedOrBonding = true;
-                        mGatt.writeCharacteristic(characteristic);
-                        break;
+                            default:
+                                android.util.Log.i(TAG, code + " - Transmitter NOT already authenticated");
+                                authRequest = new AuthRequestTxMessage();
+                                characteristic.setValue(authRequest.byteSequence);
+                                android.util.Log.i(TAG, authRequest.byteSequence.toString());
+                                //isBondedOrBonding = true;
+                                mGatt.writeCharacteristic(characteristic);
+                                break;
+                        }
+
+                    }
+
+                    if (status == 133) {
+                        encountered133 = true;
+                    }
                 }
-
-            }
-
-            if (status == 133) {
-                encountered133 = true;
-            }
+            });
         }
 
         @Override
         // Characteristic notification
-        public void onCharacteristicChanged(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic) {
-            Log.e(TAG, "CharBytes-nfy" + Arrays.toString(characteristic.getValue()));
-            android.util.Log.i(TAG, "CharHex-nfy" + Extensions.bytesToHex(characteristic.getValue()));
+        public void onCharacteristicChanged(final BluetoothGatt gatt, final BluetoothGattCharacteristic characteristic) {
+            Handler iHandler = new Handler(Looper.getMainLooper());
+            iHandler.post(new Runnable() {
+                @Override
+                public void run() {
+                    Log.e(TAG, "CharBytes-nfy" + Arrays.toString(characteristic.getValue()));
+                    android.util.Log.i(TAG, "CharHex-nfy" + Extensions.bytesToHex(characteristic.getValue()));
 
-            android.util.Log.i(TAG, "onCharacteristicChanged On Main Thread? " + isOnMainThread());
+                    android.util.Log.i(TAG, "onCharacteristicChanged On Main Thread? " + isOnMainThread());
 
-            byte[] buffer = characteristic.getValue();
-            byte firstByte = buffer[0];
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP && gatt != null) {
-                mGatt.requestConnectionPriority(BluetoothGatt.CONNECTION_PRIORITY_HIGH);
-            }
-            if (firstByte == 0x2f) {
-                SensorRxMessage sensorRx = new SensorRxMessage(characteristic.getValue());
+                    byte[] buffer = characteristic.getValue();
+                    byte firstByte = buffer[0];
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP && gatt != null) {
+                        mGatt.requestConnectionPriority(BluetoothGatt.CONNECTION_PRIORITY_HIGH);
+                    }
+                    if (firstByte == 0x2f) {
+                        SensorRxMessage sensorRx = new SensorRxMessage(characteristic.getValue());
 
-                ByteBuffer sensorData = ByteBuffer.allocate(buffer.length);
-                sensorData.order(ByteOrder.LITTLE_ENDIAN);
-                sensorData.put(buffer, 0, buffer.length);
+                        ByteBuffer sensorData = ByteBuffer.allocate(buffer.length);
+                        sensorData.order(ByteOrder.LITTLE_ENDIAN);
+                        sensorData.put(buffer, 0, buffer.length);
 
-                int sensor_battery_level = 0;
-                if (sensorRx.status == TransmitterStatus.BRICKED) {
-                    //TODO Handle this in UI/Notification
-                    sensor_battery_level = 206; //will give message "EMPTY"
-                } else if (sensorRx.status == TransmitterStatus.LOW) {
-                    sensor_battery_level = 209; //will give message "LOW"
-                } else {
-                    sensor_battery_level = 216; //no message, just system status "OK"
+                        int sensor_battery_level = 0;
+                        if (sensorRx.status == TransmitterStatus.BRICKED) {
+                            //TODO Handle this in UI/Notification
+                            sensor_battery_level = 206; //will give message "EMPTY"
+                        } else if (sensorRx.status == TransmitterStatus.LOW) {
+                            sensor_battery_level = 209; //will give message "LOW"
+                        } else {
+                            sensor_battery_level = 216; //no message, just system status "OK"
+                        }
+
+                        Log.e(TAG, "filtered: " + sensorRx.filtered);
+                        Log.e(TAG, "unfiltered: " + sensorRx.unfiltered);
+                        doDisconnectMessage(gatt, characteristic);
+                        processNewTransmitterData(sensorRx.unfiltered, sensorRx.filtered, sensor_battery_level, new Date().getTime());
+                        if (pendingIntent != null) {
+                            alarm.cancel(pendingIntent);
+                        }
+                        keepAlive();
+                    }
                 }
-
-                Log.e(TAG, "filtered: " + sensorRx.filtered);
-                Log.e(TAG, "unfiltered: " + sensorRx.unfiltered);
-                doDisconnectMessage(gatt, characteristic);
-                processNewTransmitterData(sensorRx.unfiltered, sensorRx.filtered, sensor_battery_level, new Date().getTime());
-                if (pendingIntent != null) {
-                    alarm.cancel(pendingIntent);
-                }
-                keepAlive();
-            }
+            });
         }
     };
 
