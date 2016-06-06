@@ -81,7 +81,7 @@ public class BgReadingTable extends ListActivity implements NavigationDrawerFrag
         }
 
         public View newView(Context context, ViewGroup parent) {
-            final View view = LayoutInflater.from(context).inflate(R.layout.bg_table_list_item, parent, false); //???? list_item
+            final View view = LayoutInflater.from(context).inflate(R.layout.bg_table_list_item, parent, false);
 
             final BgReadingCursorAdapterViewHolder holder = new BgReadingCursorAdapterViewHolder(view);
             view.setTag(holder);
