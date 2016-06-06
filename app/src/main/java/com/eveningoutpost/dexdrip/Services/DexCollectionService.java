@@ -91,7 +91,7 @@ public class DexCollectionService extends Service {
         prefs = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
         listenForChangeInSettings();
         bgToSpeech = BgToSpeech.setupTTS(mContext); //keep reference to not being garbage collected
-        if(CollectionServiceStarter.isDexbridgeWixel(getApplicationContext())){
+        if(CollectionServiceStarter.isDexbridgeWixelorWifiandDexbridgeWixel(getApplicationContext())){
             Log.i(TAG,"onCreate: resetting bridge_battery preference to 0");
             prefs.edit().putInt("bridge_battery",0).apply();
         }
@@ -104,9 +104,8 @@ public class DexCollectionService extends Service {
             stopSelf();
             return START_NOT_STICKY;
         }
-        if (CollectionServiceStarter.isBTWixel(getApplicationContext())
-                || CollectionServiceStarter.isDexbridgeWixel(getApplicationContext())
-                || CollectionServiceStarter.isWifiandBTWixel(getApplicationContext())) {
+        if (CollectionServiceStarter.isBteWixelorWifiandBtWixel(getApplicationContext())
+                || CollectionServiceStarter.isDexbridgeWixelorWifiandDexbridgeWixel(getApplicationContext())) {
             setFailoverTimer();
         } else {
             stopSelf();
@@ -154,11 +153,10 @@ public class DexCollectionService extends Service {
     }
 
     public void setRetryTimer() {
-        if (CollectionServiceStarter.isBTWixel(getApplicationContext())
-                || CollectionServiceStarter.isDexbridgeWixel(getApplicationContext())
-                || CollectionServiceStarter.isWifiandBTWixel(getApplicationContext())) {
+        if (CollectionServiceStarter.isBteWixelorWifiandBtWixel(getApplicationContext())
+                || CollectionServiceStarter.isDexbridgeWixelorWifiandDexbridgeWixel(getApplicationContext())) {
             long retry_in;
-            if(CollectionServiceStarter.isDexbridgeWixel(getApplicationContext())) {
+            if(CollectionServiceStarter.isDexbridgeWixelorWifiandDexbridgeWixel(getApplicationContext())) {
                 retry_in = (1000 * 25);
             }else {
                 retry_in = (1000*65);
@@ -178,9 +176,8 @@ public class DexCollectionService extends Service {
     }
 
     public void setFailoverTimer() {
-        if (CollectionServiceStarter.isBTWixel(getApplicationContext())
-                || CollectionServiceStarter.isDexbridgeWixel(getApplicationContext())
-                || CollectionServiceStarter.isWifiandBTWixel(getApplicationContext())) {
+        if (CollectionServiceStarter.isBteWixelorWifiandBtWixel(getApplicationContext())
+                || CollectionServiceStarter.isDexbridgeWixelorWifiandDexbridgeWixel(getApplicationContext())) {
 
             long retry_in = (1000 * 60 * 6);
             Log.d(TAG, "setFailoverTimer: Fallover Restarting in: " + (retry_in / (60 * 1000)) + " minutes");
@@ -433,7 +430,7 @@ public class DexCollectionService extends Service {
 
     public void setSerialDataToTransmitterRawData(byte[] buffer, int len) {
         long timestamp = new Date().getTime();
-        if (CollectionServiceStarter.isDexbridgeWixel(getApplicationContext())) {
+        if (CollectionServiceStarter.isDexbridgeWixelorWifiandDexbridgeWixel(getApplicationContext())) {
             Log.i(TAG, "setSerialDataToTransmitterRawData: Dealing with Dexbridge packet!");
             int DexSrc;
             int TransmitterID;

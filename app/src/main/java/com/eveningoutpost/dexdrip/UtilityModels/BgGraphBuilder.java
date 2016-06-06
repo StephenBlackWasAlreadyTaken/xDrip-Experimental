@@ -34,11 +34,29 @@ import lecho.lib.hellocharts.model.PointValue;
 import lecho.lib.hellocharts.model.Viewport;
 import lecho.lib.hellocharts.util.ChartUtils;
 import lecho.lib.hellocharts.view.Chart;
+import com.eveningoutpost.dexdrip.Models.UserError.Log;
 
 /**
  * Created by stephenblack on 11/15/14.
  */
+
+class PointValueExtended extends PointValue {
+	
+	public PointValueExtended(float x, float y, float filtered) {
+		set(x, y);
+		calculatedFilteredValue = filtered;
+	}
+	   public PointValueExtended(float x, float y) {
+	        set(x, y);
+	        calculatedFilteredValue = -1;
+	    }
+	
+	float calculatedFilteredValue;
+}
+
+
 public class BgGraphBuilder {
+	private static final String TAG = BgGraphBuilder.class.getSimpleName();
     public static final int FUZZER = (1000 * 30 * 5);
     public static final int MAX_SLOPE_MINUTES = 21;
     public long  end_time;
@@ -233,25 +251,25 @@ public class BgGraphBuilder {
 
         for (BgReading bgReading : bgReadings) {
             if (bgReading.raw_calculated != 0 && prefs.getBoolean("interpret_raw", false)) {
-                rawInterpretedValues.add(new PointValue((float) (bgReading.timestamp / FUZZER), (float) unitized(bgReading.raw_calculated)));
+                rawInterpretedValues.add(new PointValueExtended((float) (bgReading.timestamp / FUZZER), (float) unitized(bgReading.raw_calculated),(float) unitized(bgReading.filtered_calculated_value)));
             } else if (bgReading.calculated_value >= 400) {
-                highValues.add(new PointValue((float) (bgReading.timestamp / FUZZER), (float) unitized(400)));
+                highValues.add(new PointValueExtended((float) (bgReading.timestamp / FUZZER), (float) unitized(400),(float) unitized(bgReading.filtered_calculated_value)));
             } else if (unitized(bgReading.calculated_value) >= highMark) {
-                highValues.add(new PointValue((float) (bgReading.timestamp / FUZZER), (float) unitized(bgReading.calculated_value)));
+                highValues.add(new PointValueExtended((float) (bgReading.timestamp / FUZZER), (float) unitized(bgReading.calculated_value), (float) unitized(bgReading.filtered_calculated_value)));
             } else if (unitized(bgReading.calculated_value) >= lowMark) {
-                inRangeValues.add(new PointValue((float) (bgReading.timestamp / FUZZER), (float) unitized(bgReading.calculated_value)));
+                inRangeValues.add(new PointValueExtended((float) (bgReading.timestamp / FUZZER), (float) unitized(bgReading.calculated_value), (float) unitized(bgReading.filtered_calculated_value)));
             } else if (bgReading.calculated_value >= 40) {
-                lowValues.add(new PointValue((float) (bgReading.timestamp / FUZZER), (float) unitized(bgReading.calculated_value)));
+                lowValues.add(new PointValueExtended((float) (bgReading.timestamp / FUZZER), (float) unitized(bgReading.calculated_value),(float) unitized(bgReading.filtered_calculated_value)));
             } else if (bgReading.calculated_value > 13) {
-                lowValues.add(new PointValue((float) (bgReading.timestamp / FUZZER), (float) unitized(40)));
+                lowValues.add(new PointValueExtended((float) (bgReading.timestamp / FUZZER), (float) unitized(40), (float) unitized(bgReading.filtered_calculated_value)));
             }
 
             if ((show_filtered) && (bgReading.filtered_calculated_value > 0) && (bgReading.filtered_calculated_value != bgReading.calculated_value)) {
-                filteredValues.add(new PointValue((float) ((bgReading.timestamp - timeshift) / FUZZER), (float) unitized(bgReading.filtered_calculated_value)));
+                filteredValues.add(new PointValueExtended((float) ((bgReading.timestamp - timeshift) / FUZZER), (float) unitized(bgReading.filtered_calculated_value)));
             }
         }
         for (Calibration calibration : calibrations) {
-            calibrationValues.add(new PointValue((float) (calibration.timestamp / FUZZER), (float) unitized(calibration.bg)));
+            calibrationValues.add(new PointValueExtended((float) (calibration.timestamp / FUZZER), (float) unitized(calibration.bg)));
         }
     }
 
@@ -504,13 +522,23 @@ public class BgGraphBuilder {
 
         @Override
         public synchronized void onValueSelected(int i, int i1, PointValue pointValue) {
+        	
+        	String filtered = "";
+        	try {
+        		PointValueExtended pve = (PointValueExtended) pointValue;
+        		if(pve.calculatedFilteredValue != -1) {
+        			filtered = " (" + Math.round(pve.calculatedFilteredValue*10) / 10d +")";
+        		}
+        	} catch (ClassCastException e) {
+        		Log.e(TAG, "Error casting a point from pointValue to PointValueExtended", e);
+        	}
             final java.text.DateFormat timeFormat = DateFormat.getTimeFormat(context);
             //Won't give the exact time of the reading but the time on the grid: close enough.
             Long time = ((long)pointValue.getX())*FUZZER;
             if(tooltip!= null){
                 tooltip.cancel();
             }
-            tooltip = Toast.makeText(context, timeFormat.format(time)+ ": " + Math.round(pointValue.getY()*10)/ 10d , Toast.LENGTH_LONG);
+            tooltip = Toast.makeText(context, timeFormat.format(time)+ ": " + Math.round(pointValue.getY()*10)/ 10d + filtered, Toast.LENGTH_LONG);
             tooltip.show();
         }
 
