@@ -84,7 +84,9 @@ public class AlertPlayer {
 
     static AlertPlayer singletone;
 
+    private final static SimpleDateFormat dateFormat = new SimpleDateFormat("HH:mm");
     private final static String TAG = AlertPlayer.class.getSimpleName();
+
     private MediaPlayer mediaPlayer;
     int volumeBeforeAlert;
     int volumeForThisAlert;
@@ -360,7 +362,7 @@ public class AlertPlayer {
         }
 
         String title = bgValue + " " + alert.name;
-        String content = "BG LEVEL ALERT: " + bgValue;
+        String content = "BG LEVEL ALERT (" + dateFormat.format(new Date()) + "): " + bgValue;
         Intent intent = new Intent(ctx, SnoozeActivity.class);
 
         NotificationCompat.Builder  builder = new NotificationCompat.Builder(ctx)
