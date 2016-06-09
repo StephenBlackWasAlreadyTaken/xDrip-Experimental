@@ -39,6 +39,7 @@ import com.eveningoutpost.dexdrip.Services.MissedReadingService;
 
 import com.eveningoutpost.dexdrip.R;
 
+import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
@@ -64,6 +65,8 @@ public class Notifications extends IntentService {
     public static boolean smart_snoozing;
     public static boolean smart_alerting;
     private final static String TAG = AlertPlayer.class.getSimpleName();
+
+    private final static SimpleDateFormat dateFormat = new SimpleDateFormat("HH:mm");
 
     Context mContext;
     PendingIntent wakeIntent;
@@ -540,7 +543,7 @@ public class Notifications extends IntentService {
             if (userNotification != null) { userNotification.delete(); }
             UserNotification.create("12 hours since last Calibration", "calibration_alert");
             String title = "Calibration Needed";
-            String content = "12 hours since last calibration";
+            String content = dateFormat.format(new Date()) + ": 12 hours since last calibration";
             Intent intent = new Intent(mContext, AddCalibration.class);
             calibrationNotificationCreate(title, content, intent, calibrationNotificationId);
         }
@@ -552,7 +555,7 @@ public class Notifications extends IntentService {
             if (userNotification != null) { userNotification.delete(); }
             UserNotification.create("Double Calibration", "double_calibration_alert");
             String title = "Sensor is ready";
-            String content = "Sensor is ready, please enter a double calibration";
+            String content = dateFormat.format(new Date()) + ": Sensor is ready, please enter a double calibration";
             Intent intent = new Intent(mContext, DoubleCalibrationActivity.class);
             calibrationNotificationCreate(title, content, intent, calibrationNotificationId);
         }
@@ -564,7 +567,7 @@ public class Notifications extends IntentService {
             if (userNotification != null) { userNotification.delete(); }
             UserNotification.create("Extra Calibration Requested", "extra_calibration_alert");
             String title = "Calibration Needed";
-            String content = "A calibration entered now will GREATLY increase performance";
+            String content = dateFormat.format(new Date()) + ": A calibration entered now will GREATLY increase performance";
             Intent intent = new Intent(mContext, AddCalibration.class);
             calibrationNotificationCreate(title, content, intent, extraCalibrationNotificationId);
         }
@@ -573,20 +576,22 @@ public class Notifications extends IntentService {
     public static void bgUnclearAlert(Context context) {
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
         int otherAlertSnooze = MissedReadingService.readPerfsInt(prefs, "other_alerts_snooze", 20);
-        OtherAlert(context, "bg_unclear_readings_alert", "Unclear Sensor Readings", uncleanAlertNotificationId,  otherAlertSnooze);
+        String message = dateFormat.format(new Date()) + ": Unclear Sensor Readings";
+        OtherAlert(context, "bg_unclear_readings_alert", message, uncleanAlertNotificationId,  otherAlertSnooze);
     }
 
     public static void bgMissedAlert(Context context) {
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
         int otherAlertSnooze = MissedReadingService.readPerfsInt(prefs, "other_alerts_snooze", 20);
-        OtherAlert(context, "bg_missed_alerts", "BG Readings Missed", missedAlertNotificationId, otherAlertSnooze);
+        String message = "BG Readings Missed (" + dateFormat.format(new Date()) + ")";
+        OtherAlert(context, "bg_missed_alerts", message, missedAlertNotificationId, otherAlertSnooze);
     }
 
     public static void RisingAlert(Context context, boolean on) {
-        RiseDropAlert(context, on, "bg_rise_alert", "bg rising fast", riseAlertNotificationId);
+        RiseDropAlert(context, on, "bg_rise_alert", "bg rising fast (" + dateFormat.format(new Date()) + ")", riseAlertNotificationId);
     }
     public static void DropAlert(Context context, boolean on) {
-        RiseDropAlert(context, on, "bg_fall_alert", "bg falling fast", failAlertNotificationId);
+        RiseDropAlert(context, on, "bg_fall_alert", "bg falling fast (" + dateFormat.format(new Date()) + ")", failAlertNotificationId);
     }
 
     public static void RiseDropAlert(Context context, boolean on, String type, String message, int notificatioId) {
