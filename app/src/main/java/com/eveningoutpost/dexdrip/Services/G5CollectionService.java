@@ -122,7 +122,8 @@ public class G5CollectionService extends Service {
     private boolean isScanning = false;
     private boolean encountered133 = false;
     private Handler handler;
-    public int lastGattStatus = 0;
+    public int max133Retries = 5;
+    public int max133RetryCounter = 0;
 
     StringBuilder log = new StringBuilder();
 
@@ -156,10 +157,10 @@ public class G5CollectionService extends Service {
         mBluetoothManager = (BluetoothManager) getSystemService(Context.BLUETOOTH_SERVICE);
         mBluetoothAdapter = mBluetoothManager.getAdapter();
 
-        if (mGatt != null) {
-            mGatt.close();
-            mGatt = null;
-        }
+//        if (mGatt != null) {
+//            mGatt.close();
+//            mGatt = null;
+//        }
 
         if (Sensor.isActive()){
             setupBluetooth();
@@ -297,18 +298,22 @@ public class G5CollectionService extends Service {
         }
 
         getTransmitterDetails();
-
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) {
-            setupLeScanCallback();
-
-            mBluetoothAdapter.startLeScan(new UUID[]{BluetoothServices.Advertisement}, mLeScanCallback);
+        if (mBluetoothAdapter == null || !mBluetoothAdapter.isEnabled()) {
+            setupBluetooth();
         } else {
-            Log.d(TAG, "startScan");
+            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) {
+                setupLeScanCallback();
 
-            mLEScanner.startScan(filters, settings, mScanCallback);
+                mBluetoothAdapter.startLeScan(new UUID[]{BluetoothServices.Advertisement}, mLeScanCallback);
+            } else {
+                Log.d(TAG, "startScan");
+
+                mLEScanner.startScan(filters, settings, mScanCallback);
+            }
+
+            isScanning = true;
         }
 
-        isScanning = true;
     }
     
     void scanAfterDelay(int delay) {
@@ -445,11 +450,11 @@ public class G5CollectionService extends Service {
         iHandler.post(new Runnable() {
             @Override
             public void run() {
-                if (mGatt == null) {
+                //if (mGatt == null) {
                     android.util.Log.i(TAG, "mGatt Null, connecting...");
                     android.util.Log.i(TAG, "connectToDevice On Main Thread? " + isOnMainThread());
                     mGatt = mDevice.connectGatt(getApplicationContext(), false, gattCallback);
-                }
+            //    }
             }
         });
     }
@@ -481,7 +486,8 @@ public class G5CollectionService extends Service {
                                               @Override
                                               public void run() {
                                                   android.util.Log.i(TAG, "discoverServices On Main Thread? " + isOnMainThread());
-                                                  mGatt.discoverServices();
+                                                  if (mGatt != null)
+                                                    mGatt.discoverServices();
                                               }
                                           });
                                           stopScan();
@@ -489,16 +495,25 @@ public class G5CollectionService extends Service {
                                       case BluetoothProfile.STATE_DISCONNECTED:
                                           android.util.Log.e("gattCallback", "STATE_DISCONNECTED");
                                           Log.e(TAG, "current disconnect status? " + status);
-                                          lastGattStatus = status;
-                                          mGatt.close();
-                                          mGatt = null;
+                                          if (mGatt != null)
+                                            mGatt.close();
+                                          //mGatt = null;
                                           if (status == 0 && !encountered133) {// || status == 59) {
                                               android.util.Log.i(TAG, "scan after delay");
+                                              max133RetryCounter = 0;
                                               scanAfterDelay(15000);
-                                          } else if (status == 133 || encountered133) {
+                                          } else if (status == 133 || max133RetryCounter >= max133Retries) {
+                                              Log.e(TAG, "max133RetryCounter? " + max133RetryCounter);
                                               Log.e(TAG, "Encountered 133: " + encountered133);
+                                              max133RetryCounter = 0;
                                               cycleBT();
+                                          } else if (encountered133) {
+                                              Log.e(TAG, "max133RetryCounter? " + max133RetryCounter);
+                                              Log.e(TAG, "Encountered 133: " + encountered133);
+                                              max133RetryCounter++;
+                                              startScan();
                                           } else {
+                                              max133RetryCounter = 0;
                                               startScan();
                                           }
 
