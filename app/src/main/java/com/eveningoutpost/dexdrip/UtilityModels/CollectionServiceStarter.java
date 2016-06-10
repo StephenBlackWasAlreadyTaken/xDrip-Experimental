@@ -48,13 +48,54 @@ public class CollectionServiceStarter {
         return collection_method.equals("WifiBlueToothWixel"); 
     }
 
+    
+    public static boolean isWifiandDexbridgeWixel(Context context) {
+        if(XDripViewer.isxDripViewerMode(context)) {
+            return false;
+        }
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
+        String collection_method = prefs.getString("dex_collection_method", "BluetoothWixel");
+        if(collection_method.compareTo("WifiDexbridgeWixel") == 0) {
+            return true;
+        }
+        return false;
+    }
+  
+    private static boolean isWifiandDexbridgeWixel(String collection_method, Context context) {
+        if(XDripViewer.isxDripViewerMode(context)) {
+            return false;
+        }
+        return collection_method.equals("WifiDexbridgeWixel"); 
+    }
+
+    
+    
+    
     public static boolean isBTWixel(Context context) {
         if(XDripViewer.isxDripViewerMode(context)) {
             return false;
         }
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
         String collection_method = prefs.getString("dex_collection_method", "BluetoothWixel");
-        if(collection_method.compareTo("BluetoothWixel") == 0) {
+        if(collection_method.compareTo("BluetoothWixel") == 0 || isLimitter(context)) {
+            return true;
+        }
+        return false;
+    }
+
+    /*
+    * LimiTTer emulates a BT-Wixel and works with the BT-Wixel service.
+    * It would work without any changes but in some cases knowing that the data does not
+    * come from a Dexcom sensor but from a Libre sensor might enhance the performance.
+    * */
+
+    public static boolean isLimitter(Context context) {
+        if(XDripViewer.isxDripViewerMode(context)) {
+            return false;
+        }
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
+        String collection_method = prefs.getString("dex_collection_method", "BluetoothWixel");
+        if(collection_method.compareTo("LimiTTer") == 0) {
             return true;
         }
         return false;
@@ -64,10 +105,21 @@ public class CollectionServiceStarter {
         if(XDripViewer.isxDripViewerMode(context)) {
             return false;
         }
-        return collection_method.equals("BluetoothWixel"); 
+        //LimiTTer hardware emulates BTWixel packages
+        return collection_method.equals("BluetoothWixel")||collection_method.equals("LimiTTer");
+    }
+    
+    // returns true if this DexBridge or DexBrige + wifi togeather.
+    public static boolean isBteWixelorWifiandBtWixel(Context context) {
+      return isBTWixel(context) || isWifiandBTWixel(context);
     }
 
-    public static boolean isDexbridgeWixel(Context context) {
+    // returns true if this DexBridge or DexBrige + wifi togeather.
+    public static boolean isDexbridgeWixelorWifiandDexbridgeWixel(Context context) {
+      return isDexbridgeWixel(context) || isWifiandDexbridgeWixel(context);
+    }
+    
+    private static boolean isDexbridgeWixel(Context context) {
         if(XDripViewer.isxDripViewerMode(context)) {
             return false;
         }
@@ -172,7 +224,7 @@ public class CollectionServiceStarter {
             stopWifWixelThread();
             stopBtShareService();
             startBtG5Service();
-        } else if (isWifiandBTWixel(collection_method, context)) {
+        } else if (isWifiandBTWixel(collection_method, context) || isWifiandDexbridgeWixel(collection_method, context)) {
             Log.d("DexDrip", "Starting wifi and bt wixel collector");
             stopBtWixelService();
             stopWifWixelThread();
@@ -287,7 +339,6 @@ public class CollectionServiceStarter {
         Log.d(TAG, "starting wifi wixel service");
         mContext.startService(new Intent(mContext, WifiCollectionService.class));
     }
-
     private void stopWifWixelThread() {
         Log.d(TAG, "stopping wifi wixel service");
         mContext.stopService(new Intent(mContext, WifiCollectionService.class));
@@ -297,5 +348,6 @@ public class CollectionServiceStarter {
         Log.d(TAG, "stopping G5  service");
         mContext.stopService(new Intent(mContext, G5CollectionService.class));
     }
+
 
 }

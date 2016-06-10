@@ -40,10 +40,10 @@ public class Sensor extends Model {
   @Column(name = "sensor_location")
   public String sensor_location;
 
-    public static Sensor create(long started_at) {
+    public static Sensor create(long started_at, String uuid) {
         Sensor sensor = new Sensor();
         sensor.started_at = started_at;
-        sensor.uuid = UUID.randomUUID().toString();
+        sensor.uuid = uuid;
 
         sensor.save();
         SensorSendQueue.addToQueue(sensor);
@@ -126,6 +126,14 @@ public class Sensor extends Model {
                 .executeSingle();
     }
     
+    public static Sensor last() {
+        Sensor sensor = new Select()
+                .from(Sensor.class)
+                .orderBy("_ID desc")
+                .limit(1)
+                .executeSingle();
+        return sensor;
+    }
 
     public static void updateBatteryLevel(Sensor sensor, int sensorBatteryLevel) {
         if(sensorBatteryLevel < 120) {

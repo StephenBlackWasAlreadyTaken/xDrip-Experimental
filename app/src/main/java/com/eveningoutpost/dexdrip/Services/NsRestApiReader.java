@@ -27,10 +27,14 @@ public class NsRestApiReader {
 	    double xDrip_filtered; // filtered_data;
 	    Long date; // timestamp
 	    double sgv; // calculated_bg
-	    double unfiltered; // xdrip raw data
+	    double unfiltered; // raw data
+	    double filtered; // filtered data
 	    double xDrip_calculated_value;
 	    double xDrip_calculated_current_slope;
 	    boolean xDrip_hide_slope;
+	    double xDrip_filtered_calculated_value;
+	    String device;
+	    String direction;
 	}
 
 	class NightscoutMbg {
@@ -43,6 +47,7 @@ public class NsRestApiReader {
 	    double xDrip_sensor_confidence;
 	    long xDrip_raw_timestamp;
 	    String xDrip_sensor_uuid;
+	    String device;
 	}
 	
    class NightscoutSensor {

@@ -348,7 +348,8 @@ public class Preferences extends PreferenceActivity {
 
 
             if ((prefs.getString("dex_collection_method", "BluetoothWixel").compareTo("WifiWixel") != 0)
-                    && (prefs.getString("dex_collection_method", "BluetoothWixel").compareTo("WifiBlueToothWixel") != 0)) {
+                    && (prefs.getString("dex_collection_method", "BluetoothWixel").compareTo("WifiBlueToothWixel") != 0)
+                    && (prefs.getString("dex_collection_method", "BluetoothWixel").compareTo("WifiDexbridgeWixel") != 0)) {
                 String receiversIpAddresses;
                 receiversIpAddresses = prefs.getString("wifi_recievers_addresses", "");
                 // only hide if non wifi wixel mode and value not previously set to cope with
@@ -429,7 +430,9 @@ public class Preferences extends PreferenceActivity {
                     if (((String) newValue).compareTo("BluetoothWixel") != 0
                             && ((String) newValue).compareTo("DexcomShare") != 0
                             && ((String) newValue).compareTo("DexbridgeWixel") != 0
-                            && ((String) newValue).compareTo("WifiBlueToothWixel") != 0) {
+                            && ((String) newValue).compareTo("WifiBlueToothWixel") != 0
+                            && ((String) newValue).compareTo("WifiDexbridgeWixel") != 0
+                            && ((String) newValue).compareTo("LimiTTer") != 0) {
                         collectionCategory.removePreference(runInForeground);
                     } else {
                         collectionCategory.addPreference(runInForeground);
@@ -437,7 +440,8 @@ public class Preferences extends PreferenceActivity {
 
                     // jamorham always show wifi receivers option if populated as we may switch modes dynamically
                     if ((((String) newValue).compareTo("WifiWixel") != 0)
-                            && (((String) newValue).compareTo("WifiBlueToothWixel") != 0)) {
+                            && (((String) newValue).compareTo("WifiBlueToothWixel") != 0)
+                            && (((String) newValue).compareTo("WifiDexbridgeWixel") != 0)) {
                         String receiversIpAddresses;
                         receiversIpAddresses = prefs.getString("wifi_recievers_addresses", "");
                         if (receiversIpAddresses == null || receiversIpAddresses.equals("")) {

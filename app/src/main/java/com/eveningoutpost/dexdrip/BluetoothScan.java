@@ -299,7 +299,7 @@ public class BluetoothScan extends ListActivityWithMenu {
             } else returnToHome();
 
         } else if(device.getName().toLowerCase().contains("bridge")) {
-            if(!CollectionServiceStarter.isDexbridgeWixel(getApplicationContext()))
+            if(!CollectionServiceStarter.isDexbridgeWixelorWifiandDexbridgeWixel(getApplicationContext()))
                 prefs.edit().putString("dex_collection_method", "DexbridgeWixel").apply();
             if(prefs.getString("dex_txid", "00000").compareTo("00000") == 0 || prefs.getString("dex_txid", "00000").length() < 5) {
                 requestTransmitterId(prefs);
@@ -307,10 +307,14 @@ public class BluetoothScan extends ListActivityWithMenu {
 
         } else if(device.getName().toLowerCase().contains("drip")) {
             if (!
-                    (CollectionServiceStarter.isBTWixel(getApplicationContext())
-                            || CollectionServiceStarter.isWifiandBTWixel(getApplicationContext())
-                    )) {
+                    (CollectionServiceStarter.isBteWixelorWifiandBtWixel(getApplicationContext())
+                    ) || CollectionServiceStarter.isLimitter(getApplicationContext())) {
                 prefs.edit().putString("dex_collection_method", "BluetoothWixel").apply();
+            }
+            returnToHome();
+        } else if(device.getName().toLowerCase().contains("limitter")) {
+            if (!CollectionServiceStarter.isLimitter(getApplicationContext())) {
+                prefs.edit().putString("dex_collection_method", "LimiTTer").apply();
             }
             returnToHome();
         } else {
