@@ -79,7 +79,7 @@ public class EditAlertActivity extends ActivityWithMenu {
     private int endHour = 23;
     private int endMinute = 59;
 
-    private String audioPath;    ///  remove member variable ????????????
+    private String audioPath;
 
     private TextView viewAlertOverrideText;
     private CheckBox checkboxAlertOverride;
@@ -94,7 +94,7 @@ public class EditAlertActivity extends ActivityWithMenu {
 
     private final static String TAG = AlertPlayer.class.getSimpleName();
 
-    String getExtra(Bundle savedInstanceState, String paramName) {
+    String getExtra(Bundle savedInstanceState, String paramName, String defaultVal) {
         String newString;
         if (savedInstanceState == null) {
             Bundle extras = getIntent().getExtras();
@@ -106,7 +106,11 @@ public class EditAlertActivity extends ActivityWithMenu {
         } else {
             newString = (String) savedInstanceState.getSerializable(paramName);
         }
-        return newString;
+        if (newString != null) {
+        	return newString;
+        } else {
+        	return defaultVal;
+        }
     }
 
     @Override
@@ -188,13 +192,13 @@ public class EditAlertActivity extends ActivityWithMenu {
             alertThreshold.setKeyListener(DigitsKeyListener.getInstance(false,true));
         }
 
-        uuid = getExtra(savedInstanceState, "uuid");
+        uuid = getExtra(savedInstanceState, "uuid", null);
         String status;
         int alertReraise;
         int defaultSnooze;
         if (uuid == null) {
             // This is a new alert
-            above = Boolean.parseBoolean(getExtra(savedInstanceState, "above"));
+            above = Boolean.parseBoolean(getExtra(savedInstanceState, "above", null));
             checkboxAllDay.setChecked(true);
             checkboxVibrate.setChecked(true);
             checkboxDisabled.setChecked(false);
@@ -224,7 +228,7 @@ public class EditAlertActivity extends ActivityWithMenu {
                 return;
             }
 
-            above =at.above;
+            above = at.above;
             alertText.setText(at.name);
             alertThreshold.setText(unitsConvert2Disp(doMgdl, at.threshold));
             checkboxAllDay.setChecked(at.all_day);
@@ -236,7 +240,7 @@ public class EditAlertActivity extends ActivityWithMenu {
                 SnoozeActivity.getDefaultSnooze(above);
             }
 
-            audioPath = at.mp3_file;
+            audioPath = getExtra(savedInstanceState, "audioPath" ,at.mp3_file);
             alertMp3File.setText(shortPath(audioPath));
 
             status = "editing " + (above ? "high" : "low") + " alert";
@@ -274,6 +278,7 @@ public class EditAlertActivity extends ActivityWithMenu {
         super.onSaveInstanceState(outState);
         outState.putString("uuid", uuid);
         outState.putString("above", String.valueOf(above));
+        outState.putString("audioPath", audioPath);
     }
 
     @Override
