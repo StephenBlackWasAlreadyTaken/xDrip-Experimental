@@ -17,9 +17,6 @@ import android.widget.ListView;
 import android.widget.SimpleAdapter;
 import android.widget.TextView;
 import android.widget.SimpleCursorAdapter.ViewBinder;
-
-//#import android.widget.SimpleCursorAdapter;
-//#import android.database.Cursor;
 import android.graphics.Paint;
 
 import com.eveningoutpost.dexdrip.Models.AlertType;
