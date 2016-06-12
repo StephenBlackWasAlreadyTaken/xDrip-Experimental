@@ -31,6 +31,7 @@ import android.widget.NumberPicker;
 import android.widget.TextView;
 import android.widget.TimePicker;
 import android.widget.Toast;
+import android.graphics.Paint;
 
 import com.eveningoutpost.dexdrip.Models.AlertType;
 import com.eveningoutpost.dexdrip.UtilityModels.AlertPlayer;
@@ -43,6 +44,7 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
+import java.util.ArrayList;
 
 public class EditAlertActivity extends ActivityWithMenu {
     public static String menu_name = "Edit Alert";
@@ -177,6 +179,7 @@ public class EditAlertActivity extends ActivityWithMenu {
             ((TextView) findViewById(R.id.view_alert_mp3_file)).setTextSize(TypedValue.COMPLEX_UNIT_SP, 30);
             ((TextView) findViewById(R.id.view_alert_time)).setTextSize(TypedValue.COMPLEX_UNIT_SP, 30);
             ((TextView) findViewById(R.id.view_alert_time_between)).setTextSize(TypedValue.COMPLEX_UNIT_SP, 30);
+            ((TextView) findViewById(R.id.view_alert_disable)).setTextSize(TypedValue.COMPLEX_UNIT_SP, 30);
 
         }
         SharedPreferences prefs =  PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
@@ -262,6 +265,7 @@ public class EditAlertActivity extends ActivityWithMenu {
         setDefaultSnoozeSpinner();
         setPreSnoozeSpinner();
         enableAllDayControls();
+        setDisabledView();
         enableVibrateControls();
 
 
@@ -318,6 +322,30 @@ public class EditAlertActivity extends ActivityWithMenu {
             setTimeRanges();
         }
     }
+    
+    void setDisabledView() {
+    	boolean disabled = checkboxDisabled.isChecked();
+    	
+    	ArrayList<TextView> textViews = new ArrayList<TextView>();
+    	textViews.add((TextView) findViewById(R.id.view_alert_text));
+    	textViews.add((TextView) findViewById(R.id.view_alert_threshold));
+    	textViews.add((TextView) findViewById(R.id.view_alert_default_snooze));
+    	textViews.add((TextView) findViewById(R.id.view_alert_mp3_file));
+    	textViews.add((TextView) findViewById(R.id.view_alert_time_between));
+    	textViews.add((TextView) findViewById(R.id.view_alert_disable));
+    	textViews.add((TextView) findViewById(R.id.view_alert_time));
+    	textViews.add((TextView) findViewById(R.id.view_alert_override_silent));
+    	textViews.add((TextView) findViewById(R.id.view_alert_vibrate));
+    	
+    	for (TextView tv : textViews) {
+    		if(disabled) {
+                tv.setPaintFlags(tv.getPaintFlags() | Paint.STRIKE_THRU_TEXT_FLAG);
+            } else {
+            	tv.setPaintFlags(tv.getPaintFlags() & ~Paint.STRIKE_THRU_TEXT_FLAG);
+            }
+    	}
+    }
+    
 
     void enableVibrateControls() {
         boolean overrideSilence = checkboxAlertOverride.isChecked();
@@ -338,7 +366,7 @@ public class EditAlertActivity extends ActivityWithMenu {
         }
         // We want to make sure that for each threashold there is only one alert. Otherwise, which file should we play.
         for (AlertType lowAlert : lowAlerts) {
-            if(lowAlert.threshold == threshold  && overlapping(lowAlert, allDay, startTime, endTime)) {
+            if(lowAlert.threshold == threshold  && overlapping(lowAlert, allDay, startTime, endTime) && lowAlert.active) {
                 if(uuid == null || ! uuid.equals(lowAlert.uuid)){ //new alert or not myself
                     Toast.makeText(getApplicationContext(),
                             "Each alert should have it's own threshold. Please choose another threshold.",Toast.LENGTH_LONG).show();
@@ -347,7 +375,7 @@ public class EditAlertActivity extends ActivityWithMenu {
             }
         }
         for (AlertType highAlert : highAlerts) {
-            if(highAlert.threshold == threshold  && overlapping(highAlert, allDay, startTime, endTime)) {
+            if(highAlert.threshold == threshold  && overlapping(highAlert, allDay, startTime, endTime) && highAlert.active) {
                 if(uuid == null || ! uuid.equals(highAlert.uuid)){ //new alert or not myself
                     Toast.makeText(getApplicationContext(),
                             "Each alert should have it's own threshold. Please choose another threshold.",Toast.LENGTH_LONG).show();
@@ -359,7 +387,7 @@ public class EditAlertActivity extends ActivityWithMenu {
         // high alerts have to be higher than all low alerts...
         if(above) {
             for (AlertType lowAlert : lowAlerts) {
-                if(threshold < lowAlert.threshold  && overlapping(lowAlert, allDay, startTime, endTime)) {
+                if(threshold < lowAlert.threshold  && overlapping(lowAlert, allDay, startTime, endTime) && lowAlert.active) {
                     Toast.makeText(getApplicationContext(),
                             "High alert threshold has to be higher than all low alerts. Please choose another threshold.",Toast.LENGTH_LONG).show();
                     return false;
@@ -368,7 +396,7 @@ public class EditAlertActivity extends ActivityWithMenu {
         } else {
             // low alert has to be lower than all high alerts
             for (AlertType highAlert : highAlerts) {
-                if(threshold > highAlert.threshold  && overlapping(highAlert, allDay, startTime, endTime)) {
+                if(threshold > highAlert.threshold  && overlapping(highAlert, allDay, startTime, endTime) && highAlert.active) {
                     Toast.makeText(getApplicationContext(),
                             "Low alert threshold has to be lower than all high alerts. Please choose another threshold.",Toast.LENGTH_LONG).show();
                     return false;
@@ -468,11 +496,12 @@ public class EditAlertActivity extends ActivityWithMenu {
                     Toast.makeText(getApplicationContext(), "start time and end time of alert can not be equal",Toast.LENGTH_LONG).show();
                     return;
                 }
-                if(!verifyThreshold(threshold, allDay, timeStart, timeEnd)) {
+                boolean disabled = checkboxDisabled.isChecked();
+                if(!disabled && !verifyThreshold(threshold, allDay, timeStart, timeEnd)) {
                     return;
                 }
                 boolean vibrate = checkboxVibrate.isChecked();
-                boolean disabled = checkboxDisabled.isChecked();
+                
                 boolean overrideSilentMode = checkboxAlertOverride.isChecked();
 
                 String mp3_file = audioPath;
@@ -548,6 +577,14 @@ public class EditAlertActivity extends ActivityWithMenu {
             }
         });
 
+        checkboxDisabled.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            //          @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                setDisabledView();
+            }
+        });
+
+        
         checkboxAlertOverride.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             //          @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
