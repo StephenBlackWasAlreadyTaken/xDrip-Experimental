@@ -43,11 +43,11 @@ import com.eveningoutpost.dexdrip.Models.UserError.Log;
 class PointValueExtended extends PointValue {
 	
 	public PointValueExtended(float x, float y, float filtered) {
-		set(x, y);
+		super(x, y);
 		calculatedFilteredValue = filtered;
 	}
 	   public PointValueExtended(float x, float y) {
-	        set(x, y);
+		   super(x, y);
 	        calculatedFilteredValue = -1;
 	    }
 	
