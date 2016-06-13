@@ -50,6 +50,7 @@ import com.eveningoutpost.dexdrip.G5Model.SensorTxMessage;
 import com.eveningoutpost.dexdrip.G5Model.TransmitterStatus;
 import com.eveningoutpost.dexdrip.G5Model.TransmitterTimeRxMessage;
 import com.eveningoutpost.dexdrip.G5Model.UnbondRequestTxMessage;
+import com.eveningoutpost.dexdrip.Models.ActiveBluetoothDevice;
 import com.eveningoutpost.dexdrip.Models.BgReading;
 import com.eveningoutpost.dexdrip.Models.Sensor;
 import com.eveningoutpost.dexdrip.Models.TransmitterData;
@@ -212,9 +213,6 @@ public class G5CollectionService extends Service {
 
     public void keepAlive() {
         Log.d(TAG, "Wake Lock & Wake Time");
-
-        isFirstTry = true;
-
         PowerManager powerManager = (PowerManager) getApplicationContext().getSystemService(POWER_SERVICE);
         PowerManager.WakeLock wakeLock = powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, TAG);
         wakeLock.acquire(20 * 1000);
@@ -229,6 +227,17 @@ public class G5CollectionService extends Service {
             alarm.setExact(AlarmManager.ELAPSED_REALTIME_WAKEUP, wakeTime, pendingIntent);
         } else
             alarm.set(AlarmManager.ELAPSED_REALTIME_WAKEUP, wakeTime, pendingIntent);
+    }
+
+    public void keepScanAlive() {
+        Timer single_timer = new Timer();
+        single_timer.schedule(new TimerTask() {
+            @Override
+            public void run() {
+                Log.d(TAG, "keepScanningAlive Check");
+                startScan();
+            }
+        }, 60000);
     }
 
     @Override
@@ -258,13 +267,14 @@ public class G5CollectionService extends Service {
             if (Build.VERSION.SDK_INT >= 21) {
                 mLEScanner = mBluetoothAdapter.getBluetoothLeScanner();
                 settings = new ScanSettings.Builder()
-                        .setScanMode(ScanSettings.SCAN_MODE_LOW_LATENCY)
+                        .setScanMode(ScanSettings.SCAN_MODE_BALANCED)
+                        .setReportDelay(3000)
                         .build();
                 filters = new ArrayList<>();
                 //Only look for CGM.
-                //filters.add(new ScanFilter.Builder().setServiceUuid(new ParcelUuid(BluetoothServices.Advertisement)).build());
+                filters.add(new ScanFilter.Builder().setServiceUuid(new ParcelUuid(BluetoothServices.Advertisement)).build());
                 String transmitterIdLastTwo = Extensions.lastTwoCharactersOfString(defaultTransmitter.transmitterId);
-                filters.add(new ScanFilter.Builder().setDeviceName("Dexcom"+transmitterIdLastTwo).build());
+                //filters.add(new ScanFilter.Builder().setDeviceName("Dexcom" + transmitterIdLastTwo).build());
             }
             if (isScanning){
                 stopScan();
@@ -275,6 +285,9 @@ public class G5CollectionService extends Service {
     }
 
     public void stopScan() {
+        if (!isScanning) {
+            return;
+        }
         if (mBluetoothAdapter != null && mBluetoothAdapter.isEnabled()) {
             if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) {
                 mBluetoothAdapter.stopLeScan(mLeScanCallback);
@@ -293,7 +306,9 @@ public class G5CollectionService extends Service {
     }
 
     public void startScan() {
+        keepScanAlive();
         if (isScanning) {
+            Log.d(TAG, "alreadyScanning");
             return;
         }
 
@@ -308,14 +323,21 @@ public class G5CollectionService extends Service {
             } else {
                 Log.d(TAG, "startScan");
 
-                mLEScanner.startScan(filters, settings, mScanCallback);
+                Handler iHandler = new Handler(Looper.getMainLooper());
+                iHandler.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        mLEScanner.startScan(filters, settings, mScanCallback);
+                    }
+                });
+                //mLEScanner.startScan(filters, settings, mScanCallback);
             }
 
             isScanning = true;
         }
 
     }
-    
+
     void scanAfterDelay(int delay) {
         Log.i(TAG, "ScanDelay");
         handler.postDelayed(new Runnable() {
@@ -354,7 +376,7 @@ public class G5CollectionService extends Service {
     }
 
     // API 18 - 20
-    @TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR2)
+    //@TargetApi(Build.VERSION_CODES.JELLY_BEAN)
     private void setupLeScanCallback() {
         if (mLeScanCallback == null) {
             mLeScanCallback = new BluetoothAdapter.LeScanCallback() {
@@ -378,16 +400,16 @@ public class G5CollectionService extends Service {
 
     private ScanCallback mScanCallback;
 
-    @TargetApi(21)
+    //@TargetApi(21)
     private void initScanCallback(){
         mScanCallback = new ScanCallback() {
             @Override
             public void onScanResult(int callbackType, ScanResult result) {
                 android.util.Log.i(TAG, "result: " + result.toString());
                 BluetoothDevice btDevice = result.getDevice();
-                // Check if the device has a name, the Dexcom transmitter always should. Match it with the transmitter id that was entered.
-                // We get the last 2 characters to connect to the correct transmitter if there is more than 1 active or in the room.
-                // If they match, connect to the device.
+//                // Check if the device has a name, the Dexcom transmitter always should. Match it with the transmitter id that was entered.
+//                // We get the last 2 characters to connect to the correct transmitter if there is more than 1 active or in the room.
+//                // If they match, connect to the device.
                 if (btDevice.getName() != null) {
                     String transmitterIdLastTwo = Extensions.lastTwoCharactersOfString(defaultTransmitter.transmitterId);
                     String deviceNameLastTwo = Extensions.lastTwoCharactersOfString(btDevice.getName());
@@ -444,6 +466,11 @@ public class G5CollectionService extends Service {
     private BluetoothAdapter.LeScanCallback mLeScanCallback = null;
 
     private void connectToDevice(BluetoothDevice device) {
+        if (mGatt != null) {
+            Log.i(TAG, "BGatt isnt null, Closing.");
+            mGatt.close();
+            mGatt = null;
+        }
         android.util.Log.i(TAG, "Request Connect");
         Handler iHandler = new Handler(Looper.getMainLooper());
         final BluetoothDevice mDevice = device;
@@ -451,10 +478,10 @@ public class G5CollectionService extends Service {
             @Override
             public void run() {
                 //if (mGatt == null) {
-                    android.util.Log.i(TAG, "mGatt Null, connecting...");
-                    android.util.Log.i(TAG, "connectToDevice On Main Thread? " + isOnMainThread());
-                    mGatt = mDevice.connectGatt(getApplicationContext(), false, gattCallback);
-            //    }
+                android.util.Log.i(TAG, "mGatt Null, connecting...");
+                android.util.Log.i(TAG, "connectToDevice On Main Thread? " + isOnMainThread());
+                mGatt = mDevice.connectGatt(getApplicationContext(), false, gattCallback);
+                //    }
             }
         });
     }
@@ -481,13 +508,14 @@ public class G5CollectionService extends Service {
                                   switch (newState) {
                                       case BluetoothProfile.STATE_CONNECTED:
                                           android.util.Log.i("gattCallback", "STATE_CONNECTED");
+
                                           Handler iHandler = new Handler(Looper.getMainLooper());
                                           iHandler.post(new Runnable() {
                                               @Override
                                               public void run() {
                                                   android.util.Log.i(TAG, "discoverServices On Main Thread? " + isOnMainThread());
                                                   if (mGatt != null)
-                                                    mGatt.discoverServices();
+                                                      mGatt.discoverServices();
                                               }
                                           });
                                           stopScan();
@@ -496,8 +524,8 @@ public class G5CollectionService extends Service {
                                           android.util.Log.e("gattCallback", "STATE_DISCONNECTED");
                                           Log.e(TAG, "current disconnect status? " + status);
                                           if (mGatt != null)
-                                            mGatt.close();
-                                          //mGatt = null;
+                                              mGatt.close();
+                                          mGatt = null;
                                           if (status == 0 && !encountered133) {// || status == 59) {
                                               android.util.Log.i(TAG, "scan after delay");
                                               max133RetryCounter = 0;
