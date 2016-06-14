@@ -115,6 +115,21 @@ S        <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/and
             </PreferenceCategory>
 
             <PreferenceCategory
+                android:title="Missed Readings">
+                <CheckBoxPreference
+                    android:key="bg_missed_alerts"
+                    android:title="Missed Reading Alerts"
+                    android:defaultValue="false" />
+                <EditTextPreference
+                    android:dependency="bg_missed_alerts"
+                    android:key="bg_missed_minutes"
+                    android:title="Minutes until alerting for missed readings"
+                    android:inputType="number"
+                    android:summary="Alert if no data receieved in x minutes"
+                    android:defaultValue="30" />
+            </PreferenceCategory>
+
+            <PreferenceCategory
                 android:title="Falling/Rising BG">
                 <CheckBoxPreference
                     android:key="falling_alert"
