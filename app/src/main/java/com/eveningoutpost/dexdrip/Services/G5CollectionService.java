@@ -115,6 +115,7 @@ public class G5CollectionService extends Service {
     public boolean isIntialScan = true;
     public Timer scan_interval_timer = new Timer();
     public ArrayList<Long> advertiseTimeMS = new ArrayList<Long>();
+    public long timeInMillisecondsOfLastSuccessfulSensorRead = new Date().getTime();
 
     StringBuilder log = new StringBuilder();
 
@@ -142,6 +143,7 @@ public class G5CollectionService extends Service {
 
         Log.e(TAG, "onG5StartCommand");
         Log.d(TAG, "SDK: " + Build.VERSION.SDK_INT);
+        stopScan();
 
         mBluetoothManager = (BluetoothManager) getSystemService(Context.BLUETOOTH_SERVICE);
         mBluetoothAdapter = mBluetoothManager.getAdapter();
@@ -202,7 +204,7 @@ public class G5CollectionService extends Service {
     }
 
     public void keepAlive() {
-        long wakeTime = getNextAdvertiseTime();
+        long wakeTime = getNextAdvertiseTime() - 2*1000;
         //Log.e(TAG, "Delay Time: " + minuteDelay);
         Log.e(TAG, "Wake Time: " + wakeTime);
         AlarmManager alarm = (AlarmManager) getSystemService(ALARM_SERVICE);
@@ -250,13 +252,11 @@ public class G5CollectionService extends Service {
                 filters = new ArrayList<>();
                 //Only look for CGM.
                 //filters.add(new ScanFilter.Builder().setServiceUuid(new ParcelUuid(BluetoothServices.Advertisement)).build());
-                //String transmitterIdLastTwo = Extensions.lastTwoCharactersOfString(defaultTransmitter.transmitterId);
-                //filters.add(new ScanFilter.Builder().setDeviceName("Dexcom" + transmitterIdLastTwo).build());
+//                String transmitterIdLastTwo = Extensions.lastTwoCharactersOfString(defaultTransmitter.transmitterId);
+//                filters.add(new ScanFilter.Builder().setDeviceName("Dexcom" + transmitterIdLastTwo).build());
             }
             if (isScanning){
-                stopScan();
-                Log.d(TAG, "Refresh Scanning");
-                startScan();
+                cycleScan(500);
             } else {
                 startScan();
             }
@@ -274,54 +274,82 @@ public class G5CollectionService extends Service {
             if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) {
                 mBluetoothAdapter.stopLeScan(mLeScanCallback);
             } else {
-                Log.e(TAG, "stopScan");
+
                 try {
-                    mLEScanner.stopScan(mScanCallback);
+                    Handler iHandler = new Handler(Looper.getMainLooper());
+                    iHandler.post(new Runnable() {
+                        @Override
+                        public void run() {
+                            Log.e(TAG, "stopScan");
+                            mLEScanner.stopScan(mScanCallback);
+                            isScanning = false;
+                        }
+                    });
                 } catch (NullPointerException e) {
                     //Known bug in Samsung API 21 stack
                     System.out.print("Caught the NullPointerException");
                 }
             }
         }
-
-        isScanning = false;
     }
 
     public void cycleScan(int delay) {
-
-        if (!isScanning) {
-            Log.d(TAG, "alreadyStoppedScanning");
-            return;
-        }
-
-        if (mBluetoothAdapter != null && mBluetoothAdapter.isEnabled()) {
-            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) {
-                mBluetoothAdapter.stopLeScan(mLeScanCallback);
-            } else {
-                Log.d(TAG, "stopScan");
-                try {
-                    mLEScanner.stopScan(mScanCallback);
-                } catch (NullPointerException e) {
-                    //Known bug in Samsung API 21 stack
-                    System.out.print("Caught the NullPointerException");
-                }
-            }
-        }
-
-        isScanning = false;
-        if (Sensor.isActive()){
             Timer single_timer = new Timer();
             single_timer.schedule(new TimerTask() {
                 @Override
                 public void run() {
-                    startScan();
+                    if (mBluetoothAdapter != null && mBluetoothAdapter.isEnabled()) {
+                        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) {
+                            mBluetoothAdapter.stopLeScan(mLeScanCallback);
+                        } else {
+                            Log.e(TAG, "stopStartScan-cycle");
+                            try {
+                                Handler iHandler = new Handler(Looper.getMainLooper());
+                                iHandler.post(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        mLEScanner.stopScan(mScanCallback);
+                                        isScanning = false;
+                                        mLEScanner.startScan(filters, settings, mScanCallback);
+                                        isScanning = true;
+                                        Log.e(TAG, "MSSinceSensorRx: " + getMillisecondsSinceLastSuccesfulSensorRead());
+                                        if (!isIntialScan && getMillisecondsSinceLastSuccesfulSensorRead() < 11*60*1000){
+                                            scan_interval_timer.cancel();
+                                            scan_interval_timer = new Timer();
+                                            scan_interval_timer.schedule(new TimerTask() {
+                                                @Override
+                                                public void run() {
+                                                    Log.e(TAG, "cycling scan to stop-expected advertisement-cycle");
+                                                    if (isScanning) {
+                                                        keepAlive();
+                                                    }
+                                                    stopScan();
+                                                }
+                                            }, 30000);
+                                        }  else if (getMillisecondsSinceLastSuccesfulSensorRead() > 11*60*1000) {
+                                            cycleBT();
+                                        }
+                                        else {
+                                            scan_interval_timer.cancel();
+                                            scan_interval_timer = new Timer();
+                                            scan_interval_timer.schedule(new TimerTask() {
+                                                @Override
+                                                public void run() {
+                                                    Log.e(TAG, "cycling scan to stop-cycle");
+                                                    cycleScan(0);
+                                                }
+                                            }, 5000);
+                                        }
+                                    }
+                                });
+                            } catch (NullPointerException e) {
+                                //Known bug in Samsung API 21 stack
+                                System.out.print("Caught the NullPointerException");
+                            }
+                        }
+                    }
                 }
             }, delay);
-            Log.d(TAG, "Active Sensor, so restarting scan");
-        }
-
-
-
     }
 
     public void startScan() {
@@ -330,6 +358,7 @@ public class G5CollectionService extends Service {
             Log.d(TAG, "alreadyScanning");
             return;
         }
+
         getTransmitterDetails();
         if (mBluetoothAdapter == null || !mBluetoothAdapter.isEnabled()) {
             setupBluetooth();
@@ -338,33 +367,36 @@ public class G5CollectionService extends Service {
                 setupLeScanCallback();
                 mBluetoothAdapter.startLeScan(new UUID[]{BluetoothServices.Advertisement}, mLeScanCallback);
             } else {
-                Log.e(TAG, "startScan");
+
                 Handler iHandler = new Handler(Looper.getMainLooper());
                 iHandler.post(new Runnable() {
                     @Override
                     public void run() {
+                        isScanning = true;
                         mLEScanner.startScan(filters, settings, mScanCallback);
                     }
                 });
-                //mLEScanner.startScan(filters, settings, mScanCallback);
+                Log.e(TAG, "startScan-1");
             }
-
-            isScanning = true;
         }
-        if (!isIntialScan){
+        Log.e(TAG, "MSSinceSensorRx: " + getMillisecondsSinceLastSuccesfulSensorRead());
+        if (!isIntialScan && getMillisecondsSinceLastSuccesfulSensorRead() < 21*60*1000){
             scan_interval_timer.cancel();
             scan_interval_timer = new Timer();
             scan_interval_timer.schedule(new TimerTask() {
                 @Override
                 public void run() {
-                    Log.e(TAG, "cycling scan to stop");
+                    Log.e(TAG, "cycling scan to stop-expected advertisement");
                     if (isScanning) {
                         keepAlive();
                     }
                     stopScan();
                 }
-            }, 15000);
-        } else {
+            }, 30000);
+        } else if (getMillisecondsSinceLastSuccesfulSensorRead() > 11*60*1000) {
+            cycleBT();
+        }
+        else {
             scan_interval_timer.cancel();
             scan_interval_timer = new Timer();
             scan_interval_timer.schedule(new TimerTask() {
@@ -373,29 +405,16 @@ public class G5CollectionService extends Service {
                     Log.e(TAG, "cycling scan to stop");
                     cycleScan(0);
                 }
-            }, 15000);
+            }, 5000);
         }
-
-
     }
 
     void cycleBT(){
         encountered133 = false;
+        stopScan();
         mBluetoothAdapter.disable();
         Log.e(TAG, "Cycling BT-gatt");
-        Timer single_timer = new Timer();
-        single_timer.schedule(new TimerTask() {
-            @Override
-            public void run() {
-                mBluetoothAdapter.enable();
-            }
-        }, 1000);
-        single_timer.schedule(new TimerTask() {
-            @Override
-            public void run() {
-                startScan();
-            }
-        }, 15000);
+        keepAlive();
     }
 
     // API 18 - 20
@@ -425,6 +444,7 @@ public class G5CollectionService extends Service {
 
     //@TargetApi(21)
     private void initScanCallback(){
+        Log.e(TAG, "startScan_2");
         mScanCallback = new ScanCallback() {
             @Override
             public void onScanResult(int callbackType, ScanResult result) {
@@ -455,10 +475,12 @@ public class G5CollectionService extends Service {
 
             @Override
             public void onScanFailed(int errorCode) {
-                android.util.Log.e(TAG, "Scan Failed Error Code: " + errorCode);
+                Log.e(TAG, "Scan Failed Error Code: " + errorCode);
                 if (errorCode == 1) {
-                    android.util.Log.e(TAG, "Already Scanning");
-                    isScanning = true;
+                    android.util.Log.e(TAG, "Already Scanning: " + isScanning);
+                    //isScanning = true;
+                } else if (errorCode == 2){
+                    cycleBT();
                 }
             }
         };
@@ -781,12 +803,14 @@ public class G5CollectionService extends Service {
 
 
 
-    private void processNewTransmitterData(int raw_data , int filtered_data,int sensor_battery_level, long CaptureTime) {
+    private void processNewTransmitterData(int raw_data , int filtered_data,int sensor_battery_level, long captureTime) {
 
-        TransmitterData transmitterData = TransmitterData.create(raw_data, sensor_battery_level, CaptureTime);
+        TransmitterData transmitterData = TransmitterData.create(raw_data, sensor_battery_level, captureTime);
         if (transmitterData == null) {
             Log.e(TAG, "TransmitterData.create failed: Duplicate packet");
             return;
+        } else {
+            timeInMillisecondsOfLastSuccessfulSensorRead = captureTime;
         }
         Sensor sensor = Sensor.currentSensor();
         if (sensor == null) {
@@ -853,14 +877,22 @@ public class G5CollectionService extends Service {
     }
 
     private long getNextAdvertiseTime() {
-        long millisecondsSinceTx = new Date().getTime() - advertiseTimeMS.get(0);
-        long timeToExpected  = (long)(300*1000 - (millisecondsSinceTx%(300*1000)));
+        long millisecondsSinceTx = getMillisecondsSinceTxLastSeen();
+        long timeToExpected  = (300*1000 - (millisecondsSinceTx%(300*1000)));
         long expectedTxTime = new Date().getTime() + timeToExpected - 3*1000;
         Log.e(TAG, "millisecondsSinceTx: " + millisecondsSinceTx );
         Log.e(TAG, "timeToExpected: " + timeToExpected );
         Log.e(TAG, "expectedTxTime: " + expectedTxTime );
 
         return expectedTxTime;
+    }
+
+    private long getMillisecondsSinceTxLastSeen() {
+        return new Date().getTime() - advertiseTimeMS.get(0);
+    }
+
+    private long getMillisecondsSinceLastSuccesfulSensorRead() {
+        return new Date().getTime() - timeInMillisecondsOfLastSuccessfulSensorRead;
     }
 
 }
