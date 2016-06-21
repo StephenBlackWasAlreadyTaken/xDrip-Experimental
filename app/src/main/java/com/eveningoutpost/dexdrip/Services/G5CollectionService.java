@@ -290,7 +290,6 @@ public class G5CollectionService extends Service {
             Log.d(TAG, "alreadyStoppedScanning");
             return;
         }
-
         if (mBluetoothAdapter != null && mBluetoothAdapter.isEnabled()) {
             if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) {
                 mBluetoothAdapter.stopLeScan(mLeScanCallback);
@@ -301,9 +300,13 @@ public class G5CollectionService extends Service {
                     iHandler.post(new Runnable() {
                         @Override
                         public void run() {
-                            Log.e(TAG, "stopScan");
-                            mLEScanner.stopScan(mScanCallback);
-                            isScanning = false;
+                            try {
+                                Log.e(TAG, "stopScan");
+                                mLEScanner.stopScan(mScanCallback);
+                                isScanning = false;
+                            } catch (IllegalStateException is) {
+
+                            }
                         }
                     });
                 } catch (NullPointerException e) {
