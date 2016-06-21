@@ -40,6 +40,11 @@
             android:title="Run Collection Service in foreground"
             android:summary="Running in foreground prevents android from killing the service and creates a notification with a trend line."
             android:defaultValue="false" />
+        <CheckBoxPreference
+            android:key="run_ble_scan_constantly"
+            android:title="Scan for G5 constantly"
+            android:summary="Some devices work better when scanning constantly, others do not. If reading is reliable when this setting is not selected, you should have improved battery life. Turn this setting on if you are missing readings at high rates and unexpected times."
+            android:defaultValue="false" />
         <EditTextPreference
             android:title="List of recievers"
             android:key="wifi_recievers_addresses"

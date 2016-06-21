@@ -283,6 +283,7 @@ public class Preferences extends PreferenceActivity {
             final Preference collectionMethod = findPreference("dex_collection_method");
             final Preference displayBridgeBatt = findPreference("display_bridge_battery");
             final Preference runInForeground = findPreference("run_service_in_foreground");
+            final Preference scanConstantly = findPreference("run_ble_scan_constantly");
             final Preference wifiRecievers = findPreference("wifi_recievers_addresses");
             final Preference xDripViewerNsAdresses = findPreference("xdrip_viewer_ns_addresses");
             final Preference predictiveBG = findPreference("predictive_bg");
@@ -432,7 +433,8 @@ public class Preferences extends PreferenceActivity {
                             && ((String) newValue).compareTo("DexbridgeWixel") != 0
                             && ((String) newValue).compareTo("WifiBlueToothWixel") != 0
                             && ((String) newValue).compareTo("WifiDexbridgeWixel") != 0
-                            && ((String) newValue).compareTo("LimiTTer") != 0) {
+                            && ((String) newValue).compareTo("DexcomG5") != 0
+                            && ((String) newValue).compareTo("LimiTTer") != 0){
                         collectionCategory.removePreference(runInForeground);
                     } else {
                         collectionCategory.addPreference(runInForeground);
@@ -463,6 +465,10 @@ public class Preferences extends PreferenceActivity {
 
                     if (((String) newValue).compareTo("DexcomG5") == 0) {
                         collectionCategory.addPreference(transmitterId);
+                        collectionCategory.addPreference(scanConstantly);
+                    } else {
+                        collectionCategory.removePreference(transmitterId);
+                        collectionCategory.removePreference(scanConstantly);
                     }
 
                     String stringValue = newValue.toString();
