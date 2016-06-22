@@ -284,6 +284,9 @@ public class Preferences extends PreferenceActivity {
             final Preference displayBridgeBatt = findPreference("display_bridge_battery");
             final Preference runInForeground = findPreference("run_service_in_foreground");
             final Preference scanConstantly = findPreference("run_ble_scan_constantly");
+            final Preference runOnMain = findPreference("run_G5_ble_tasks_on_uithread");
+            final Preference reAuth = findPreference("always_get_new_keys");
+            final Preference reBond = findPreference("always_unbond_G5");
             final Preference wifiRecievers = findPreference("wifi_recievers_addresses");
             final Preference xDripViewerNsAdresses = findPreference("xdrip_viewer_ns_addresses");
             final Preference predictiveBG = findPreference("predictive_bg");
@@ -466,9 +469,15 @@ public class Preferences extends PreferenceActivity {
                     if (((String) newValue).compareTo("DexcomG5") == 0) {
                         collectionCategory.addPreference(transmitterId);
                         collectionCategory.addPreference(scanConstantly);
+                        collectionCategory.addPreference(reAuth);
+                        collectionCategory.addPreference(reBond);
+                        collectionCategory.addPreference(runOnMain);
                     } else {
                         collectionCategory.removePreference(transmitterId);
                         collectionCategory.removePreference(scanConstantly);
+                        collectionCategory.removePreference(reAuth);
+                        collectionCategory.removePreference(reBond);
+                        collectionCategory.removePreference(runOnMain);
                     }
 
                     String stringValue = newValue.toString();
