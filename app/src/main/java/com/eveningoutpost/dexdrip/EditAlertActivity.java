@@ -2,6 +2,8 @@ package com.eveningoutpost.dexdrip;
 
 import android.app.AlertDialog;
 import android.app.Dialog;
+import android.app.Fragment;
+import android.app.DialogFragment;
 import android.app.TimePickerDialog;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -17,7 +19,7 @@ import android.provider.MediaStore;
 import android.text.InputType;
 import android.text.format.DateFormat;
 import android.text.method.DigitsKeyListener;
-import com.eveningoutpost.dexdrip.Models.UserError.Log;
+
 import android.util.TypedValue;
 import android.view.MotionEvent;
 import android.view.View;
@@ -34,10 +36,12 @@ import android.widget.Toast;
 import android.graphics.Paint;
 
 import com.eveningoutpost.dexdrip.Models.AlertType;
+import com.eveningoutpost.dexdrip.Models.UserError.Log;
 import com.eveningoutpost.dexdrip.UtilityModels.AlertPlayer;
 import com.eveningoutpost.dexdrip.UtilityModels.BgGraphBuilder;
 import com.eveningoutpost.dexdrip.UtilityModels.Constants;
 import com.eveningoutpost.dexdrip.utils.ActivityWithMenu;
+
 
 import java.text.DecimalFormat;
 import java.text.ParseException;
@@ -456,6 +460,8 @@ public class EditAlertActivity extends ActivityWithMenu {
     }
 
     public void addListenerOnButtons() {
+      
+      //Fragment f = this;
 
         buttonSave.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
@@ -514,9 +520,19 @@ public class EditAlertActivity extends ActivityWithMenu {
                 }  else {
                     AlertType.add_alert(null, alertText.getText().toString(), above, threshold, allDay, alertReraise, mp3_file, timeStart, timeEnd, overrideSilentMode, defaultSnooze, vibrate, !disabled);
                 }
+                
+                DialogFragment dialog = new YesNoDialog();
+                Bundle args = new Bundle();
+                args.putString("title", "titlllle");
+                args.putString("message", "mesddddsage");
+                dialog.setArguments(args);
+//                dialog.setTargetFragment(f /* ????? this*/, 3/*YES_NO_CALL*/);
+                dialog.show(getFragmentManager(), "tag");
+                
+                
                 Intent returnIntent = new Intent();
                 setResult(RESULT_OK,returnIntent);
-                finish();
+//                finish();
             }
 
         });
