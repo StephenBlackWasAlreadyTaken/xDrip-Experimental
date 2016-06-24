@@ -22,6 +22,7 @@ import android.text.method.DigitsKeyListener;
 
 import android.util.TypedValue;
 import android.view.MotionEvent;
+import android.view.View.OnClickListener;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.Button;
@@ -92,7 +93,9 @@ public class EditAlertActivity extends ActivityWithMenu {
     private String uuid;
     private Context mContext;
     private boolean above;
-    private final int CHOOSE_FILE = 1;
+    private final int REQUEST_CODE_CHOOSE_FILE = 1;
+    private final int REQUEST_CODE_SAVE_WARNING = 2;
+    
     private final int MIN_ALERT = 40;
     private final int MAX_ALERT = 400;
 
@@ -115,6 +118,14 @@ public class EditAlertActivity extends ActivityWithMenu {
         } else {
         	return defaultVal;
         }
+    }
+    
+    Fragment fragment;
+    
+    @Override
+    public void onAttachFragment (Fragment fragment){
+    	Log.e("tzachi", "onAttachFragment");
+    	this.fragment = fragment;
     }
 
     @Override
@@ -459,6 +470,10 @@ public class EditAlertActivity extends ActivityWithMenu {
         }
     }
 
+//    @Override
+//    public void onClick(View view) {
+//    }
+    
     public void addListenerOnButtons() {
       
       //Fragment f = this;
@@ -520,18 +535,101 @@ public class EditAlertActivity extends ActivityWithMenu {
                 }  else {
                     AlertType.add_alert(null, alertText.getText().toString(), above, threshold, allDay, alertReraise, mp3_file, timeStart, timeEnd, overrideSilentMode, defaultSnooze, vibrate, !disabled);
                 }
-                
+/*                
                 DialogFragment dialog = new YesNoDialog();
                 Bundle args = new Bundle();
                 args.putString("title", "titlllle");
                 args.putString("message", "mesddddsage");
                 dialog.setArguments(args);
-//                dialog.setTargetFragment(f /* ????? this*/, 3/*YES_NO_CALL*/);
+                dialog.setTargetFragment(fragment , REQUEST_CODE_SAVE_WARNING);
                 dialog.show(getFragmentManager(), "tag");
                 
                 
                 Intent returnIntent = new Intent();
                 setResult(RESULT_OK,returnIntent);
+                */
+                
+                
+/*                
+                AlertDialog.Builder builder1 = new AlertDialog.Builder(getApplicationContext());
+                builder1.setMessage("Write your message here.")
+                .setTitle("Your Alert");
+                builder1.setCancelable(true);
+
+                builder1.setPositiveButton(
+                    "Yes",
+                    new DialogInterface.OnClickListener() {
+                        public void onClick(DialogInterface dialog, int id) {
+                            dialog.cancel();
+                        }
+                    });
+
+                builder1.setNegativeButton(
+                    "No",
+                    new DialogInterface.OnClickListener() {
+                        public void onClick(DialogInterface dialog, int id) {
+                            dialog.cancel();
+                        }
+                    });
+
+                AlertDialog alert11 = builder1.create();
+                alert11.show();
+*/
+                
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+
+                        if (!isFinishing()){
+                            new AlertDialog.Builder(EditAlertActivity.this)
+                              .setTitle("Your Alert")
+                              .setMessage("Your Message")
+                              .setCancelable(false)
+                              .setNegativeButton(
+                                      "No",
+                                      new DialogInterface.OnClickListener() {
+                                          public void onClick(DialogInterface dialog, int id) {
+                                              dialog.cancel();
+                                              finish();
+                                          }
+                                      })
+                            /*  
+                            .setPositiveButton("ok" , new OnClickListener() {
+                                  @Override
+                                  public void onClick(DialogInterface dialog, int which) {
+                                      // Whatever...
+                                  }
+                                  
+                              })*/
+                            .create().show();
+                        }
+                    }
+                });
+                 
+                
+                /*
+                runOnUiThread(new Runnable() {
+                	   @Override
+                	   public void run() {
+                		if(!isFinishing()){
+                			showDialog (
+                				        new AlertDialog.Builder(MainActivity.this)
+                					.setTitle(R.string.dialogTitle)
+                					.setMessage(R.string.dialogText)
+                					.setCancelable(false)
+                					.setPositiveButton(R.string.txtOk, 
+                					new OnClickListener() {
+                						@Override
+                						public void onClick(DialogInterface dialog, int which) {
+                	                                          // whatever...						
+                						}
+                					})
+                					.create()
+                				     );
+                		   }
+                	   }
+                	});
+                */
 //                finish();
             }
 
@@ -577,7 +675,7 @@ public class EditAlertActivity extends ActivityWithMenu {
                                     Intent fileIntent = new Intent();
                                     fileIntent.setType("audio/mpeg3");
                                     fileIntent.setAction(Intent.ACTION_GET_CONTENT);
-                                    startActivityForResult(Intent.createChooser(fileIntent, "Select File for Alert"), CHOOSE_FILE);
+                                    startActivityForResult(Intent.createChooser(fileIntent, "Select File for Alert"), REQUEST_CODE_CHOOSE_FILE);
                                 } else {
                                     // Xdrip default was chossen, we live the file name as empty.
                                     audioPath = "";
@@ -659,13 +757,17 @@ public class EditAlertActivity extends ActivityWithMenu {
 
 
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
+    	Log.e("tzachi", "onActivityResult called " + requestCode);
+    	if(requestCode == REQUEST_CODE_SAVE_WARNING) {
+    		finish();
+    	}
         if (resultCode == RESULT_OK) {
             Uri uri = data.getParcelableExtra(RingtoneManager.EXTRA_RINGTONE_PICKED_URI);
             if (uri != null) {
                 audioPath = uri.toString();
                 alertMp3File.setText(shortPath(audioPath));
             } else {
-                if (requestCode == CHOOSE_FILE) {
+                if (requestCode == REQUEST_CODE_CHOOSE_FILE) {
                     Uri selectedImageUri = data.getData();
 
                     // Todo this code is very flacky. Probably need a much better understanding of how the different programs
