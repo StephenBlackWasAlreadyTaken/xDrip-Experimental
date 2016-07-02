@@ -9,6 +9,9 @@ import com.activeandroid.query.Select;
 
 import java.util.Date;
 
+import com.eveningoutpost.dexdrip.Models.UserError.Log;
+import com.eveningoutpost.dexdrip.UtilityModels.AlertPlayer;
+
 /**
  * Created by stephenblack on 11/29/14.
  */
@@ -16,11 +19,13 @@ import java.util.Date;
 @Table(name = "Notifications", id = BaseColumns._ID)
 public class UserNotification extends Model {
 
+    // For 'other alerts' this will be the time that the alert should be raised again.
+    // For calibration alerts this is the time that the alert was played.
     @Column(name = "timestamp", index = true)
     public double timestamp;
 
     @Column(name = "message")
-    public String message;
+    public String message; 
 
     @Column(name = "bg_alert")
     public boolean bg_alert;
@@ -45,7 +50,11 @@ public class UserNotification extends Model {
 
     @Column(name = "bg_fall_alert")
     public boolean bg_fall_alert;
+    
+    private final static String TAG = AlertPlayer.class.getSimpleName();
 
+    
+/*    
     public static UserNotification lastBgAlert() {
         return new Select()
                 .from(UserNotification.class)
@@ -53,6 +62,9 @@ public class UserNotification extends Model {
                 .orderBy("_ID desc")
                 .executeSingle();
     }
+*/
+    
+    
     public static UserNotification lastCalibrationAlert() {
         return new Select()
                 .from(UserNotification.class)
@@ -92,9 +104,20 @@ public class UserNotification extends Model {
         }
     }
     
-    public static UserNotification create(String message, String type) {
+    public static void snoozeAlert(String type, long snoozeMinutes) {
+        UserNotification userNotification = GetNotificationByType(type);
+        if(userNotification == null) {
+            Log.e(TAG, "Error snoozeAlert did not find an alert for type " + type);
+            return;
+        }
+        userNotification.timestamp = new Date().getTime() + snoozeMinutes * 60000;
+        userNotification.save();
+        
+    }
+    
+    public static UserNotification create(String message, String type, long timestamp) {
         UserNotification userNotification = new UserNotification();
-        userNotification.timestamp = new Date().getTime();
+        userNotification.timestamp = timestamp; //new Date().getTime();
         userNotification.message = message;
         if (type == "bg_alert") {
             userNotification.bg_alert = true;
