@@ -105,7 +105,7 @@ public class Notifications extends IntentService {
         wl.acquire();
         try {
             Log.d("Notifications", "Running Notifications Intent Service");
-            Context context =getApplicationContext();
+            Context context = getApplicationContext();
             ReadPerfs(context);
             notificationSetter(context, unclearReading);
             ArmTimer(context, unclearReading.get());
@@ -311,12 +311,10 @@ public class Notifications extends IntentService {
         }
         Long wakeTimeUnclear = Long.MAX_VALUE;
 
-
-        
         UserNotification userNotification = UserNotification.GetNotificationByType("bg_unclear_readings_alert");
         if (userNotification == null) {
-            // This is the first unclear re-raise alert. Why wasn't it played yet???
-            
+            // An alert should have already being played, how is this NULL.
+        	Log.wtf(TAG, "No active alert exists.");
             wakeTimeUnclear = now + MissedReadingService.getOtherAlertReraiseSec(ctx) * 1000;
         } else {
             // This alert is snoozed
