@@ -22,6 +22,11 @@
             android:key="showRawNoise" />
          -->
 
+        <CheckBoxPreference android:title="Show External Status"
+            android:defaultValue="false"
+            android:summary="Show External Staus (HAPP e.g.)."
+            android:key="showExternalStatus" />
+
         <ListPreference
             android:key="chart_timeframe"
             android:title="Chart Timeframe"

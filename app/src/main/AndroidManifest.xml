@@ -4,6 +4,9 @@
 
     <permission android:name="com.eveningoutpost.dexdrip.permissions.RECEIVE_BG_ESTIMATE" />
 
+    <!-- To receive data from HAPP. -->
+    <uses-permission android:name="com.eveningoutpost.dexdrip.permissions.RECEIVE_EXTERNAL_STATUSLINE" />
+
     <uses-feature
         android:name="android.hardware.bluetooth_le"
         android:required="true" />
@@ -108,6 +111,9 @@
             </intent-filter>
         </receiver>
 
+        <receiver android:name=".wearintegration.ExternalStatusBroadcastReceier" android:exported="true" >
+            <intent-filter> <action android:name="com.eveningoutpost.dexdrip.ExternalStatusline" /> </intent-filter>
+        </receiver>
         <activity
             android:name=".Tables.CalibrationDataTable"
             android:label="@string/title_activity_calibration_data_table" >
@@ -122,6 +128,12 @@
             android:name=".ImportedLibraries.dexcom.SyncingService"
             android:enabled="true"
             android:exported="true" >
+        </service>
+
+        <service
+            android:name=".wearintegration.ExternalStatusService"
+            android:enabled="true"
+            android:exported="false" >
         </service>
 
         <activity

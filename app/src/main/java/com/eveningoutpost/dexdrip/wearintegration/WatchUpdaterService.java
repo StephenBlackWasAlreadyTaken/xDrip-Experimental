@@ -28,11 +28,14 @@ public class WatchUpdaterService extends WearableListenerService implements
         GoogleApiClient.OnConnectionFailedListener {
     public static final String ACTION_RESEND = WatchUpdaterService.class.getName().concat(".Resend");
     public static final String ACTION_OPEN_SETTINGS = WatchUpdaterService.class.getName().concat(".OpenSettings");
+    public static final String ACTION_SEND_STATUS = WatchUpdaterService.class.getName().concat(".SendStatus");
 
     private GoogleApiClient googleApiClient;
     public static final String WEARABLE_DATA_PATH = "/nightscout_watch_data";
     public static final String WEARABLE_RESEND_PATH = "/nightscout_watch_data_resend";
     private static final String OPEN_SETTINGS_PATH = "/openwearsettings";
+    private static final String NEW_STATUS_PATH = "/sendstatustowear";
+
 
     boolean wear_integration = false;
     boolean pebble_integration = false;
@@ -98,6 +101,8 @@ public class WatchUpdaterService extends WearableListenerService implements
                     resendData();
                 } else if (ACTION_OPEN_SETTINGS.equals(action)) {
                     sendNotification();
+                } else if (ACTION_SEND_STATUS.equals(action)) {
+                    sendStatus(intent.getStringExtra("externalStatusString"));
                 } else {
                     sendData();
                 }
@@ -165,6 +170,19 @@ public class WatchUpdaterService extends WearableListenerService implements
             Wearable.DataApi.putDataItem(googleApiClient, putDataRequest);
         } else {
             Log.e("OpenSettings", "No connection to wearable available!");
+        }
+    }
+
+    private void sendStatus(String status) {
+        if (googleApiClient.isConnected()) {
+            PutDataMapRequest dataMapRequest = PutDataMapRequest.create(NEW_STATUS_PATH);
+            //unique content
+            dataMapRequest.getDataMap().putDouble("timestamp", System.currentTimeMillis());
+            dataMapRequest.getDataMap().putString("externalStatusString", status);
+            PutDataRequest putDataRequest = dataMapRequest.asPutDataRequest();
+            Wearable.DataApi.putDataItem(googleApiClient, putDataRequest);
+        } else {
+            Log.e("SendStatus", "No connection to wearable available!");
         }
     }
 
