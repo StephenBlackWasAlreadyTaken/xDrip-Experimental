@@ -39,7 +39,9 @@ public class SnoozeOnNotificationDismissService extends IntentService {
         }
         if(alertType.equals("bg_unclear_readings_alert") || alertType.equals("bg_missed_alerts")  ) {
             snoozeOtherAlert(alertType);
+            return;
         }
+        Log.e(TAG, "SnoozeOnNotificationDismissService called for unknown source = " + alertType);
     }
     
     private void snoozeBgAlert() {

@@ -323,7 +323,7 @@ public class Notifications extends IntentService {
         }
         
         if(wakeTimeUnclear < now ) {
-            // we should alert now, how to return that???
+            // we should alert now,
             wakeTimeUnclear = now;
         }
         if( wakeTimeUnclear == Long.MAX_VALUE) {
@@ -440,17 +440,7 @@ public class Notifications extends IntentService {
     private Bitmap createWearBitmap(long hours) {
         return createWearBitmap(System.currentTimeMillis() - 60000 * 60 * hours, System.currentTimeMillis());
     }
-/*
-    private Notification createExtensionPage(long hours) {
-        return new NotificationCompat.Builder(mContext)
-                .extend(new NotificationCompat.WearableExtender()
-                                .setBackground(createWearBitmap(hours))
-                                .setHintShowBackgroundOnly(true)
-                                .setHintAvoidBackgroundClipping(true)
-                )
-                .build();
-    }
-*/
+
 
     @TargetApi(Build.VERSION_CODES.JELLY_BEAN)
     public Notification createOngoingNotification(Context context) {
@@ -656,12 +646,10 @@ public class Notifications extends IntentService {
             if (userNotification != null) {
                 userNotification.delete();
             }
-            
+            UserNotification.create(message, type, new Date().getTime() + reraiseSec * 1000);
+
             Intent deleteIntent = new Intent(context, SnoozeOnNotificationDismissService.class);
             deleteIntent.putExtra("alertType", type);
-            
-            Log.e("tzachi", "creating alert");
-            UserNotification.create(message, type, new Date().getTime() + reraiseSec * 1000);
             Intent intent = new Intent(context, Home.class);
             NotificationCompat.Builder mBuilder =
                     new NotificationCompat.Builder(context)

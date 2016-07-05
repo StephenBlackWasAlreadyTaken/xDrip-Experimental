@@ -53,17 +53,7 @@ public class UserNotification extends Model {
     
     private final static String TAG = AlertPlayer.class.getSimpleName();
 
-    
-/*    
-    public static UserNotification lastBgAlert() {
-        return new Select()
-                .from(UserNotification.class)
-                .where("bg_alert = ?", true)
-                .orderBy("_ID desc")
-                .executeSingle();
-    }
-*/
-    
+
     
     public static UserNotification lastCalibrationAlert() {
         return new Select()
