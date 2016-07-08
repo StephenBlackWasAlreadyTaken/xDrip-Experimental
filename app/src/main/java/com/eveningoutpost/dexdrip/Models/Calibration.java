@@ -416,7 +416,7 @@ public class Calibration extends Model {
                 BgSendQueue.handleNewBgReading(bgReading, "update", context);
 
                 calculate_w_l_s(context);
-                adjustRecentBgReadings();
+                adjustRecentBgReadings(1);
                 CalibrationSendQueue.addToQueue(calibration, context);
                 context.startService(new Intent(context, Notifications.class));
                 Calibration.requestCalibrationIfRangeTooNarrow();
