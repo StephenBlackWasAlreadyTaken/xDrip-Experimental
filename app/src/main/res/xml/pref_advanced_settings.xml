@@ -143,6 +143,11 @@
             android:title="Widget Range Lines"
             android:summary="Show a high and low line on the widget."
             android:defaultValue="false" />
+        <CheckBoxPreference
+            android:key="adjust_past"
+            android:title="Adjust Past on Calibration"
+            android:summary="Gradually adjust the last 30 readings to the new calibration."
+            android:defaultValue="false" />
         <Preference
             android:title="View Recent Errors/Warnings"
             android:key="recent_errors">

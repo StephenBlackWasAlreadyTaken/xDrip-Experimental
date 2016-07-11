@@ -376,6 +376,7 @@ public class Calibration extends Model {
     public static Calibration create(double bg, Context context) {
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
         String unit = prefs.getString("units", "mgdl");
+        boolean adjustPast = prefs.getBoolean("adjust_past", false);
 
         if(unit.compareTo("mgdl") != 0 ) {
             bg = bg * Constants.MMOLL_TO_MGDL;
@@ -416,7 +417,8 @@ public class Calibration extends Model {
                 BgSendQueue.handleNewBgReading(bgReading, "update", context);
 
                 calculate_w_l_s(context);
-                adjustRecentBgReadings();
+
+                adjustRecentBgReadings(adjustPast?30:1);
                 CalibrationSendQueue.addToQueue(calibration, context);
                 context.startService(new Intent(context, Notifications.class));
                 Calibration.requestCalibrationIfRangeTooNarrow();
