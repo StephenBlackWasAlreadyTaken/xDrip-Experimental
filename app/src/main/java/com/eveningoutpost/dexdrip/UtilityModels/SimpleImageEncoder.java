@@ -117,18 +117,22 @@ public class SimpleImageEncoder {
         if (Color.alpha(color) == 0 && Color.alpha(palette[0]) == 0) {
             return 0;
         }
+        // if it is a monochrome image, chose any colour as it must be black
+        if(palette.length ==2){
+                return 1;
+        } else {
+            // This could be optimized
+            for (int i = 0; i < palette.length; i++) {
+                int pColor = palette[i];
 
-        // This could be optimized
-        for (int i = 0; i < palette.length; i++) {
-            int pColor = palette[i];
+                if (color == pColor) return (byte) i;
 
-            if (color == pColor) return (byte) i;
-
-            double distance = getColorDistance(pColor, color);
-            //double distance = getColorDistance(color, pColor);
-            if (distance <= bestDistance) {
-                bestIndex = i;
-                bestDistance = distance;
+                double distance = getColorDistance(pColor, color);
+                //double distance = getColorDistance(color, pColor);
+                if (distance <= bestDistance) {
+                    bestIndex = i;
+                    bestDistance = distance;
+                }
             }
         }
         //Log.d(TAG, "getNearestColorIndex: selecting index " + bestIndex + " of " + palette.length + ", a distance of " + bestDistance +" for r:" + Color.red(color) + ", g:" + Color.green(color) + ", b:" + Color.blue(color));

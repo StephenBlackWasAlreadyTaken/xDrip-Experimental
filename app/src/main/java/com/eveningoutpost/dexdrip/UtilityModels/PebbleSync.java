@@ -22,8 +22,10 @@ import com.eveningoutpost.dexdrip.Models.Sensor;
 import com.getpebble.android.kit.PebbleKit;
 import com.getpebble.android.kit.util.PebbleDictionary;
 
+import java.io.BufferedOutputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -211,7 +213,7 @@ public class PebbleSync extends Service {
         }
         if(mBgReading != null) {
             Log.v(TAG, "buildDictionary: slopeOrdinal-" + slopeOrdinal() + " bgReading-" + bgReading() + " now-" + (int) now.getTime() / 1000 + " bgTime-" + (int) (mBgReading.timestamp / 1000) + " phoneTime-" + (int) (new Date().getTime() / 1000) + " bgDelta-" + bgDelta());
-            no_signal = ((new Date().getTime()) - (60000 * 11) - mBgReading.timestamp >0);
+            no_signal = ((new Date().getTime()) - (60000 * 16) - mBgReading.timestamp >0);
             if(!PreferenceManager.getDefaultSharedPreferences(mContext).getBoolean("pebble_show_arrows", false)) {
                 dictionary.addString(ICON_KEY, "0");
             } else {
@@ -279,22 +281,37 @@ public class PebbleSync extends Service {
                 String trendPeriodString = PreferenceManager.getDefaultSharedPreferences(mContext).getString("pebble_trend_period", "3");
                 Integer trendPeriod = Integer.parseInt(trendPeriodString);
                 Log.d(TAG,"sendTrendToPebble: highLine is " + highLine + ", lowLine is "+ lowLine +",trendPeriod is "+ trendPeriod);
-                Bitmap bgTrend = new BgSparklineBuilder(mContext)
-                        .setBgGraphBuilder(bgGraphBuilder)
-                        .setStart(System.currentTimeMillis() - 60000 * 60 * trendPeriod)
-                        .setEnd(System.currentTimeMillis())
-                        .setHeightPx(84)
-                        .setWidthPx(144)
-                        .showHighLine(highLine)
-                        .showLowLine(lowLine)
-                        .setTinyDots()
-                        .setSmallDots()
-                        .build();
                 //encode the trend bitmap as a PNG
                 int depth = 16;
+                Bitmap bgTrend;
                 if(pebble_platform == 0) {
                     Log.d(TAG,"sendTrendToPebble: Encoding trend as Monochrome.");
                     depth = 2;
+                        bgTrend = new BgSparklineBuilder(mContext)
+                            .setBgGraphBuilder(bgGraphBuilder)
+                            .setStart(System.currentTimeMillis() - 60000 * 60 * trendPeriod)
+                            .setEnd(System.currentTimeMillis())
+                            .setHeightPx(63)
+                            .setWidthPx(84)
+                            .showHighLine(highLine)
+                            .showLowLine(lowLine)
+                            .setTinyDots(false)
+                            .setSmallDots(true)
+                            .build();
+                }
+                else {
+                         bgTrend = new BgSparklineBuilder(mContext)
+                            .setBgGraphBuilder(bgGraphBuilder)
+                            .setStart(System.currentTimeMillis() - 60000 * 60 * trendPeriod)
+                            .setEnd(System.currentTimeMillis())
+                            .setHeightPx(84)
+                            .setWidthPx(144)
+                            .showHighLine(highLine)
+                            .showLowLine(lowLine)
+                            .setTinyDots()
+                            .setSmallDots()
+                            .build();
+
                 }
                 byte[] img = SimpleImageEncoder.encodeBitmapAsPNG(bgTrend, true, depth, true);
                 image_size = img.length;
