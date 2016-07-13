@@ -4,7 +4,6 @@ package com.eveningoutpost.dexdrip.UtilityModels;
  * For integration.
  */
 public interface Intents {
-    String RECEIVER_PERMISSION = "com.eveningoutpost.dexdrip.permissions.RECEIVE_BG_ESTIMATE";
 
     String ACTION_NEW_BG_ESTIMATE = "com.eveningoutpost.dexdrip.BgEstimate";
     String EXTRA_BG_ESTIMATE = "com.eveningoutpost.dexdrip.Extras.BgEstimate";
