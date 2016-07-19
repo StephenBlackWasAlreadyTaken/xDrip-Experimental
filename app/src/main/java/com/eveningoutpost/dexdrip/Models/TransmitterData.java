@@ -39,16 +39,6 @@ public class TransmitterData extends Model {
     @Column(name = "uuid", index = true)
     public String uuid;
 
-    public static List<TransmitterData> readingNearTimeStamp(long timestamp, double margin) {
-            return new Select()
-                    .from(TransmitterData.class)
-                    .where("raw_data != 0") // if the last one didn't have a value, we'd rather take the new one
-                    .where("timestamp >= " + (timestamp-margin)) // if we already have a reading up to margin ms before that timestamp
-                    .where("timestamp <= " + (timestamp+margin)) // or there is within margin ms after the given timestamp
-                    .orderBy("timestamp desc")
-                    .execute();
-    }
-
     public static synchronized TransmitterData create(byte[] buffer, int len, Long timestamp) {
         if (len < 6) { return null; }
         TransmitterData transmitterData = new TransmitterData();
@@ -82,22 +72,20 @@ public class TransmitterData extends Model {
             transmitterData.filtered_data = Integer.parseInt(data[0]);
             transmitterData.timestamp = timestamp;
         }
-        //Stop allowing duplicate data, its bad!
-        TransmitterData lastTransmitterData = TransmitterData.last();
+        //Stop allowing readings that are older than the last one - or duplicate data, its bad!
+        final TransmitterData lastTransmitterData = TransmitterData.last();
+        if (lastTransmitterData != null && lastTransmitterData.timestamp >= timestamp) {
+            return null;
+        }
         if (lastTransmitterData != null && lastTransmitterData.raw_data == transmitterData.raw_data && Math.abs(lastTransmitterData.timestamp - timestamp) < (120000)) {
             return null;
         }
 
-        //Default dupes due to missing ack are filtered by the function above - so this protects against duplicates when using queues on multiple bridges
-        final List<TransmitterData> possibleDuplicates = readingNearTimeStamp(timestamp, (3*60*1000));
-        if (possibleDuplicates != null && possibleDuplicates.size() > 0) {
-            Log.i(TAG, "TransmitterData.create: Received Packet where we already have another reading for the same timeslot. Exiting.");
-            final DateFormat dateFormatter = DateFormat.getDateTimeInstance(DateFormat.DEFAULT, DateFormat.DEFAULT, Locale.getDefault());
-            for (TransmitterData reading : possibleDuplicates) {
-                Log.i(TAG, "  Possible duplicate with offset " + (timestamp - reading.timestamp) + " ms to reading at " + dateFormatter.format(new Date(reading.timestamp)) + ", raw: " + transmitterData.raw_data + " vs. " + reading.raw_data + ".");
-            }
+        final Calibration lastCalibration = Calibration.last();
+        if (lastCalibration != null && lastCalibration.timestamp > timestamp) {
             return null;
         }
+
 
         transmitterData.uuid = UUID.randomUUID().toString();
         transmitterData.save();
