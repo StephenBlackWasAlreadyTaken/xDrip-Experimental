@@ -13,6 +13,7 @@ import android.preference.PreferenceManager;
 import android.provider.BaseColumns;
 
 import com.eveningoutpost.dexdrip.Models.Calibration;
+import com.eveningoutpost.dexdrip.Models.UserError;
 import com.eveningoutpost.dexdrip.Models.UserError.Log;
 
 import com.activeandroid.Model;
@@ -91,33 +92,26 @@ public class BgSendQueue extends Model {
                 context.startService(new Intent(context, WidgetUpdateService.class));
             }
 
+
             if (prefs.getBoolean("broadcast_data_through_intents", false)) {
-                Log.i("SENSOR QUEUE:", "Broadcast data");
-                final Bundle bundle = new Bundle();
-                bundle.putDouble(Intents.EXTRA_BG_ESTIMATE, bgReading.calculated_value);
 
-                //TODO: change back to bgReading.calculated_value_slope if it will also get calculated for Share data
-                // bundle.putDouble(Intents.EXTRA_BG_SLOPE, bgReading.calculated_value_slope);
-                bundle.putDouble(Intents.EXTRA_BG_SLOPE, BgReading.currentSlope());
-                if (bgReading.hide_slope) {
-                    bundle.putString(Intents.EXTRA_BG_SLOPE_NAME, "9");
-                } else {
-                    bundle.putString(Intents.EXTRA_BG_SLOPE_NAME, bgReading.slopeName());
-                }
-                bundle.putInt(Intents.EXTRA_SENSOR_BATTERY, getBatteryLevel(context));
-                bundle.putLong(Intents.EXTRA_TIMESTAMP, bgReading.timestamp);
-
+                //prepare data
+                double calculated_value = bgReading.calculated_value;
+                boolean hide_slope = bgReading.hide_slope;
+                String slopeName = hide_slope?null:bgReading.slopeName();
+                int batteryLevel = getBatteryLevel(context);
+                final long timestamp = bgReading.timestamp;
                 Calibration cal = Calibration.last();
-                bundle.putDouble(Intents.EXTRA_RAW, NightscoutUploader.getNightscoutRaw(bgReading, cal));
-                Intent intent = new Intent(Intents.ACTION_NEW_BG_ESTIMATE);
-                intent.putExtras(bundle);
-                intent.addFlags(Intent.FLAG_INCLUDE_STOPPED_PACKAGES);
-                context.sendBroadcast(intent, null);
+                double raw = NightscoutUploader.getNightscoutRaw(bgReading, cal);
+                double slope = BgReading.currentSlope();
+
+                //send broadcast
+                BgEstimateBroadcaster.broadcastBgEstimate(calculated_value, raw, timestamp, slope, slopeName, batteryLevel, context);
 
                 //just keep it alive for 3 more seconds to allow the watch to be updated
                 // TODO: change NightWatch to not allow the system to sleep.
                 powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK,
-                        "broadcstNightWatch").acquire(3000);
+                        "broadcastNightWatch").acquire(3000);
 
             }
 
@@ -157,6 +151,8 @@ public class BgSendQueue extends Model {
             wakeLock.release();
         }
     }
+
+
 
     public void deleteThis() {
         this.delete();
