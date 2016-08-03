@@ -27,9 +27,6 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.annotations.Expose;
 import com.google.gson.internal.bind.DateTypeAdapter;
 
-import java.lang.reflect.Field;
-import java.lang.reflect.Modifier;
-
 /**
  * Created by stephenblack on 1/14/15.
  */
@@ -581,7 +578,9 @@ public class AlertType extends Model {
             alert.delete();
         }
         
-        Gson gson = new Gson();
+        Gson gson = new GsonBuilder()
+            .excludeFieldsWithoutExposeAnnotation()
+             .create();
         
         AlertType[] newAlerts = gson.fromJson(savedAlerts, AlertType[].class);
         if (newAlerts == null) {
