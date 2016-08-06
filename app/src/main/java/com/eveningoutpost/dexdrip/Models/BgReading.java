@@ -719,11 +719,12 @@ public class BgReading extends Model implements ShareUploadableBg{
     public void find_new_raw_curve() {
         List<BgReading> last_3 = BgReading.latest(3);
         if (last_3.size() == 3) {
+            BgReading latest = last_3.get(0);
             BgReading second_latest = last_3.get(1);
             BgReading third_latest = last_3.get(2);
 
-            double y3 = age_adjusted_raw_value;
-            double x3 = timestamp;
+            double y3 = latest.age_adjusted_raw_value;
+            double x3 = latest.timestamp;
             double y2 = second_latest.age_adjusted_raw_value;
             double x2 = second_latest.timestamp;
             double y1 = third_latest.age_adjusted_raw_value;
@@ -740,7 +741,7 @@ public class BgReading extends Model implements ShareUploadableBg{
             BgReading second_latest = last_3.get(1);
 
             double y2 = latest.age_adjusted_raw_value;
-            double x2 = timestamp;
+            double x2 = latest.timestamp;
             double y1 = second_latest.age_adjusted_raw_value;
             double x1 = second_latest.timestamp;
             if(y1 == y2) {
