@@ -40,7 +40,8 @@ import java.util.UUID;
  */
 public class PebbleSync extends Service {
     private final static String TAG = PebbleSync.class.getSimpleName();
-    public static final UUID PEBBLEAPP_UUID = UUID.fromString("79f8ecb3-7214-4bfc-b996-cb95148ee6d3");
+//    public static final UUID PEBBLEAPP_UUID = UUID.fromString("79f8ecb3-7214-4bfc-b996-cb95148ee6d3");
+    public static final UUID PEBBLEAPP_UUID = UUID.fromString("51a6140e-92cc-420f-aef6-51b229666742");
     public static final int ICON_KEY = 0;
     public static final int BG_KEY = 1;
     public static final int RECORD_TIME_KEY = 2;
@@ -107,24 +108,29 @@ public class PebbleSync extends Service {
             return START_NOT_STICKY;
         }
         bgGraphBuilder = new BgGraphBuilder(mContext);
-
-        Log.i(TAG, "onStartCommand called.  Sending Sync Request");
-        transactionFailed = false;
-        transactionOk = false;
-        sendStep = 5;
-        messageInTransit = false;
-        done = true;
-        sendingData = false;
-        dictionary.addInt32(SYNC_KEY, 0);
-        PebbleKit.sendDataToPebble(mContext, PEBBLEAPP_UUID, dictionary);
-        dictionary.remove(SYNC_KEY);
-        /*if(pebble_app_version.isEmpty() && !sentInitialSync){
-            setResponseTImer();
-        }*/
-        if(pebble_app_version.isEmpty() && sentInitialSync){
-            Log.d(TAG, "onStartCommand: No Response and no pebble_app_version.  Sideloading...");
+        if(PebbleKit.isWatchConnected(mContext)) {
+            Log.i(TAG, "onStartCommand called.  Sending Sync Request");
+            transactionFailed = false;
+            transactionOk = false;
+            sendStep = 5;
+            messageInTransit = false;
+            done = true;
+            sendingData = false;
+            dictionary.addInt32(SYNC_KEY, 0);
+            PebbleKit.sendDataToPebble(mContext, PEBBLEAPP_UUID, dictionary);
+            dictionary.remove(SYNC_KEY);
+        } else {
+            Log.d(TAG,"onStartCommand; No watch connected.");
         }
-        Log.d(TAG, "onStart: Pebble App Version not known.  Sending Version Request");
+        if(pebble_app_version.isEmpty() && sentInitialSync){
+            Log.d(TAG,"onStartCommand: No watch app version, sideloading");
+            sideloadInstall(mContext, WATCHAPP_FILENAME);
+        }
+        if(!pebble_app_version.contentEquals("xDrip-Pebble2") && sentInitialSync){
+            Log.d(TAG,"onStartCommand: Wrong watch app version, sideloading");
+            sideloadInstall(mContext, WATCHAPP_FILENAME);
+        }
+        sentInitialSync = true;
         return START_STICKY;
     }
     @Override
@@ -515,6 +521,7 @@ public class PebbleSync extends Service {
     }
 
     public static void sideloadInstall(Context ctx, String assetFilename) {
+        Log.d(TAG, "sideloadInstall: About to install app " + assetFilename);
         try {
             // Read .pbw from assets/
             Intent intent = new Intent(Intent.ACTION_VIEW);
