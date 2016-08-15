@@ -68,6 +68,7 @@
                 android:key="pebble_special_value"
                 android:title="Special Value"
                 android:summary="Special BGL value to display the message below"
+                android:numeric="decimal"
                 android:defaultValue="99"/>
             <EditTextPreference
                 android:key="pebble_special_text"
