@@ -22,6 +22,7 @@ import android.preference.PreferenceFragment;
 import android.preference.PreferenceManager;
 import android.preference.PreferenceScreen;
 import android.preference.RingtonePreference;
+import android.preference.SwitchPreference;
 import android.text.InputFilter;
 import android.text.TextUtils;
 import android.view.KeyEvent;
@@ -30,11 +31,15 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.eveningoutpost.dexdrip.Models.UserError.Log;
+
 import com.eveningoutpost.dexdrip.Services.MissedReadingService;
 import com.eveningoutpost.dexdrip.Services.XDripViewer;
 import com.eveningoutpost.dexdrip.R;
 import com.eveningoutpost.dexdrip.UtilityModels.CollectionServiceStarter;
 import com.eveningoutpost.dexdrip.UtilityModels.PebbleSync;
+import com.eveningoutpost.dexdrip.WidgetUpdateService;
+import com.eveningoutpost.dexdrip.xDripWidget;
+import com.eveningoutpost.dexdrip.UtilityModels.Constants;
 import com.eveningoutpost.dexdrip.WidgetUpdateService;
 import com.eveningoutpost.dexdrip.xDripWidget;
 import com.google.zxing.integration.android.IntentIntegrator;
@@ -44,6 +49,7 @@ import com.nightscout.core.barcode.NSBarcodeConfig;
 import net.tribe7.common.base.Joiner;
 
 import java.net.URI;
+import java.text.DecimalFormat;
 import java.util.List;
 
 /**
@@ -247,11 +253,16 @@ public class Preferences extends PreferenceActivity {
             super.onCreate(savedInstanceState);
             final SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getActivity());
 
+            DecimalFormat df;
             addPreferencesFromResource(R.xml.pref_license);
             addPreferencesFromResource(R.xml.pref_general);
-            bindPreferenceSummaryToValueAndEnsureNumeric(findPreference("highValue"));
-            bindPreferenceSummaryToValueAndEnsureNumeric(findPreference("lowValue"));
-            bindPreferenceSummaryToValue(findPreference("units"));
+            final EditTextPreference highValue = (EditTextPreference)findPreference("highValue");
+            bindPreferenceSummaryToValueAndEnsureNumeric(highValue);
+            final EditTextPreference lowValue = (EditTextPreference)findPreference("lowValue");
+            bindPreferenceSummaryToValueAndEnsureNumeric(lowValue);
+            final ListPreference units = (ListPreference) findPreference("units");
+
+            bindPreferenceSummaryToValue(units);
 
             addPreferencesFromResource(R.xml.pref_notifications);
             bindPreferenceSummaryToValue(findPreference("bg_alert_profile"));
@@ -276,6 +287,7 @@ public class Preferences extends PreferenceActivity {
             bindPreferenceSummaryToValue(findPreference("cloud_storage_api_base"));
 
             addPreferencesFromResource(R.xml.pref_advanced_settings);
+            //addPreferencesFromResource(R.xml.pref_pebble_settings);
             addPreferencesFromResource(R.xml.pref_community_help);
 
             bindTTSListener();
@@ -312,7 +324,20 @@ public class Preferences extends PreferenceActivity {
 
             final Preference scanShare = findPreference("scan_share2_barcode");
             final EditTextPreference transmitterId = (EditTextPreference) findPreference("dex_txid");
-            final Preference pebbleSync = findPreference("broadcast_to_pebble");
+            final SwitchPreference pebbleSync = (SwitchPreference) findPreference("broadcast_to_pebble");
+            final Preference pebbleTrend = findPreference("pebble_display_trend");
+            final Preference pebbleHighLine = findPreference("pebble_high_line");
+            final Preference pebbleLowLine = findPreference("pebble_low_line");
+            final Preference pebbleTrendPeriod = findPreference("pebble_trend_period");
+            final Preference pebbleDelta = findPreference("pebble_show_delta");
+            final Preference pebbleDeltaUnits = findPreference("pebble_show_delta_units");
+            final Preference pebbleShowArrows = findPreference("pebble_show_arrows");
+            final EditTextPreference pebbleSpecialValue = (EditTextPreference) findPreference("pebble_special_value");
+            bindPreferenceSummaryToValueAndEnsureNumeric(pebbleSpecialValue);
+            final Preference pebbleSpecialText = findPreference("pebble_special_text");
+            bindPreferenceSummaryToValue(pebbleSpecialText);
+            final SwitchPreference broadcastLocally = (SwitchPreference) findPreference("broadcast_data_through_intents");
+            final PreferenceCategory watchCategory = (PreferenceCategory) findPreference("watch_integration");
             final PreferenceCategory collectionCategory = (PreferenceCategory) findPreference("collection_category");
             final PreferenceCategory otherCategory = (PreferenceCategory) findPreference("other_category");
             final PreferenceScreen calibrationAlertsScreen = (PreferenceScreen) findPreference("calibration_alerts_screen");
@@ -346,7 +371,6 @@ public class Preferences extends PreferenceActivity {
                 prefs.edit().putBoolean("calibration_notifications", false).apply();
             }
 
-
             if ((prefs.getString("dex_collection_method", "BluetoothWixel").compareTo("WifiWixel") != 0)
                     && (prefs.getString("dex_collection_method", "BluetoothWixel").compareTo("WifiBlueToothWixel") != 0)
                     && (prefs.getString("dex_collection_method", "BluetoothWixel").compareTo("WifiDexbridgeWixel") != 0)) {
@@ -367,19 +391,162 @@ public class Preferences extends PreferenceActivity {
             if(prefs.getString("dex_collection_method", "BluetoothWixel").compareTo("DexcomG5") == 0) {
                 collectionCategory.addPreference(transmitterId);
             }
-            pebbleSync.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
+
+            if(!prefs.getBoolean(pebbleSync.getKey(),false)){
+                //watchCategory.removeAll();
+                watchCategory.removePreference(pebbleTrend);
+                watchCategory.removePreference(pebbleHighLine);
+                watchCategory.removePreference(pebbleLowLine);
+                watchCategory.removePreference(pebbleTrendPeriod);
+                watchCategory.removePreference(pebbleSpecialValue);
+                watchCategory.removePreference(pebbleSpecialText);
+                watchCategory.removePreference(pebbleDelta);
+                watchCategory.removePreference(pebbleDeltaUnits);
+                watchCategory.removePreference(pebbleShowArrows);
+            }
+           if(prefs.getString("units", "mgdl").compareTo("mmol")!=0) {
+               df = new DecimalFormat("#.#");
+               df.setMaximumFractionDigits(0);
+               pebbleSpecialValue.setDefaultValue("99");
+               if(pebbleSpecialValue.getText().compareTo("5.5")==0) {
+                   pebbleSpecialValue.setText(df.format(Double.valueOf(pebbleSpecialValue.getText()) * Constants.MMOLL_TO_MGDL));
+               }
+           }else{
+               df = new DecimalFormat("#.#");
+               df.setMaximumFractionDigits(1);
+               pebbleSpecialValue.setDefaultValue("5.5");
+               if(pebbleSpecialValue.getText().compareTo("99") ==0) {
+                   pebbleSpecialValue.setText(df.format(Double.valueOf(pebbleSpecialValue.getText()) / Constants.MMOLL_TO_MGDL));
+               }
+           }
+           units.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
+               @Override
+               public boolean onPreferenceChange(Preference preference, Object newValue){
+                   //Context context = preference.getContext();
+                   DecimalFormat df = new DecimalFormat("#.#");
+                   Double tmp = 0.0;
+                   Double highVal = 0.0;
+                   Double lowVal = 0.0;
+                   preference.setSummary(newValue.toString());
+                   if(newValue.toString().compareTo("mgdl")==0) {
+                       df.setMaximumFractionDigits(0);
+                       pebbleSpecialValue.setDefaultValue("99");
+                       tmp=Double.valueOf(pebbleSpecialValue.getText());
+                       tmp= tmp*Constants.MMOLL_TO_MGDL;
+                       highVal = Double.valueOf(highValue.getText());
+                       highVal = highVal*Constants.MMOLL_TO_MGDL;
+                       lowVal = Double.valueOf(lowValue.getText());
+                       lowVal = lowVal*Constants.MMOLL_TO_MGDL;
+                   } else {
+                       df.setMaximumFractionDigits(1);
+                       pebbleSpecialValue.setDefaultValue("5.5");
+                       tmp=Double.valueOf(pebbleSpecialValue.getText());
+                       tmp= tmp/Constants.MMOLL_TO_MGDL;
+                       highVal = Double.valueOf(highValue.getText());
+                       highVal = highVal/Constants.MMOLL_TO_MGDL;
+                       lowVal = Double.valueOf(lowValue.getText());
+                       lowVal = lowVal/Constants.MMOLL_TO_MGDL;
+                   }
+                   pebbleSpecialValue.setText(df.format(tmp));
+                   pebbleSpecialValue.setSummary(pebbleSpecialValue.getText());
+                   highValue.setText(df.format(highVal));
+                   highValue.setSummary(highValue.getText());
+                   lowValue.setText(df.format(lowVal));
+                   lowValue.setSummary(lowValue.getText());
+                   return true;
+               }
+           });
+           pebbleSync.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
                 @Override
                 public boolean onPreferenceChange(Preference preference, Object newValue) {
                     Context context = preference.getContext();
                     if ((Boolean) newValue) {
                         context.startService(new Intent(context, PebbleSync.class));
+                        watchCategory.addPreference(pebbleTrend);
+                        watchCategory.addPreference(pebbleHighLine);
+                        watchCategory.addPreference(pebbleLowLine);
+                        watchCategory.addPreference(pebbleDelta);
+                        watchCategory.addPreference(pebbleDeltaUnits);
+                        watchCategory.addPreference(pebbleShowArrows);
+                        watchCategory.addPreference(pebbleTrendPeriod);
+                        watchCategory.addPreference(pebbleSpecialValue);
+                        watchCategory.addPreference(pebbleSpecialText);
                     } else {
                         context.stopService(new Intent(context, PebbleSync.class));
+                        watchCategory.removePreference(pebbleTrend);
+                        watchCategory.removePreference(pebbleHighLine);
+                        watchCategory.removePreference(pebbleLowLine);
+                        watchCategory.removePreference(pebbleDelta);
+                        watchCategory.removePreference(pebbleDeltaUnits);
+                        watchCategory.removePreference(pebbleShowArrows);
+                        watchCategory.removePreference(pebbleTrendPeriod);
+                        watchCategory.removePreference(pebbleSpecialValue);
+                        watchCategory.removePreference(pebbleSpecialText);
                     }
                     return true;
                 }
             });
 
+            //bindWidgetUpdater();
+
+            pebbleTrend.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
+                @Override
+                public boolean onPreferenceChange(Preference preference, Object newValue){
+                    Context context = preference.getContext();
+                    context.startService(new Intent(context, PebbleSync.class));
+                    return true;
+                }
+            });
+            pebbleHighLine.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
+               @Override
+               public boolean onPreferenceChange(Preference preference, Object newValue){
+                   Context context = preference.getContext();
+                   context.startService(new Intent(context, PebbleSync.class));
+                   return true;
+               }
+           });
+
+           pebbleLowLine.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
+               @Override
+               public boolean onPreferenceChange(Preference preference, Object newValue) {
+                   Context context = preference.getContext();
+                   context.startService(new Intent(context, PebbleSync.class));
+                   return true;
+               }
+           });
+
+            pebbleTrendPeriod.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
+                @Override
+                public boolean onPreferenceChange(Preference preference, Object newValue){
+                   Context context = preference.getContext();
+                   context.startService(new Intent(context, PebbleSync.class));
+                   return true;
+                }
+            });
+            pebbleDelta.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
+                @Override
+                public boolean onPreferenceChange(Preference preference, Object newValue){
+                    Context context = preference.getContext();
+                    context.startService(new Intent(context, PebbleSync.class));
+                    return true;
+                }
+            });
+            pebbleDeltaUnits.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
+                @Override
+                public boolean onPreferenceChange(Preference preference, Object newValue){
+                    Context context = preference.getContext();
+                    context.startService(new Intent(context, PebbleSync.class));
+                    return true;
+                }
+            });
+            pebbleShowArrows.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
+                @Override
+                public boolean onPreferenceChange(Preference preference, Object newValue){
+                    Context context = preference.getContext();
+                    context.startService(new Intent(context, PebbleSync.class));
+                    return true;
+                }
+            });
             bindWidgetUpdater();
 
             bindPreferenceSummaryToValue(collectionMethod);
@@ -598,6 +765,7 @@ public class Preferences extends PreferenceActivity {
 
         
         private void bindBgMissedAlertsListener(){
+          findPreference("other_alerts_snooze").setOnPreferenceChangeListener(sBgMissedAlertsHandler);
           findPreference("other_alerts_snooze").setOnPreferenceChangeListener(sBgMissedAlertsHandler);
         }
 
