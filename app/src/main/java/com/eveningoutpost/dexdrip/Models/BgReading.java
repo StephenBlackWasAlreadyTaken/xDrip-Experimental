@@ -119,8 +119,9 @@ public class BgReading extends Model implements ShareUploadableBg{
     @Column(name = "sensor_uuid", index = true)
     public String sensor_uuid;
 
+    // mapped to the no longer used "synced" to keep DB Scheme compatible
     @Column(name = "snyced")
-    public boolean synced;
+    public boolean ignoreForStats;
 
     @Column(name = "raw_calculated")
     public double raw_calculated;
@@ -230,7 +231,6 @@ public class BgReading extends Model implements ShareUploadableBg{
                 if(bgReading.timestamp > new Date().getTime()) { return; }
                 bgReading.uuid = UUID.randomUUID().toString();
                 bgReading.time_since_sensor_started = bgReading.timestamp - sensor.started_at;
-                bgReading.synced = false;
                 bgReading.calculateAgeAdjustedRawValue(context);
                 bgReading.save();
             }
@@ -320,7 +320,6 @@ public class BgReading extends Model implements ShareUploadableBg{
             bgReading.timestamp = timestamp;
             bgReading.uuid = UUID.randomUUID().toString();
             bgReading.time_since_sensor_started = bgReading.timestamp - sensor.started_at;
-            bgReading.synced = false;
             bgReading.calibration_flag = false;
 
             bgReading.calculateAgeAdjustedRawValue(context);
@@ -338,7 +337,6 @@ public class BgReading extends Model implements ShareUploadableBg{
             bgReading.timestamp = timestamp;
             bgReading.uuid = UUID.randomUUID().toString();
             bgReading.time_since_sensor_started = bgReading.timestamp - sensor.started_at;
-            bgReading.synced = false;
 
             bgReading.calculateAgeAdjustedRawValue(context);
 
