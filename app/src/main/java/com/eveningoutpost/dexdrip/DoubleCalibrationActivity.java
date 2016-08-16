@@ -1,7 +1,9 @@
 package com.eveningoutpost.dexdrip;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.text.TextUtils;
 import com.eveningoutpost.dexdrip.Models.UserError.Log;
 import android.view.View;
@@ -11,6 +13,7 @@ import android.widget.EditText;
 import com.eveningoutpost.dexdrip.Models.Calibration;
 import com.eveningoutpost.dexdrip.Models.Sensor;
 import com.eveningoutpost.dexdrip.UtilityModels.CollectionServiceStarter;
+import com.eveningoutpost.dexdrip.UtilityModels.Constants;
 import com.eveningoutpost.dexdrip.utils.ActivityWithMenu;
 
 
@@ -52,10 +55,32 @@ public class DoubleCalibrationActivity  extends ActivityWithMenu {
                         if(!TextUtils.isEmpty(string_value_2)) {
                             double calValue_1 = Double.parseDouble(string_value_1);
                             double calValue_2 = Double.parseDouble(string_value_2);
-                            Calibration.initialCalibration(calValue_1, calValue_2, getApplicationContext());
-                            Intent tableIntent = new Intent(v.getContext(), Home.class);
-                            startActivity(tableIntent);
-                            finish();
+
+                            SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(DoubleCalibrationActivity.this);
+                            String unit = prefs.getString("units", "mgdl");
+                            double calValue_1MGDL = ("mgdl".equals(unit))?calValue_1:calValue_1* Constants.MMOLL_TO_MGDL;
+                            double calValue_2MGDL = ("mgdl".equals(unit))?calValue_2:calValue_2* Constants.MMOLL_TO_MGDL;
+
+                            boolean inRange = true;
+
+                            if(calValue_1MGDL <40 || calValue_1MGDL >400){
+                                inRange = false;
+                                value_1.setError("Out of range!");
+                            }
+
+                            if(calValue_2MGDL <40 || calValue_2MGDL >400){
+                                inRange = false;
+                                value_2.setError("Out of range!");
+                            }
+
+
+
+                            if (inRange) {
+                                Calibration.initialCalibration(calValue_1, calValue_2, getApplicationContext());
+                                Intent tableIntent = new Intent(v.getContext(), Home.class);
+                                startActivity(tableIntent);
+                                finish();
+                            }
                         } else {
                             value_2.setError("Calibration Can Not be blank");
                         }

@@ -28,7 +28,6 @@ import java.util.Calendar;
 import java.util.Date;
 
 public class MissedReadingService extends IntentService {
-    int otherAlertSnooze;
     private final static String TAG = MissedReadingService.class.getSimpleName();
 
     public MissedReadingService() {
@@ -47,7 +46,6 @@ public class MissedReadingService extends IntentService {
         prefs = PreferenceManager.getDefaultSharedPreferences(context);
         bg_missed_alerts =  prefs.getBoolean("bg_missed_alerts", false);
         bg_missed_minutes =  readPerfsInt(prefs, "bg_missed_minutes", 30);
-        otherAlertSnooze =  readPerfsInt(prefs, "other_alerts_snooze", 20);
         long now = new Date().getTime();
         Log.d(TAG, "MissedReadingService onHandleIntent");
         if (!bg_missed_alerts) {
@@ -59,7 +57,7 @@ public class MissedReadingService extends IntentService {
                 prefs.getLong("alerts_disabled_until", 0) <= now &&
                 inTimeFrame(prefs)) {
             Notifications.bgMissedAlert(context);
-            checkBackAfterSnoozeTime(now);
+            checkBackAfterSnoozeTime( context, now);
         } else  {
             
             long disabletime = prefs.getLong("alerts_disabled_until", 0) - now;
@@ -79,23 +77,31 @@ public class MissedReadingService extends IntentService {
         return AlertType.s_in_time_frame(allDay, startMinutes, endMinutes);
     }
 
-    public void checkBackAfterSnoozeTime(long now) {
+    private void checkBackAfterSnoozeTime(Context context, long now) {
     	// This is not 100% acurate, need to take in account also the time of when this alert was snoozed.
         UserNotification userNotification = UserNotification.GetNotificationByType("bg_missed_alerts");
         if(userNotification == null) {
-            setAlarm(otherAlertSnooze * 1000 * 60);
+            // No active alert exists, should not happen, we have just created it.
+        	Log.wtf(TAG, "No active alert exists.");
+            setAlarm(getOtherAlertReraiseSec(context) * 1000, false);
+
         } else {
-            // we have an alert that is snoozed until userNotification.timestamp
-            setAlarm((long)userNotification.timestamp - now + otherAlertSnooze * 1000 * 60);
+            // we have an alert that should be re-raised on userNotification.timestamp
+        	long alarmIn = (long)userNotification.timestamp - now;
+        	if(alarmIn < 0) {
+        		alarmIn = 0;
+        	}
+            setAlarm(alarmIn, true);
         }
     }
 
     public void checkBackAfterMissedTime(long alarmIn) {
-        setAlarm(alarmIn);
+        setAlarm(alarmIn, false);
     }
 
-    public void setAlarm(long alarmIn) {
-        if(alarmIn < 5 * 60 * 1000) {
+    // alarmIn is relative time ms
+    public void setAlarm(long alarmIn, boolean force) {
+        if(!force && (alarmIn < 5 * 60 * 1000)) {
             // No need to check more than once every 5 minutes
             alarmIn = 5 * 60 * 1000;
         }
@@ -119,5 +125,16 @@ public class MissedReadingService extends IntentService {
         } catch (Exception e) {
             return defaultValue;
         }
+    }
+    
+    static public long getOtherAlertReraiseSec(Context context) {
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
+        boolean disableAlertsReraise = prefs.getBoolean("disable_alerts_reraise", false);
+        if(disableAlertsReraise) {
+            return readPerfsInt(prefs, "other_alerts_reraise_sec", 60);
+        } else {
+            return 60 * readPerfsInt(prefs, "other_alerts_snooze", 20);
+        }
+
     }
 }
