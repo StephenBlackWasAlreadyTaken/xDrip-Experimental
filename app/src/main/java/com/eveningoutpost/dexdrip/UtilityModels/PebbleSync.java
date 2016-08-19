@@ -437,6 +437,7 @@ public class PebbleSync extends Service {
                  dictionary.remove(PHONE_TIME_KEY);
                  dictionary.remove(RECORD_TIME_KEY);
                  dictionary.remove(UPLOADER_BATTERY_KEY);
+                 dictionary.remove(VIBE_KEY);
              }
              Log.i(TAG, "sendData: messageInTransit= " + messageInTransit + ", transactionFailed= " + transactionFailed + ", sendStep= " + sendStep);
              if (sendStep == 0 && !messageInTransit && !transactionOk && !transactionFailed) {
