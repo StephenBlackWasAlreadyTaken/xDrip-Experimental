@@ -40,7 +40,7 @@
             android:summary="Minutes since last reading. (Circle WF)"
             android:key="showAgo" />
 
-        <CheckBoxPreference android:title="Show Delta"
+        <CheckBoxgreference android:title="Show Delta"
             android:defaultValue="true"
             android:summary="Show delta. (Circle WF)"
             android:key="showDelta" />

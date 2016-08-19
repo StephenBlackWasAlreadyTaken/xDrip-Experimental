@@ -19,7 +19,7 @@
         <PreferenceScreen
             android:key="pebble_preferencescreen"
             android:title="Pebble Configuration"
-            android:summary="Configure the appearance of the pebble watchface.">
+            android:summary="Configure the appearance and behaviour of the pebble watchface.">
             <SwitchPreference
                 android:title="@string/pref_pebble_display_trend"
                 android:key="pebble_display_trend"
@@ -75,6 +75,12 @@
                 android:title="Text to display"
                 android:summary="Message to display when BGL hits the special value above"
                 android:defaultValue="BAZINGA!" />
+            <SwitchPreference
+                android:title="Vibrate on No-Signal"
+                android:key="pebble_show_arrows"
+                android:summary="Vibrate when xDrip loses the signal."
+                android:defaultValue="true">
+            </SwitchPreference>
         </PreferenceScreen>
     </PreferenceCategory>
     <PreferenceCategory
