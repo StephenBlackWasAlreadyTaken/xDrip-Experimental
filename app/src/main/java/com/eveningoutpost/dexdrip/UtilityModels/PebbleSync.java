@@ -220,7 +220,7 @@ public class PebbleSync extends Service {
         }
 
         // check for alerts
-        boolean alerting = ActiveBgAlert.currentlyAlarerting();
+        boolean alerting = ActiveBgAlert.currentlyAlerting();
         alerting = alerting && PreferenceManager.getDefaultSharedPreferences(mContext).getBoolean("pebble_vibe_alerts", true);
 
         if(alerting){
