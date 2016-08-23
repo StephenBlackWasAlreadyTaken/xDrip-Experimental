@@ -16,6 +16,7 @@ import android.os.IBinder;
 import android.preference.PreferenceManager;
 import android.widget.Toast;
 
+import com.eveningoutpost.dexdrip.Models.ActiveBgAlert;
 import com.eveningoutpost.dexdrip.Models.UserError.Log;
 import com.eveningoutpost.dexdrip.Models.BgReading;
 import com.eveningoutpost.dexdrip.Models.Sensor;
@@ -217,23 +218,38 @@ public class PebbleSync extends Service {
         if(dictionary == null){
             dictionary = new PebbleDictionary();
         }
+
+        // check for alerts
+        boolean alerting = ActiveBgAlert.currentlyAlerting();
+        alerting = alerting && PreferenceManager.getDefaultSharedPreferences(mContext).getBoolean("pebble_vibe_alerts", true);
+
+        if(alerting){
+            dictionary.addInt8(VIBE_KEY, (byte) 0x03);
+        } else {
+            dictionary.addInt8(VIBE_KEY, (byte) 0x00);
+        }
+
+
+
         if(mBgReading != null) {
             Log.v(TAG, "buildDictionary: slopeOrdinal-" + slopeOrdinal() + " bgReading-" + bgReading() + " now-" + (int) now.getTime() / 1000 + " bgTime-" + (int) (mBgReading.timestamp / 1000) + " phoneTime-" + (int) (new Date().getTime() / 1000) + " bgDelta-" + bgDelta());
             no_signal = ((new Date().getTime()) - (60000 * 16) - mBgReading.timestamp >0);
-            if(!PreferenceManager.getDefaultSharedPreferences(mContext).getBoolean("pebble_show_arrows", false)) {
+            if(!PreferenceManager.getDefaultSharedPreferences(mContext).getBoolean("pebble_show_arrows", true)) {
                 dictionary.addString(ICON_KEY, "0");
             } else {
                 dictionary.addString(ICON_KEY, slopeOrdinal());
             }
             if(no_signal){
                 dictionary.addString(BG_KEY, "?RF");
-                dictionary.addInt8(VIBE_KEY, (byte) 0x01);
+                if (PreferenceManager.getDefaultSharedPreferences(mContext).getBoolean("pebble_vibe_nosignal", true)){
+                    if(!alerting) dictionary.addInt8(VIBE_KEY, (byte) 0x01);
+                }
             } else {
                 dictionary.addString(BG_KEY, bgReading());
-                dictionary.addInt8(VIBE_KEY, (byte) 0x00);
+                if(!alerting) dictionary.addInt8(VIBE_KEY, (byte) 0x00);
             }
             dictionary.addUint32(RECORD_TIME_KEY, (int) (((mBgReading.timestamp + offsetFromUTC) / 1000)));
-            if(PreferenceManager.getDefaultSharedPreferences(mContext).getBoolean("pebble_show_delta", false)) {
+            if(PreferenceManager.getDefaultSharedPreferences(mContext).getBoolean("pebble_show_delta", true)) {
                 if (no_signal) {
                     dictionary.addString(BG_DELTA_KEY, "No Signal");
                 } else {
@@ -421,6 +437,7 @@ public class PebbleSync extends Service {
                  dictionary.remove(PHONE_TIME_KEY);
                  dictionary.remove(RECORD_TIME_KEY);
                  dictionary.remove(UPLOADER_BATTERY_KEY);
+                 dictionary.remove(VIBE_KEY);
              }
              Log.i(TAG, "sendData: messageInTransit= " + messageInTransit + ", transactionFailed= " + transactionFailed + ", sendStep= " + sendStep);
              if (sendStep == 0 && !messageInTransit && !transactionOk && !transactionFailed) {
@@ -438,6 +455,7 @@ public class PebbleSync extends Service {
                  dictionary.remove(PHONE_TIME_KEY);
                  dictionary.remove(RECORD_TIME_KEY);
                  dictionary.remove(UPLOADER_BATTERY_KEY);
+                 dictionary.remove(VIBE_KEY);
                  transactionOk = false;
                  sendStep = 1;
              }
