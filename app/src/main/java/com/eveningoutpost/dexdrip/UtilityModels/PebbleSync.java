@@ -234,7 +234,7 @@ public class PebbleSync extends Service {
         if(mBgReading != null) {
             Log.v(TAG, "buildDictionary: slopeOrdinal-" + slopeOrdinal() + " bgReading-" + bgReading() + " now-" + (int) now.getTime() / 1000 + " bgTime-" + (int) (mBgReading.timestamp / 1000) + " phoneTime-" + (int) (new Date().getTime() / 1000) + " bgDelta-" + bgDelta());
             no_signal = ((new Date().getTime()) - (60000 * 16) - mBgReading.timestamp >0);
-            if(!PreferenceManager.getDefaultSharedPreferences(mContext).getBoolean("pebble_show_arrows", false)) {
+            if(!PreferenceManager.getDefaultSharedPreferences(mContext).getBoolean("pebble_show_arrows", true)) {
                 dictionary.addString(ICON_KEY, "0");
             } else {
                 dictionary.addString(ICON_KEY, slopeOrdinal());
@@ -249,7 +249,7 @@ public class PebbleSync extends Service {
                 if(!alerting) dictionary.addInt8(VIBE_KEY, (byte) 0x00);
             }
             dictionary.addUint32(RECORD_TIME_KEY, (int) (((mBgReading.timestamp + offsetFromUTC) / 1000)));
-            if(PreferenceManager.getDefaultSharedPreferences(mContext).getBoolean("pebble_show_delta", false)) {
+            if(PreferenceManager.getDefaultSharedPreferences(mContext).getBoolean("pebble_show_delta", true)) {
                 if (no_signal) {
                     dictionary.addString(BG_DELTA_KEY, "No Signal");
                 } else {
