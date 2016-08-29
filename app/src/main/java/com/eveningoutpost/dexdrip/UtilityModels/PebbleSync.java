@@ -120,18 +120,18 @@ public class PebbleSync extends Service {
             dictionary.addInt32(SYNC_KEY, 0);
             PebbleKit.sendDataToPebble(mContext, PEBBLEAPP_UUID, dictionary);
             dictionary.remove(SYNC_KEY);
+            if(pebble_app_version.isEmpty() && sentInitialSync){
+                Log.d(TAG,"onStartCommand: No watch app version, sideloading");
+                sideloadInstall(mContext, WATCHAPP_FILENAME);
+            }
+            if(!pebble_app_version.contentEquals("xDrip-Pebble2") && sentInitialSync){
+                Log.d(TAG,"onStartCommand: Wrong watch app version, sideloading");
+                sideloadInstall(mContext, WATCHAPP_FILENAME);
+            }
+            sentInitialSync = true;
         } else {
             Log.d(TAG,"onStartCommand; No watch connected.");
         }
-        if(pebble_app_version.isEmpty() && sentInitialSync){
-            Log.d(TAG,"onStartCommand: No watch app version, sideloading");
-            sideloadInstall(mContext, WATCHAPP_FILENAME);
-        }
-        if(!pebble_app_version.contentEquals("xDrip-Pebble2") && sentInitialSync){
-            Log.d(TAG,"onStartCommand: Wrong watch app version, sideloading");
-            sideloadInstall(mContext, WATCHAPP_FILENAME);
-        }
-        sentInitialSync = true;
         return START_STICKY;
     }
     @Override
