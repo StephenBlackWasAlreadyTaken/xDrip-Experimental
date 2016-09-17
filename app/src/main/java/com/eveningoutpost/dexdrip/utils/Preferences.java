@@ -398,6 +398,10 @@ public class Preferences extends PreferenceActivity {
             }
             else {
                 transmitterId.getEditText().setFilters(new InputFilter[]{new InputFilter.LengthFilter(10), new InputFilter.AllCaps()});
+                collectionCategory.removePreference(scanConstantly);
+                collectionCategory.removePreference(reAuth);
+                collectionCategory.removePreference(reBond);
+                collectionCategory.removePreference(runOnMain);
             }
 
             // Allows enter to confirm for transmitterId.
@@ -472,12 +476,15 @@ public class Preferences extends PreferenceActivity {
                         collectionCategory.addPreference(reAuth);
                         collectionCategory.addPreference(reBond);
                         collectionCategory.addPreference(runOnMain);
+
+
                     } else {
                         collectionCategory.removePreference(transmitterId);
                         collectionCategory.removePreference(scanConstantly);
                         collectionCategory.removePreference(reAuth);
                         collectionCategory.removePreference(reBond);
                         collectionCategory.removePreference(runOnMain);
+
                     }
 
                     String stringValue = newValue.toString();
