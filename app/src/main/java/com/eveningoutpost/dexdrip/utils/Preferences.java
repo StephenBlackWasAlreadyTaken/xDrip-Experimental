@@ -392,18 +392,6 @@ public class Preferences extends PreferenceActivity {
                 collectionCategory.addPreference(transmitterId);
             }
 
-            if(!prefs.getBoolean(pebbleSync.getKey(),false)){
-                //watchCategory.removeAll();
-                watchCategory.removePreference(pebbleTrend);
-                watchCategory.removePreference(pebbleHighLine);
-                watchCategory.removePreference(pebbleLowLine);
-                watchCategory.removePreference(pebbleTrendPeriod);
-                watchCategory.removePreference(pebbleSpecialValue);
-                watchCategory.removePreference(pebbleSpecialText);
-                watchCategory.removePreference(pebbleDelta);
-                watchCategory.removePreference(pebbleDeltaUnits);
-                watchCategory.removePreference(pebbleShowArrows);
-            }
            if(prefs.getString("units", "mgdl").compareTo("mmol")!=0) {
                df = new DecimalFormat("#.#");
                df.setMaximumFractionDigits(0);
@@ -462,26 +450,8 @@ public class Preferences extends PreferenceActivity {
                     Context context = preference.getContext();
                     if ((Boolean) newValue) {
                         context.startService(new Intent(context, PebbleSync.class));
-                        watchCategory.addPreference(pebbleTrend);
-                        watchCategory.addPreference(pebbleHighLine);
-                        watchCategory.addPreference(pebbleLowLine);
-                        watchCategory.addPreference(pebbleDelta);
-                        watchCategory.addPreference(pebbleDeltaUnits);
-                        watchCategory.addPreference(pebbleShowArrows);
-                        watchCategory.addPreference(pebbleTrendPeriod);
-                        watchCategory.addPreference(pebbleSpecialValue);
-                        watchCategory.addPreference(pebbleSpecialText);
                     } else {
                         context.stopService(new Intent(context, PebbleSync.class));
-                        watchCategory.removePreference(pebbleTrend);
-                        watchCategory.removePreference(pebbleHighLine);
-                        watchCategory.removePreference(pebbleLowLine);
-                        watchCategory.removePreference(pebbleDelta);
-                        watchCategory.removePreference(pebbleDeltaUnits);
-                        watchCategory.removePreference(pebbleShowArrows);
-                        watchCategory.removePreference(pebbleTrendPeriod);
-                        watchCategory.removePreference(pebbleSpecialValue);
-                        watchCategory.removePreference(pebbleSpecialText);
                     }
                     return true;
                 }
