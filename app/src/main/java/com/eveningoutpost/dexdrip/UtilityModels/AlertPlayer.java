@@ -402,6 +402,14 @@ public class AlertPlayer {
         NotificationManager mNotifyMgr = (NotificationManager) ctx.getSystemService(Context.NOTIFICATION_SERVICE);
         mNotifyMgr.cancel(Notifications.exportAlertNotificationId);
         mNotifyMgr.notify(Notifications.exportAlertNotificationId, builder.build());
+
+
+        //initiate sending data to pebble that will cause it to vibrate
+        if(PreferenceManager.getDefaultSharedPreferences(ctx).getBoolean("broadcast_to_pebble", false)
+                && PreferenceManager.getDefaultSharedPreferences(ctx).getBoolean("pebble_vibe_alerts", true)) {
+            ctx.startService(new Intent(ctx, PebbleSync.class));
+        }
+
     }
 
     private void notificationDismiss(Context ctx) {
