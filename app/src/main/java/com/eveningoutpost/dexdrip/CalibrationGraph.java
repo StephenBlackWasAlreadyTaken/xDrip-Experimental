@@ -3,10 +3,14 @@ package com.eveningoutpost.dexdrip;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
+import android.widget.SeekBar;
+import android.widget.SeekBar.OnSeekBarChangeListener;
 import android.widget.TextView;
 
 import com.eveningoutpost.dexdrip.Models.Calibration;
+import com.eveningoutpost.dexdrip.Models.UserError.Log;
 import com.eveningoutpost.dexdrip.utils.ActivityWithMenu;
+
 
 import java.text.DateFormat;
 import java.text.DecimalFormat;
@@ -28,6 +32,8 @@ public class CalibrationGraph extends ActivityWithMenu {
     private LineChartData data;
     public double  start_x = 50;
     public double  end_x = 300;
+    
+    private SeekBar volumeControl = null;
 
     TextView GraphHeader;
 
@@ -36,8 +42,37 @@ public class CalibrationGraph extends ActivityWithMenu {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_calibration_graph);
         GraphHeader = (TextView) findViewById(R.id.CalibrationGraphHeader);
+        createSlideBars();
     }
 
+    private void createSlideBars() {
+        volumeControl = (SeekBar) findViewById(R.id.intercept);
+        volumeControl.setMax(50);
+
+
+        volumeControl.setOnSeekBarChangeListener(new OnSeekBarChangeListener() {
+            int progressChanged = 0;
+
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser){
+                progressChanged = progress;
+                Log.e("seek", "onProgressChanged progress= " + progress + " fromUser= "+ fromUser);
+                setupCharts(progress);
+            }
+
+            public void onStartTrackingTouch(SeekBar seekBar) {
+                Log.e("seek", "onStopTrackingTouch" );
+            }
+
+            public void onStopTrackingTouch(SeekBar seekBar) {
+                Log.e("seek", "onStopTrackingTouch" );
+//                Toast.makeText(CalibrationGraph.this,"seek bar progress:"+progressChanged, 
+//                        Toast.LENGTH_SHORT).show();
+            }
+        });
+        
+    }
+    
+    
     @Override
     public String getMenuName() {
         return menu_name;
@@ -46,26 +81,30 @@ public class CalibrationGraph extends ActivityWithMenu {
     @Override
     protected void onResume(){
         super.onResume();
-        setupCharts();
+        setupCharts(50);
     }
 
-    public void setupCharts() {
+    public void setupCharts(double intercept_factor) {
         chart = (LineChartView) findViewById(R.id.chart);
         List<Line> lines = new ArrayList<Line>();
 
         Calibration calibration = Calibration.last();
         if(calibration != null) {
             //set header
+            
+            double slope = calibration.slope ;
+            double intercept = calibration.intercept +intercept_factor -50 ;
+            
             DecimalFormat df = new DecimalFormat("#");
             df.setMaximumFractionDigits(2);
             df.setMinimumFractionDigits(2);
-            String Header = "slope = " + df.format(calibration.slope) + " intercept = " + df.format(calibration.intercept);
+            String Header = "slope = " + df.format(slope) + " intercept = " + df.format(intercept);
             GraphHeader.setText(Header);
 
             //red line
             List<PointValue> lineValues = new ArrayList<PointValue>();
-            lineValues.add(new PointValue((float) start_x, (float) (start_x * calibration.slope + calibration.intercept)));
-            lineValues.add(new PointValue((float) end_x, (float) (end_x * calibration.slope + calibration.intercept)));
+            lineValues.add(new PointValue((float) start_x, (float) (start_x * slope + intercept)));
+            lineValues.add(new PointValue((float) end_x, (float) (end_x * slope + intercept)));
             Line calibrationLine = new Line(lineValues);
             calibrationLine.setColor(ChartUtils.COLOR_RED);
             calibrationLine.setHasLines(true);

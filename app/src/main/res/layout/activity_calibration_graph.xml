@@ -35,7 +35,74 @@
                     android:layout_centerVertical="true"
                     android:layout_centerHorizontal="true" />
             </RelativeLayout>
+        
+            <LinearLayout
+                android:orientation="horizontal"
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content">
+                
 
+                 <Button
+                     android:id="@+id/calibration_choose_points"
+                     android:layout_width="wrap_content"
+                     android:layout_height="wrap_content"
+                     android:text="choose calibrations"
+                     android:layout_gravity="center_horizontal" />
+                
+                 <Button
+                     android:id="@+id/calibration_calculate"
+                     android:layout_width="wrap_content"
+                     android:layout_height="wrap_content"
+                     android:text="calculate"
+                     android:layout_gravity="center_horizontal" />
+                 
+                
+            </LinearLayout>
+            
+            <LinearLayout
+                android:orientation="horizontal"
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content">
+            
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textAppearance="?android:attr/textAppearanceLarge"
+                     android:id="@+id/SlopeText"
+                    android:text="Slope"
+                    android:layout_centerVertical="true"
+                    android:layout_centerHorizontal="true" />
+                
+                <SeekBar
+                    android:id="@+id/slope"
+                    android:layout_width="fill_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_margin="10dp"
+                    android:progress="20"/>
+             </LinearLayout>
+            
+            <LinearLayout
+                android:orientation="horizontal"
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content">
+            
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textAppearance="?android:attr/textAppearanceLarge"
+                     android:id="@+id/IntercepteText"
+                    android:text="intercept"
+                    android:layout_centerVertical="true"
+                    android:layout_centerHorizontal="true" />
+                
+                <SeekBar
+		            android:id="@+id/intercept"
+		            android:layout_width="fill_parent"
+		            android:layout_height="wrap_content"
+		            android:layout_margin="10dp"
+		            android:progress="20"/>
+             </LinearLayout>
+            
             <lecho.lib.hellocharts.view.LineChartView
                 android:id="@+id/chart"
                 android:layout_width="match_parent"
@@ -43,7 +110,28 @@
                 android:layout_weight="1" >
             </lecho.lib.hellocharts.view.LineChartView>
 
+            <LinearLayout
+                android:orientation="horizontal"
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content">
+                
+                <Button
+                     android:id="@+id/calibration_save"
+                     android:layout_width="wrap_content"
+                     android:layout_height="wrap_content"
+                     android:text="save"
+                     android:layout_gravity="center_horizontal" />
+                
+                <Button
+                     android:id="@+id/calibration_cancel"
+                     android:layout_width="wrap_content"
+                     android:layout_height="wrap_content"
+                     android:text="cancel"
+                     android:layout_gravity="center_horizontal" />                
 
+                 
+                
+            </LinearLayout>
         </LinearLayout>
     </RelativeLayout>
 
