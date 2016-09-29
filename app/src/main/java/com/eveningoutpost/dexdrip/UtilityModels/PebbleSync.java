@@ -317,8 +317,10 @@ public class PebbleSync extends Service {
                             .setWidthPx(84)
                             .showHighLine(highLine)
                             .showLowLine(lowLine)
-                            .setTinyDots(false)
-                            .setSmallDots(true)
+                            .setTinyDots(true)
+                            .setSmallDots(false)
+//                          .setTinyDots(false)
+//                          .setSmallDots(true)
                             .build();
                 }
                 else {
