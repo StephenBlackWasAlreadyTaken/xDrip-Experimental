@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="fill_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical"
@@ -18,7 +19,8 @@
             android:text="TextView"
             android:layout_weight="1"
               android:gravity="center"
-            android:textAppearance="@android:style/TextAppearance.DeviceDefault.Small"  />
+            android:textAppearance="@android:style/TextAppearance.DeviceDefault.Small"
+            tools:ignore="HardcodedText" />
 
         <TextView
             android:id="@+id/alertThreshold"
@@ -27,7 +29,8 @@
             android:text="TextView"
             android:layout_weight="1"
             android:gravity="center"
-            android:textAppearance="@android:style/TextAppearance.DeviceDefault.Small" />
+            android:textAppearance="@android:style/TextAppearance.DeviceDefault.Small"
+            tools:ignore="HardcodedText" />
 
         <TextView
             android:id="@+id/alertTime"
@@ -36,7 +39,8 @@
             android:text="TextView"
             android:layout_weight="1"
             android:gravity="center"
-            android:textAppearance="@android:style/TextAppearance.DeviceDefault.Small"   />
+            android:textAppearance="@android:style/TextAppearance.DeviceDefault.Small"
+            tools:ignore="HardcodedText" />
     </LinearLayout>
 
     <LinearLayout
@@ -51,7 +55,8 @@
           android:text="TextView"
           android:gravity="center"
           android:layout_weight="1"
-          android:textAppearance="@android:style/TextAppearance.DeviceDefault.Small"  />
+          android:textAppearance="@android:style/TextAppearance.DeviceDefault.Small"
+            tools:ignore="HardcodedText" />
 
         <TextView
             android:id="@+id/alertMp3File"
@@ -60,7 +65,8 @@
             android:text="TextView"
             android:gravity="center"
             android:layout_weight="1"
-            android:textAppearance="@android:style/TextAppearance.DeviceDefault.Small"  />
+            android:textAppearance="@android:style/TextAppearance.DeviceDefault.Small"
+            tools:ignore="HardcodedText" />
     </LinearLayout>
 
 

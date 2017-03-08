@@ -15,7 +15,8 @@
             android:textSize="24dp"
             android:layout_gravity="center"
             android:gravity="center_horizontal"
-            android:paddingBottom="20dp" />
+            android:paddingBottom="20dp"
+            tools:ignore="HardcodedText" />
 
         <ScrollView
             android:layout_width="fill_parent"
@@ -43,7 +44,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:gravity="left"
-                            android:text="Alert Name:"
+                            android:text="@string/alert_name"
                             android:textSize="15sp"/>
 
                         <EditText
@@ -70,7 +71,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:gravity="left"
-                            android:text="Threshold:"
+                            android:text="@string/threshold"
                             android:textSize="15sp"
                             />
 
@@ -99,7 +100,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:gravity="left"
-                            android:text="Default Snooze:"
+                            android:text="@string/default_snooze"
                             android:textSize="15sp"
                             />
 
@@ -129,7 +130,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:gravity="left"
-                            android:text="Re-raise every \n x minutes if\n unaknowledged:"
+                            android:text="@string/reraise_minutes"
                             android:textSize="15sp"
                             android:layout_gravity="center_vertical" />
 
@@ -163,7 +164,7 @@
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:gravity="left"
-                                android:text="Alert Tone:"
+                                android:text="@string/alert_tone"
                                 android:textSize="15sp"/>
                         <EditText
                             android:id="@+id/edit_alert_mp3_file"
@@ -185,7 +186,7 @@
                             android:id="@+id/Button_alert_mp3_file"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Choose file"
+                            android:text="@string/choose_file"
                             android:layout_gravity="center" />
                     </LinearLayout>
 
@@ -200,7 +201,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:gravity="left"
-                            android:text="Select time for alert:"
+                            android:text="@string/select_time_for_alert"
                             android:textSize="15sp"
                             android:layout_gravity="left"
                             android:paddingRight="10dp" />
@@ -209,7 +210,7 @@
                             android:id="@+id/check_alert_time"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="all day"
+                            android:text="@string/all_day"
                             android:textSize="15sp"
                             android:layout_gravity="center"
                             android:gravity="right" />
@@ -229,13 +230,15 @@
                             android:gravity="left"
                             android:text="12:00 AM"
                             android:textSize="15sp"
-                            android:paddingRight="20dp" />
+                            android:paddingRight="20dp"
+                            tools:ignore="HardcodedText" />
 
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:textAppearance="?android:attr/textAppearanceMedium"
-                            android:text="--"/>
+                            android:text="--"
+                            tools:ignore="HardcodedText" />
 
                         <TextView
                             android:id="@+id/view_alert_time_end"
@@ -244,7 +247,8 @@
                             android:gravity="left"
                             android:text="12:00 PM"
                             android:textSize="15sp"
-                            android:paddingLeft="20dp" />
+                            android:paddingLeft="20dp"
+                            tools:ignore="HardcodedText" />
 
                     </LinearLayout>
 
@@ -259,7 +263,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:gravity="left"
-                            android:text="(tap to change)"
+                            android:text="@string/tap_to_change"
                             android:textSize="15sp"
                             android:paddingRight="25dp"
                             android:id="@+id/time_instructions_start"/>
@@ -269,7 +273,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:gravity="left"
-                            android:text="(tap to change)"
+                            android:text="@string/tap_to_change"
                             android:textSize="15sp"
                             android:paddingLeft="25dp"
                             android:id="@+id/time_instructions_end"/>
@@ -287,7 +291,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:gravity="left"
-                            android:text="Override phone Silent Mode:"
+                            android:text="@string/override_silent_mode"
                             android:textSize="15sp"
                             />
 
@@ -311,7 +315,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:gravity="left"
-                            android:text="Vibrate on alert"
+                            android:text="@string/vibrate_on_alert"
                             android:textSize="15sp"
                             />
 
@@ -335,7 +339,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:gravity="left"
-                            android:text="disable alert"
+                            android:text="@string/disable_alert"
                             android:textSize="15sp"
                             />
 
@@ -360,7 +364,7 @@
                     android:id="@+id/edit_alert_test"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="test alert"
+                    android:text="@string/test_alert"
                     android:layout_gravity="center_horizontal" />
 
             </LinearLayout>
@@ -379,21 +383,21 @@
                         android:id="@+id/edit_alert_save"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="save alert"
+                        android:text="@string/save_alert"
                         android:layout_gravity="center_horizontal" />
 
                     <Button
                         android:id="@+id/edit_alert_remove"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="remove alert"
+                        android:text="@string/remove_alert"
                         android:layout_gravity="center_horizontal" />
 
                     <Button
                         android:id="@+id/edit_alert_pre_snooze"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="snooze alert before it fires"
+                        android:text="@string/snooze_before_fire"
                         android:layout_gravity="center_horizontal" />
                 </LinearLayout>
             </LinearLayout>

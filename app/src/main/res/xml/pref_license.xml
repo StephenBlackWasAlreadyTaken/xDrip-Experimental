@@ -1,8 +1,8 @@
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
     <PreferenceCategory
-        android:title="EULA"
+        android:title="@string/eula"
         android:key="title_I_understand">
-        <Preference android:title="End User License Agreement"
+        <Preference android:title="@string/end_user_license_agreement"
             android:key="I_understand" >
             <intent
                 android:action="android.intent.action.MAIN"

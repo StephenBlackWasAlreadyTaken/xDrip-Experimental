@@ -1,25 +1,25 @@
 <?xml version="1.0" encoding="utf-8"?>
     <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
         <PreferenceCategory
-            android:title="General Settings"
+            android:title="@string/pref_header_general_settings"
             android:key="bgRange">
             <ListPreference
                 android:key="units"
-                android:title="Bg Units"
+                android:title="@string/pref_title_bg_units"
                 android:entries="@array/bgUnitEntries"
                 android:entryValues="@array/bgUnitValues"
                 android:defaultValue="mgdl"/>
             <EditTextPreference
                 android:key="highValue"
-                android:title="High Value"
+                android:title="@string/pref_title_high_value"
                 android:numeric="decimal"
-                android:summary="The maximum value you consider to be in range."
+                android:summary="@string/pref_summary_high_value"
                 android:defaultValue="170" />
             <EditTextPreference
                 android:key="lowValue"
-                android:title="Low Value"
+                android:title="@string/pref_title_low_value"
                 android:numeric="decimal"
-                android:summary="The minimum value you consider to be in range."
+                android:summary="@string/pref_summary_low_value"
                 android:defaultValue="70" />
         </PreferenceCategory>
     </PreferenceScreen>

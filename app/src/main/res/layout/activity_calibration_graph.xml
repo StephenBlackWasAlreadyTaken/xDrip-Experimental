@@ -31,7 +31,7 @@
                     android:layout_height="wrap_content"
                     android:textAppearance="?android:attr/textAppearanceLarge"
                     android:id="@+id/CalibrationGraphHeader"
-                    android:text="calibration graph (no calibration)"
+                    android:text="@string/calibration_graph_no_calibration"
                     android:layout_centerVertical="true"
                     android:layout_centerHorizontal="true" />
             </RelativeLayout>
