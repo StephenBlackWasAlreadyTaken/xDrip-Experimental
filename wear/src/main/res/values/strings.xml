@@ -2,6 +2,25 @@
 <resources>
 
     <string name="app_name">XDrip Prefs.</string>
+    <string name="pref_title_dark">Dark</string>
+    <string name="pref_summary_dark">Dark theme</string>
+    <string name="pref_title_external_status">Show External Status</string>
+    <string name="pref_summary_external_status">Show External Staus (HAPP e.g.).</string>
+    <string name="pref_chart_timeframe">Chart Timeframe</string>
+    <string name="pref_title_show_ago">Show Ago</string>
+    <string name="pref_summary_show_ago">Minutes since last reading. (Circle WF)</string>
+    <string name="pref_title_show_delta">Show Delta</string>
+    <string name="pref_summary_show_delta">Show delta. (Circle WF)</string>
+    <string name="pref_title_show_bg">Show BG</string>
+    <string name="pref_summary_show_bg">Show BG. (Circle WF)</string>
+    <string name="pref_title_show_big_numbers">Show Big Numbers</string>
+    <string name="pref_summary_show_big_numbers">Big numbers. (Circle WF)</string>
+    <string name="pref_title_show_ring_history">Show Ring History</string>
+    <string name="pref_summary_show_ring_history">Graphical history. (Circle WF)</string>
+    <string name="pref_title_light_ring_history">Light Ring History</string>
+    <string name="pref_summary_light_ring_history">Less eyecandy. (Circle WF)</string>
+    <string name="pref_title_show_animations">Show Animations</string>
+    <string name="pref_summary_show_animations">Animations. (Circle WF)</string>
 
     <string-array name="chart_timeframe">
         <item>1 hour</item>
