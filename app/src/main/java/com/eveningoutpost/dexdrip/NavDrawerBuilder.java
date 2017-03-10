@@ -39,7 +39,7 @@ public class NavDrawerBuilder {
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
         boolean IUnderstand = prefs.getBoolean("I_understand", false);
         if (IUnderstand == false) {
-            this.nav_drawer_options.add("Settings");
+            this.nav_drawer_options.add(context.getString(R.string.menu_settings));
             this.nav_drawer_intents.add(new Intent(context, Preferences.class));
             return;
         }
@@ -47,14 +47,14 @@ public class NavDrawerBuilder {
         this.nav_drawer_options.add(Home.menu_name);
         this.nav_drawer_intents.add(new Intent(context, Home.class));
         if (is_active_sensor) {
-            this.nav_drawer_options.add("Calibration Graph");
+            this.nav_drawer_options.add(context.getString(R.string.menu_calibration_graph));
             this.nav_drawer_intents.add(new Intent(context, CalibrationGraph.class));
         }
 
         if (prefs.getBoolean("show_data_tables", false)) {
-            this.nav_drawer_options.add("BG Data Table");
+            this.nav_drawer_options.add(context.getString(R.string.menu_bg_data_table));
             this.nav_drawer_intents.add(new Intent(context, BgReadingTable.class));
-            this.nav_drawer_options.add("Calibration Data Table");
+            this.nav_drawer_options.add(context.getString(R.string.menu_calibration_data_table));
             this.nav_drawer_intents.add(new Intent(context, CalibrationDataTable.class));
         }
 
@@ -72,7 +72,7 @@ public class NavDrawerBuilder {
                                     this.nav_drawer_intents.add(new Intent(context, AddCalibration.class));
                                 }
                             } else {
-                                this.nav_drawer_options.add("Cannot Calibrate right now");
+                                this.nav_drawer_options.add(context.getString(R.string.menu_cannot_calibrate));
                                 this.nav_drawer_intents.add(new Intent(context, Home.class));
                             }
                         } else {

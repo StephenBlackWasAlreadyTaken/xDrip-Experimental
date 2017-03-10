@@ -34,7 +34,8 @@
                 android:textColor="#FFFFFF"
                 android:layout_gravity="bottom"
                 android:gravity="center_horizontal|bottom"
-                android:layout_marginRight="5dp" />
+                android:layout_marginRight="5dp"
+                tools:ignore="HardcodedText" />
 
             <TextView
                 android:id="@+id/sgv"
@@ -44,7 +45,8 @@
                 android:layout_height="wrap_content"
                 android:textColor="#FFFFFF"
                 android:layout_gravity="center_horizontal"
-                android:gravity="center_horizontal" />
+                android:gravity="center_horizontal"
+                tools:ignore="HardcodedText" />
 
         </LinearLayout>
 
@@ -74,7 +76,8 @@
                 android:layout_height="wrap_content"
                 android:textAlignment="center"
                 android:layout_marginRight="6dp"
-                android:layout_gravity="center_horizontal|top" />
+                android:layout_gravity="center_horizontal|top"
+                tools:ignore="HardcodedText" />
 
             <TextView
                 android:id="@+id/timestamp"
@@ -84,7 +87,8 @@
                 android:textAlignment="center"
                 android:textColor="#FFFFFF"
                 android:layout_gravity="top"
-                android:layout_height="match_parent" />
+                android:layout_height="match_parent"
+                tools:ignore="HardcodedText" />
         </LinearLayout>
 
     </LinearLayout>

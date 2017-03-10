@@ -20,6 +20,7 @@ import com.eveningoutpost.dexdrip.Models.ActiveBgAlert;
 import com.eveningoutpost.dexdrip.Models.UserError.Log;
 import com.eveningoutpost.dexdrip.Models.BgReading;
 import com.eveningoutpost.dexdrip.Models.Sensor;
+import com.eveningoutpost.dexdrip.R;
 import com.getpebble.android.kit.PebbleKit;
 import com.getpebble.android.kit.util.PebbleDictionary;
 
@@ -562,7 +563,7 @@ public class PebbleSync extends Service {
             intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
             ctx.startActivity(intent);
         } catch (IOException e) {
-            Toast.makeText(ctx, "App install failed: " + e.getLocalizedMessage(), Toast.LENGTH_LONG).show();
+            Toast.makeText(ctx, ctx.getString(R.string.toast_app_install_failed) + e.getLocalizedMessage(), Toast.LENGTH_LONG).show();
             Log.d(TAG,"sideloadInstall; Watch face could not be installed" + e.getLocalizedMessage());
         }
     }

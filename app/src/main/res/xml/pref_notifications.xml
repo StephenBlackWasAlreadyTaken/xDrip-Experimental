@@ -2,9 +2,9 @@
 
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
     <PreferenceCategory
-        android:title="Alerts and Notifications"
+        android:title="@string/pref_header_alerts_and_notifications"
         android:key="alerts_category">
-        <Preference android:title="Bg Level Alerts"
+        <Preference android:title="@string/pref_title_bg_level_alerts"
             android:key="bg_level_alerts" >
             <intent
                 android:action="android.intent.action.MAIN"
@@ -14,7 +14,7 @@
         </Preference>
 
         <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
-            android:title="Bg Alerts Settings"
+            android:title="@string/pref_title_bg_alerts_screen"
             android:key="bg_alerts_screen">
             <ListPreference
                     android:key="bg_alert_profile"
@@ -25,69 +25,69 @@
             
             <CheckBoxPreference
                 android:key="smart_snoozing"
-                android:title="Smart snoozing"
-                android:summary="Keep snoozing if bg is heading in the right direction"
+                android:title="@string/pref_title_smart_snoozing"
+                android:summary="@string/pref_summary_smart_snoozing"
                 android:defaultValue="true" />
 
             <CheckBoxPreference
                 android:key="smart_alerting"
-                android:title="Smart alerting"
-                android:summary="Don't alert if bg is heading in the right direction"
+                android:title="@string/pref_title_smart_alerting"
+                android:summary="@string/pref_summary_smart_alerting"
                 android:defaultValue="true" />
 
             <CheckBoxPreference
                 android:key="bg_alerts_from_main_menu"
-                android:title="Shortcut to Bg Level Alerts"
-                android:summary="Create a shortcut from main navigation to bg level screen"
+                android:title="@string/pref_title_alerts_shortcut"
+                android:summary="@string/pref_summary_alerts_shortcut"
                 android:defaultValue="false" />
 
                 <CheckBoxPreference
                     android:key="disable_alerts_stale_data"
-                    android:title="Suppress Alerts if missed readings"
-                    android:summary="Suppress snoozed and active alerts after predefined period of missed readings"
+                    android:title="@string/pref_title_missed_readings_alert_susppress"
+                    android:summary="@string/pref_summary_missed_readings_alert_susppress"
                     android:defaultValue="false" />
                 <EditTextPreference
                     android:dependency="disable_alerts_stale_data"
                     android:key="disable_alerts_stale_data_minutes"
-                    android:title="Suppress snoozed and active alerts after .. minutes (minimum 10)"
+                    android:title="@string/pref_missed_readings_suppress_threshold"
                     android:inputType="number"
-                    android:summary="Suppress snoozed and active alerts after .. minutes (minimum 10)"
+                    android:summary="@string/pref_missed_readings_suppress_threshold"
                     android:defaultValue="15" />
 
         </PreferenceScreen>
 
 
         <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
-            android:title="Calibration Alerts"
+            android:title="@string/pref_header_calibration_alerts"
             android:key="calibration_alerts_screen">
             <CheckBoxPreference
                 android:key="calibration_notifications"
-                android:title="Calibration Alerts"
-                android:summary="Alert when a calibration is requested"
+                android:title="@string/pref_title_calibration_alerts"
+                android:summary="@string/pref_summary_calibration_alerts"
                 android:defaultValue="true" />
             <RingtonePreference
 
                 android:key="calibration_notification_sound"
-                android:title="Calibration Request Sound"
+                android:title="@string/pref_title_calibration_alert_sound"
                 android:ringtoneType="notification"
                 android:showSilent="true"
-                android:summary="Set sound used for calibration requests."
+                android:summary="@string/pref_summary_calibration_alert_sound"
                 android:defaultValue="content://settings/system/notification_sound" />
             <CheckBoxPreference
                 android:key="calibration_alerts_override_silent"
-                android:title="Override Silent mode on Calibration Alerts"
+                android:title="@string/pref_title_calibration_alert_silent_mode"
                 android:defaultValue="false" />
             <EditTextPreference
                 android:dependency="calibration_notifications"
                 android:key="calibration_snooze"
-                android:title="Calibration request Snooze"
+                android:title="@string/pref_title_calibration_alert_snooze"
                 android:numeric="integer"
-                android:summary="Number of minutes to pass before raising the same calibration request."
+                android:summary="@string/pref_summary_calibration_alert_snooze"
                 android:defaultValue="20" />
         </PreferenceScreen>
         
 S        <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
-            android:title="Missed reading Alert"
+            android:title="@string/pref_title_missed_reading_alert"
             android:key="missed_readings_screen">
             <intent
                         android:action="android.intent.action.MAIN"
@@ -96,82 +96,82 @@ S        <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/and
         </PreferenceScreen>
         
         <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
-            android:title="Other Alerts"
+            android:title="@string/pref_header_other_alerts"
             android:key="other_alerts_screen">
 
             <PreferenceCategory
-                android:title="Noisy Readings">
+                android:title="@string/pref_header_noisy_readings">
                 <CheckBoxPreference
                     android:key="bg_unclear_readings_alerts"
-                    android:title="Bad (noisy) Value Alerts"
+                    android:title="@string/pref_title_noisy_value_alerts"
                     android:defaultValue="false" />
                 <EditTextPreference
                     android:dependency="bg_unclear_readings_alerts"
                     android:key="bg_unclear_readings_minutes"
-                    android:title="Alert after x minutes of noisy values"
+                    android:title="@string/pref_title_noisy_values_alerts_threshold"
                     android:inputType="number"
                     android:summary=""
                     android:defaultValue="90" />
             </PreferenceCategory>
 
             <PreferenceCategory
-                android:title="Falling/Rising BG">
+                android:title="@string/pref_header_falling_rising_bg">
                 <CheckBoxPreference
                     android:key="falling_alert"
-                    android:title="Bg falling fast"
+                    android:title="@string/pref_title_bg_falling_fast"
                     android:defaultValue="false" />
                 <ListPreference
                     android:dependency="falling_alert"
                     android:key="falling_bg_val"
-                    android:title="falling threshold"
+                    android:title="@string/pref_title_falling_threshold"
                     android:entries="@array/risingEntries"
                     android:entryValues="@array/risingValues"
                     android:defaultValue="3"/>
                  <CheckBoxPreference
                     android:key="rising_alert"
-                    android:title="Bg rising fast"
+                    android:title="@string/pref_title_bg_rising_fast"
                     android:defaultValue="false" />
                 <ListPreference
                     android:dependency="rising_alert"
                     android:key="rising_bg_val"
-                    android:title="rising threshold"
+                    android:title="@string/pref_title_rising_threshold"
                     android:entries="@array/risingEntries"
                     android:entryValues="@array/risingValues"
                     android:defaultValue="3"/>
             </PreferenceCategory>
             
             <PreferenceCategory
-                android:title="Alert Preferences (for these alerts)">
+                android:title="@string/pref_header_other_alerts_preferences">
                 <RingtonePreference
                     android:key="other_alerts_sound"
-                    android:title="Alert Sound"
+                    android:title="@string/pref_title_other_alerts_sound"
                     android:ringtoneType="alarm"
                     android:showSilent="true"
-                    android:summary="Set sound used for BG Alerts."
+                    android:summary="@string/pref_summary_other_alerts_sound"
                     android:defaultValue="content://settings/system/alarm_alert" />
                 <CheckBoxPreference
                     android:key="other_alerts_override_silent"
-                    android:title="Override Silent mode on these alerts"
+                    android:title="@string/pref_title_other_alerts_silent_mode"
                     android:defaultValue="false" />
                 <EditTextPreference
                     android:key="other_alerts_snooze"
-                    android:title="Alert Snooze"
+                    android:title="@string/pref_title_other_alerts_snooze"
                     android:numeric="integer"
-                    android:summary="Number of minutes before raising the same alert after snooze."
+                    android:summary="@string/pref_summary_other_alerts_snooze"
                     android:defaultValue="20" />
                 
                 <CheckBoxPreference
                     android:key="disable_alerts_reraise"
-                    android:title="Reraise alerts before snooze time"
-                    android:summary="Reraise the alert if not snoozed sooner"
+                    android:title="@string/pref_title_other_alerts_reraise_before_snooze"
+                    android:summary="@string/pref_summary_other_alerts_reraise_before_snooze"
                     android:defaultValue="false" />
                 
                 <EditTextPreference
                     android:dependency="disable_alerts_reraise"
                     android:key="other_alerts_reraise_sec"
-                    android:title="Alert Reraise time"
+                    android:title="@string/pref_title_other_alerts_reraise"
                     android:numeric="integer"
-                    android:summary="Number of SECONDS to pass before raising the same alert."
+                    android:summary="@string/pref_summary_other_alerts_reraise"
                     android:defaultValue="60" />
             </PreferenceCategory>
         </PreferenceScreen>

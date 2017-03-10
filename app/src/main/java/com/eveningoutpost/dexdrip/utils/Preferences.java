@@ -728,8 +728,8 @@ public class Preferences extends PreferenceActivity {
                 public boolean onPreferenceChange(Preference preference, Object newValue) {
                     if ((Boolean)newValue) {
                         AlertDialog.Builder alertDialog = new AlertDialog.Builder(getActivity());
-                        alertDialog.setTitle("Install Text-To-Speech Data?");
-                        alertDialog.setMessage("Install Text-To-Speech Data?\n(After installation of languages you might have to press \"Restart Collector\" in System Status.)");
+                        alertDialog.setTitle(R.string.dialog_tts_title);
+                        alertDialog.setMessage(R.string.dialog_tts_message);
                         alertDialog.setCancelable(true);
                         alertDialog.setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
                             @Override

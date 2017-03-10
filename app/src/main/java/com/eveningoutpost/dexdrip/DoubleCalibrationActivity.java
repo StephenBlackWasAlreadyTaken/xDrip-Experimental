@@ -65,12 +65,12 @@ public class DoubleCalibrationActivity  extends ActivityWithMenu {
 
                             if(calValue_1MGDL <40 || calValue_1MGDL >400){
                                 inRange = false;
-                                value_1.setError("Out of range!");
+                                value_1.setError(getString(R.string.out_of_range));
                             }
 
                             if(calValue_2MGDL <40 || calValue_2MGDL >400){
                                 inRange = false;
-                                value_2.setError("Out of range!");
+                                value_2.setError(getString(R.string.out_of_range));
                             }
 
 
@@ -82,10 +82,10 @@ public class DoubleCalibrationActivity  extends ActivityWithMenu {
                                 finish();
                             }
                         } else {
-                            value_2.setError("Calibration Can Not be blank");
+                            value_2.setError(getString(R.string.calibration_cannot_be_blank));
                         }
                     } else {
-                        value_1.setError("Calibration Can Not be blank");
+                        value_1.setError(getString(R.string.calibration_cannot_be_blank));
                     }
                 } else {
                     Log.w("DoubleCalibration", "ERROR, sensor is not active");

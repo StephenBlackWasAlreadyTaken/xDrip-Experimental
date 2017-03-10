@@ -43,7 +43,7 @@
                     android:paddingStart="10dp"
                     android:gravity="left|top"
                     android:layout_alignParentLeft="true"
-                    android:text="Messages"
+                    android:text="@string/messages"
                     android:layout_alignParentTop="true"
                     android:background="@android:color/transparent"/>
 

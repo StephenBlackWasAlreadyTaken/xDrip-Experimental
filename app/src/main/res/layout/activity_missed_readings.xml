@@ -27,7 +27,7 @@
                             android:id="@+id/missed_reading_enable_alert"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="enable alert"
+                            android:text="@string/enable_alert"
                             android:textSize="15sp"
                             android:layout_gravity="left"
                             android:gravity="right" />
@@ -37,7 +37,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:gravity="left"
-                            android:text="Alert if no data receieved in x minutes:"
+                            android:text="@string/no_data_alert_threshold"
                             android:textSize="15sp"
                             android:layout_gravity="left"
                             android:paddingRight="10dp" />
@@ -60,7 +60,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:gravity="center"
-                            android:text="Select time for alert:"
+                            android:text="@string/select_time_for_alert"
                             android:textSize="15sp"
                             android:layout_gravity="left"
                             android:paddingRight="10dp" />
@@ -69,7 +69,7 @@
                             android:id="@+id/missed_reading_all_day"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="all day"
+                            android:text="@string/all_day"
                             android:textSize="15sp"
                             android:layout_gravity="center"
                             android:gravity="right" />
@@ -91,13 +91,15 @@
                             android:gravity="left"
                             android:text="12:00 AM"
                             android:textSize="15sp"
-                            android:paddingRight="20dp" />
+                            android:paddingRight="20dp"
+                            tools:ignore="HardcodedText" />
 
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:textAppearance="?android:attr/textAppearanceMedium"
-                            android:text="--"/>
+                            android:text="--"
+                            tools:ignore="HardcodedText" />
 
                         <TextView
                             android:id="@+id/missed_reading_time_end"
@@ -106,7 +108,8 @@
                             android:gravity="left"
                             android:text="12:00 PM"
                             android:textSize="15sp"
-                            android:paddingLeft="20dp" />
+                            android:paddingLeft="20dp"
+                            tools:ignore="HardcodedText" />
 
                     </LinearLayout>
 
@@ -121,7 +124,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:gravity="left"
-                            android:text="(tap to change)"
+                            android:text="@string/tap_to_change"
                             android:textSize="15sp"
                             android:paddingRight="25dp"
                             android:id="@+id/missed_reading_instructions_start"/>
@@ -131,7 +134,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:gravity="left"
-                            android:text="(tap to change)"
+                            android:text="@string/tap_to_change"
                             android:textSize="15sp"
                             android:paddingLeft="25dp"
                             android:id="@+id/missed_reading_instructions_end"/>

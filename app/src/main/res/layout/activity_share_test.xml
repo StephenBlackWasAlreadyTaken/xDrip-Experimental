@@ -15,7 +15,7 @@
         <Button
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Connect"
+            android:text="@string/connect"
             android:id="@+id/connect"
             android:layout_gravity="center_horizontal" />
 
@@ -28,7 +28,7 @@
             <Button
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Close"
+                android:text="@string/close"
                 android:id="@+id/closeConnect"
                 android:layout_gravity="center_horizontal" />
 
@@ -36,14 +36,14 @@
                 style="?android:attr/buttonStyleSmall"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Read"
+                android:text="@string/read"
                 android:id="@+id/read"
                 android:layout_gravity="right" />
 
             <Button
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="bond"
+                android:text="@string/bond"
                 android:id="@+id/bond" />
 
         </LinearLayout>

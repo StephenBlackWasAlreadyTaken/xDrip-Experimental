@@ -168,7 +168,7 @@ public class MissedReadingActivity extends ActivityWithMenu {
                         setTimeRanges();
                     }
                 }, startHour, startMinute, DateFormat.is24HourFormat(mContext));
-                mTimePicker.setTitle("Select start time");
+                mTimePicker.setTitle(getString(R.string.select_start_time));
                 mTimePicker.show();
 
             }
@@ -186,7 +186,7 @@ public class MissedReadingActivity extends ActivityWithMenu {
                         setTimeRanges();
                     }
                 }, endHour, endMinute, DateFormat.is24HourFormat(mContext));
-                mTimePicker.setTitle("Select end time");
+                mTimePicker.setTitle(getString(R.string.select_end_time));
                 mTimePicker.show();
 
             }

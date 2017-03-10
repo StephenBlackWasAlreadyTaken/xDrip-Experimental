@@ -1,11 +1,12 @@
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
-             android:id="@+id/xDripwidget"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/xDripwidget"
              android:layout_width="wrap_content"
              android:layout_height="wrap_content"
              android:background="#55212121">
     <ImageView android:id="@+id/widgetGraph"
                android:layout_width="match_parent"
-               android:layout_height="match_parent" android:contentDescription="Blood Glucose Graph"
+               android:layout_height="match_parent" android:contentDescription="@string/blood_glucose_graph"
                android:scaleType="centerInside"/>
     <LinearLayout
             android:layout_width="wrap_content"
@@ -26,7 +27,8 @@
                       android:layout_height="fill_parent"
                       android:layout_gravity="center" android:text="---"
                       android:textColor="#ffffff" android:textSize="55sp"
-                      android:layout_marginTop="-5dp"/>
+                      android:layout_marginTop="-5dp"
+                tools:ignore="HardcodedText" />
             <LinearLayout
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
@@ -43,7 +45,8 @@
                         android:layout_gravity="center_horizontal"
                         android:layout_marginBottom="-5dp"
                         android:layout_marginTop="-2dp"
-                        android:paddingBottom="-2dp"/>
+                        android:paddingBottom="-2dp"
+                    tools:ignore="HardcodedText" />
                 <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
@@ -51,7 +54,8 @@
                         android:textSize="10sp"
                         android:text="-- mgdl"
                         android:id="@+id/widgetDelta"
-                        android:layout_gravity="center_horizontal"/>
+                        android:layout_gravity="center_horizontal"
+                    tools:ignore="HardcodedText" />
             </LinearLayout>
 
         </LinearLayout>
@@ -62,7 +66,8 @@
                 android:textSize="10sp"
                 android:text="--- minutes ago"
                 android:id="@+id/readingAge"
-                android:layout_gravity="center_horizontal"/>
+                android:layout_gravity="center_horizontal"
+            tools:ignore="HardcodedText" />
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -70,6 +75,7 @@
             android:textSize="13sp"
             android:text="---"
             android:id="@+id/widgetStatusLine"
-            android:layout_gravity="center_horizontal"/>
+            android:layout_gravity="center_horizontal"
+            tools:ignore="HardcodedText" />
     </LinearLayout>
 </FrameLayout>

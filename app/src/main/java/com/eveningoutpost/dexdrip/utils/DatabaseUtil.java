@@ -12,6 +12,7 @@ import android.widget.Toast;
 
 import com.activeandroid.Cache;
 import com.activeandroid.Configuration;
+import com.eveningoutpost.dexdrip.R;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
@@ -86,17 +87,17 @@ public class DatabaseUtil {
                         zipOutputStream.write(buffer, 0, count);
                     }
                 } else {
-                    toastText(context, "Problem: No current DB found!");
+                    toastText(context, context.getString(R.string.toast_no_db));
                     Log.d(TAG, "Problem: No current DB found");
                 }
             } else {
-                toastText(context, "SD card not writable!");
+                toastText(context, context.getString(R.string.toast_sdcard_no_writeable));
                 Log.d(TAG, "SD card not writable!");
                 zipFilename = null;
             }
 
         } catch (IOException e) {
-            toastText(context, "SD card not writable!");
+            toastText(context, context.getString(R.string.toast_sdcard_no_writeable));
             Log.e(TAG, "Exception while writing DB", e);
             zipFilename = null;
         } finally {
@@ -147,16 +148,16 @@ public class DatabaseUtil {
                     dst = destStream.getChannel();
                     dst.transferFrom(src, 0, src.size());
                 } else {
-                    toastText(context, "Problem: No current DB found!");
+                    toastText(context, context.getString(R.string.toast_no_db));
                     Log.d(TAG, "Problem: No current DB found");
                 }
             } else {
-                toastText(context, "SD card not writable!");
+                toastText(context, context.getString(R.string.toast_sdcard_no_writeable));
                 Log.d(TAG, "SD card not writable!");
             }
 
         } catch (IOException e) {
-            toastText(context, "SD card not writable!");
+            toastText(context, context.getString(R.string.toast_sdcard_no_writeable));
             Log.e(TAG, "Exception while writing DB", e);
         } finally {
             if (src != null) try {
@@ -247,12 +248,12 @@ public class DatabaseUtil {
 
 
             } else {
-                toastText(context, "SD card not writable!");
+                toastText(context, context.getString(R.string.toast_sdcard_no_writeable));
                 Log.d(TAG, "SD card not writable!");
             }
 
         } catch (IOException e) {
-            toastText(context, "SD card not writable!");
+            toastText(context, context.getString(R.string.toast_sdcard_no_writeable));
             Log.e(TAG, "Exception while writing DB", e);
         } finally {
             if (printStream != null) {
@@ -285,7 +286,7 @@ public class DatabaseUtil {
             File replacement = new File(path);
             if (!replacement.exists()) {
                 Log.d(TAG, "File does not exist: " + path);
-                return "File does not exist: " + path;
+                return context.getString(R.string.file_not_existing) + path;
             }
             if (currentDB.canWrite()) {
                 srcStream = new FileInputStream(replacement);
@@ -293,14 +294,14 @@ public class DatabaseUtil {
                 destStream = new FileOutputStream(currentDB);
                 dst = destStream.getChannel();
                 dst.transferFrom(src, 0, src.size());
-                returnString = "Successfully imported database";
+                returnString = context.getString(R.string.imported_database);
             } else {
                 Log.v(TAG, "loadSql: No Write access");
-                returnString = "loadSql: No Write access";
+                returnString = context.getString(R.string.loadsql_no_write_access);
             }
         } catch (IOException e) {
             Log.e(TAG, "Something went wrong importing Database", e);
-            returnString = "Something went wrong importing database";
+            returnString = context.getString(R.string.database_import_failure);
 
 
         } finally {

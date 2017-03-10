@@ -130,7 +130,7 @@ public class StartNewSensor extends ActivityWithMenu {
         long startTime = calendar.getTime().getTime();
 
         if(new Date().getTime() + 15 * 60000 < startTime ) {
-            Toast.makeText(getApplicationContext(), "ERROR: SENSOR START TIME IN FUTURE", Toast.LENGTH_LONG).show();
+            Toast.makeText(getApplicationContext(), R.string.toast_start_time_future, Toast.LENGTH_LONG).show();
             return;
         }
 

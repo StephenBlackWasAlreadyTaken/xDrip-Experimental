@@ -59,7 +59,7 @@ public class CalibrationGraph extends ActivityWithMenu {
             DecimalFormat df = new DecimalFormat("#");
             df.setMaximumFractionDigits(2);
             df.setMinimumFractionDigits(2);
-            String Header = "slope = " + df.format(calibration.slope) + " intercept = " + df.format(calibration.intercept);
+            String Header = getString(R.string.slope) + df.format(calibration.slope) + getString(R.string.intercept) + df.format(calibration.intercept);
             GraphHeader.setText(Header);
 
             //red line

@@ -53,7 +53,7 @@ public class BGHistory extends ActivityWithMenu {
         setupButtons();
         setupCharts();
 
-        Toast.makeText(this, "Double tap or pinch to zoom.",
+        Toast.makeText(this, R.string.tost_double_tap_zoom,
                 Toast.LENGTH_LONG).show();
     }
 
@@ -95,9 +95,9 @@ public class BGHistory extends ActivityWithMenu {
         });
 
         String[] vals = new String[14];
-        vals[0] = 1 + " day";
+        vals[0] = 1 + getString(R.string.day);
         for (int i = 1; i< vals.length; i++ ){
-            vals[i] = (i+1) + " days";
+            vals[i] = (i+1) + getString(R.string.days);
         }
 
         daysSpinner.setAdapter(new ArrayAdapter(this, android.R.layout.simple_dropdown_item_1line,  vals));

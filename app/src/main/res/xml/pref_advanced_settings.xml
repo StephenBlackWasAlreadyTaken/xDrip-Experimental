@@ -2,24 +2,24 @@
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
 
     <PreferenceCategory
-        android:title="Watch Integration"
+        android:title="@string/pref_header_watch_integration"
         android:key="watch_integration">
         <CheckBoxPreference
             android:key="wear_sync"
-            android:title="Android Wear Integration"
-            android:summary="Send data to Android Wear Watchface."
+            android:title="@string/pref_title_android_wear_integration"
+            android:summary="@string/pref_summary_android_wear_integration"
             android:defaultValue="false" />
         <SwitchPreference
-            android:title="Send to Pebble"
+            android:title="@string/pref_title_send_to_pebble"
             android:key="broadcast_to_pebble"
-            android:summary="If you have a pebble watch you can send bg data straight to it"
+            android:summary="@string/pref_summary_send_to_pebble"
             android:defaultValue="false">
         </SwitchPreference>
 
         <PreferenceScreen
             android:key="pebble_preferencescreen"
-            android:title="Pebble Configuration"
-            android:summary="Configure the appearance and behaviour of the pebble watchface.">
+            android:title="@string/pref_header_pebble_configuration"
+            android:summary="@string/pref_header_summary_pebble_configuration">
             <SwitchPreference
                 android:title="@string/pref_pebble_display_trend"
                 android:key="pebble_display_trend"
@@ -29,62 +29,62 @@
             <SwitchPreference
                 android:title="@string/pref_pebble_display_high_line"
                 android:key="pebble_high_line"
-                android:summary="Displays the High Line"
+                android:summary="@string/pref_summary_pebble_display_high_line"
                 android:defaultValue="false" >
             </SwitchPreference>
             <SwitchPreference
                 android:title="@string/pref_pebble_display_low_line"
                 android:key="pebble_low_line"
-                android:summary="Displays the Low line"
+                android:summary="@string/pref_summary_pebble_display_low_line"
                 android:defaultValue="false" >
             </SwitchPreference>
             <ListPreference
-                android:title="Trend Time Period"
+                android:title="@string/pref_title_trend_time_period"
                 android:key="pebble_trend_period"
-                android:summary="Set the trend period to display"
+                android:summary="@string/pref_summary_trend_time_period"
                 android:entries="@array/PebbleTrendPeriods"
                 android:entryValues="@array/PebbleTrendPeriodValues"
                 android:defaultValue="3">
             </ListPreference>
             <SwitchPreference
-                android:title="Display Delta"
+                android:title="@string/pref_title_display_delta"
                 android:key="pebble_show_delta"
-                android:summary="Displays the Delta value"
+                android:summary="@string/pref_summary_display_delta"
                 android:defaultValue="true" >
             </SwitchPreference>
             <SwitchPreference
-                android:title="Display Delta Units"
+                android:title="@string/pref_title_display_delta_units"
                 android:key="pebble_show_delta_units"
-                android:summary="Displays the Delta units"
+                android:summary="@string/pref_summary_display_delta_units"
                 android:defaultValue="true" >
             </SwitchPreference>
             <SwitchPreference
-                android:title="Display Slope Arrows"
+                android:title="@string/pref_title_display_slow_arrows"
                 android:key="pebble_show_arrows"
-                android:summary="Displays the Slope Arrows"
+                android:summary="@string/pref_summary_display_slow_arrows"
                 android:defaultValue="true" >
             </SwitchPreference>
             <EditTextPreference
                 android:key="pebble_special_value"
-                android:title="Special Value"
-                android:summary="Special BGL value to display the message below"
+                android:title="@string/pref_title_special_value"
+                android:summary="@string/pref_summary_special_value"
                 android:numeric="decimal"
                 android:defaultValue="99"/>
             <EditTextPreference
                 android:key="pebble_special_text"
-                android:title="Text to display"
-                android:summary="Message to display when BGL hits the special value above"
-                android:defaultValue="BAZINGA!" />
+                android:title="@string/pref_title_text_to_display"
+                android:summary="@string/pref_summary_text_to_display"
+                android:defaultValue="@string/pref_default_bazinga" />
             <SwitchPreference
-                android:title="Vibrate on No-Signal"
+                android:title="@string/pref_title_nosignal_vibrate"
                 android:key="pebble_vibe_nosignal"
-                android:summary="Vibrate when xDrip loses the signal."
+                android:summary="@string/pref_summary_nosignal_vibrate"
                 android:defaultValue="true">
             </SwitchPreference>
             <SwitchPreference
-                android:title="Vibrate on Alerts"
+                android:title="@string/pref_title_alert_vibration"
                 android:key="pebble_vibe_alerts"
-                android:summary="Tell the watchface to vibrate on unsnoozed alerts."
+                android:summary="@string/pref_summary_alert_vibration"
                 android:defaultValue="true">
             </SwitchPreference>
         </PreferenceScreen>
@@ -100,128 +100,127 @@
         </SwitchPreference>
         <CheckBoxPreference
             android:key="predictive_bg"
-            android:title="Display Predictive Values"
-            android:summary="Not Recommended. xDrip will attempt to predict readings each minute based on the past few values."
+            android:title="@string/pref_title_predictive_values"
+            android:summary="@string/pref_summary_predictive_values"
             android:defaultValue="false" />
         <CheckBoxPreference
             android:key="interpret_raw"
-            android:title="Interpret Raw Values"
-            android:summary="If using Share, DexDrip will show values when they are normally hidden on the receiver."
+            android:title="@string/pref_title_interpret_raw"
+            android:summary="@string/pref_summary_interpret_raw"
             android:defaultValue="false" />
         <CheckBoxPreference
             android:defaultValue="false"
             android:key="show_filtered_curve"
-            android:summary="Useful for noise and missed readings"
-            android:title="Display filtered plot" />
+            android:summary="@string/pref_summary_filtered_plot"
+            android:title="@string/pref_title_filtered_plot" />
         <CheckBoxPreference
             android:key="bg_to_speech"
-            android:title="Speak Readings"
-            android:summary="If the phone has text-to-speech capabilities it will read new readings out loud."
+            android:title="@string/pref_title_speak_readings"
+            android:summary="@string/pref_summary_speak_readings"
             android:defaultValue="false" />
         <CheckBoxPreference
             android:key="bg_to_speech_shortcut"
-            android:title="Speak Readings Shortcut"
-            android:summary="Show a shortcut in the \u2630 menu to toggle Speak Readings"
+            android:title="@string/pref_title_speak_readings_shortcut"
+            android:summary="@string/pref_summary_speak_readings_shortcut"
             android:defaultValue="false" />
         <CheckBoxPreference
             android:key="store_logs"
-            android:title="Store logs for troubleshooting"
-            android:summary="Only enable if you are having trouble with the app."
+            android:title="@string/pref_title_store_logs"
+            android:summary="@string/pref_summary_store_logs"
             android:defaultValue="false" />
         <CheckBoxPreference
             android:key="show_data_tables"
-            android:title="Show Datatables"
-            android:summary="Show Calibration and BG datatables in the app drawer."
+            android:title="@string/pref_title_show_datatables"
+            android:summary="@string/pref_summary_show_datatables"
             android:defaultValue="false" />
         <CheckBoxPreference
             android:key="disable_battery_warning"
-            android:title="Disable Battery Warning"
-            android:summary="Disable the warning for low transmitter battery state on the home screen. (Only relevant for DIY receivers.)"
+            android:title="@string/pref_title_disable_battery_warning"
+            android:summary="@string/pref_summary_disable_battery_warning"
             android:defaultValue="false" />
 
         <PreferenceScreen
             android:key="extra_status_line_preferencescreen"
-            android:title="Extra Status Line"
-            android:summary="Advanced Calibration Data and/or Statistics">
+            android:title="@string/pref_title_extra_status_line"
+            android:summary="@string/pref_summary_extra_status_line">
             <SwitchPreference
                 android:key="extra_status_line"
-                android:title="Show Extra Line"
-                android:summary="Show Extra Line"
+                android:title="@string/pref_show_extra_line"
+                android:summary="@string/pref_show_extra_line"
                 android:defaultValue="false" />
             <SwitchPreference
                 android:key="widget_status_line"
-                android:title="Show on widget"
-                android:summary="Also show the extra status line on the widget"
+                android:title="@string/pref_title_show_on_wdiget"
+                android:summary="@string/pref_summary_show_on_widget"
                 android:dependency="extra_status_line"
                 android:defaultValue="false" />
             <CheckBoxPreference
                 android:key="status_line_calibration_long"
-                android:title="Calibration Data (long)"
-                android:summary="Show slope and intercept in long form."
+                android:title="@string/pref_title_calibration_data_long"
+                android:summary="@string/pref_summary_calibration_data_long"
                 android:dependency="extra_status_line"
                 android:defaultValue="true"/>
             <CheckBoxPreference
                 android:key="status_line_calibration_short"
-                android:title="Calibration Data (short)"
-                android:summary="Show slope and intercept in short form."
+                android:title="@string/pref_title_calibration_data_short"
+                android:summary="@string/pref_summary_calibration_data_short"
                 android:dependency="extra_status_line"
                 android:defaultValue="false"/>
             <CheckBoxPreference
                 android:key="status_line_avg"
-                android:title="Average"
-                android:summary="Today's average value."
+                android:title="@string/pref_title_average"
+                android:summary="@string/pref_summary_average"
                 android:dependency="extra_status_line"
                 android:defaultValue="false"/>
             <CheckBoxPreference
                 android:key="status_line_a1c_dcct"
-                android:title="A1c DCCT"
-                android:summary="A1c estimation in DCCT format (%)"
+                android:title="@string/pref_title_a1c_dcct"
+                android:summary="@string/pref_summary_a1c_dcct"
                 android:dependency="extra_status_line"
                 android:defaultValue="false"/>
             <CheckBoxPreference
                 android:key="status_line_a1c_ifcc"
-                android:title="A1c IFCC"
-                android:summary="A1c estimation in IFCC format (mmol/mol)"
+                android:title="@string/pref_title_a1c_ifcc"
+                android:summary="@string/pref_summary_a1c_ifcc"
                 android:dependency="extra_status_line"
                 android:defaultValue="false"/>
             <CheckBoxPreference
                 android:key="status_line_in"
-                android:title="In Percentage"
-                android:summary="Percentage of values in range."
+                android:title="@string/pref_title_percentage"
+                android:summary="@string/pref_summary_percentage"
                 android:dependency="extra_status_line"
                 android:defaultValue="false"/>
             <CheckBoxPreference
                 android:key="status_line_high"
-                android:title="High Percentage"
-                android:summary="Percentage of values above range."
+                android:title="@string/pref_title_high_percentage"
+                android:summary="@string/pref_summary_high_percentage"
                 android:dependency="extra_status_line"
                 android:defaultValue="false"/>
             <CheckBoxPreference
                 android:key="status_line_low"
-                android:title="Low Percentage"
-                android:summary="Percentage of values below range."
+                android:title="@string/pref_title_low_percentage"
+                android:summary="@string/pref_summary_low_percentage"
                 android:dependency="extra_status_line"
                 android:defaultValue="false"/>
             <CheckBoxPreference
                 android:key="status_line_time"
-                android:title="Time"
-                android:summary="The current time."
+                android:title="@string/pref_title_time"
+                android:summary="@string/pref_summary_time"
                 android:dependency="extra_status_line"
                 android:defaultValue="false"/>
-
         </PreferenceScreen>
         <CheckBoxPreference
             android:key="widget_range_lines"
-            android:title="Widget Range Lines"
-            android:summary="Show a high and low line on the widget."
+            android:title="@string/pref_title_widget_range_lines"
+            android:summary="@string/pref_summary_widget_range_lines"
             android:defaultValue="false" />
         <CheckBoxPreference
             android:key="adjust_past"
-            android:title="Adjust Past on Calibration"
-            android:summary="Gradually adjust the last 30 readings to the new calibration."
+            android:title="@string/pref_title_adjust_past"
+            android:summary="@string/pref_summary_adjust_past"
             android:defaultValue="false" />
         <Preference
-            android:title="View Recent Errors/Warnings"
+            android:title="@string/pref_title_view_errors"
             android:key="recent_errors">
             <intent
                 android:action="android.intent.action.MAIN"

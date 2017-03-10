@@ -108,9 +108,9 @@ public class xDripWidget extends AppWidgetProvider {
             }
             int timeAgo =(int) Math.floor((new Date().getTime() - lastBgreading.timestamp)/(1000*60));
             if (timeAgo == 1) {
-                views.setTextViewText(R.id.readingAge, timeAgo + " Minute ago");
+                views.setTextViewText(R.id.readingAge, timeAgo + context.getString(R.string.minute_ago));
             } else {
-                views.setTextViewText(R.id.readingAge, timeAgo + " Minutes ago");
+                views.setTextViewText(R.id.readingAge, timeAgo + context.getString(R.string.minutes_ago));
             }
             if (timeAgo > 15) {
                 views.setTextColor(R.id.readingAge, Color.parseColor("#FFBB33"));

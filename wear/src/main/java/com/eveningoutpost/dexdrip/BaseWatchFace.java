@@ -74,7 +74,7 @@ public  abstract class BaseWatchFace extends WatchFace implements SharedPreferen
     private String rawString = "";
     private String batteryString = "--";
     private String sgvString = "--";
-    private String externalStatusString = "no status";
+    private String externalStatusString = getString(R.string.no_status);
 
     @Override
     public void onCreate() {
@@ -145,12 +145,12 @@ public  abstract class BaseWatchFace extends WatchFace implements SharedPreferen
     }
 
     public String readingAge(boolean shortString) {
-        if (datetime == 0) { return shortString?"--'":"-- Minute ago"; }
+        if (datetime == 0) { return shortString?"--'":getString(R.string.hyphens_minute_ago); }
         int minutesAgo = (int) Math.floor(timeSince()/(1000*60));
         if (minutesAgo == 1) {
-            return minutesAgo + (shortString?"'":" Minute ago");
+            return minutesAgo + (shortString?"'":getString(R.string.minute_ago));
         }
-        return minutesAgo + (shortString?"'":" Minutes ago");
+        return minutesAgo + (shortString?"'":getString(R.string.minutes_ago));
     }
 
     @Override
@@ -274,22 +274,22 @@ public  abstract class BaseWatchFace extends WatchFace implements SharedPreferen
         if(showRaw || showStatus){
             //use short forms
             mTimestamp.setText(readingAge(true));
-            mUploaderBattery.setText("U: " + batteryString + "%");
+            mUploaderBattery.setText(getString(R.string.uploader_short) + batteryString + "%");
         } else {
             mTimestamp.setText(readingAge(false));
-            mUploaderBattery.setText("Uploader: " + batteryString + "%");
+            mUploaderBattery.setText(getString(R.string.uploader) + batteryString + "%");
         }
 
         if (showRaw) {
             mRaw.setVisibility(View.VISIBLE);
-            mRaw.setText("R: " + rawString);
+            mRaw.setText(getString(R.string.raw_short) + rawString);
         } else {
             mRaw.setVisibility(View.GONE);
         }
 
         if (showStatus) {
             mStatus.setVisibility(View.VISIBLE);
-            mStatus.setText("S: " + externalStatusString);
+            mStatus.setText(getString(R.string.status_short) + externalStatusString);
         } else {
             mStatus.setVisibility(View.GONE);
         }

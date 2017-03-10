@@ -22,7 +22,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:textAppearance="?android:attr/textAppearanceLarge"
-                android:text="Stop Sensor"
+                android:text="@string/stop_sensor"
                 android:id="@+id/textView3"
                 android:layout_gravity="center_horizontal" />
 
@@ -30,7 +30,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:textAppearance="?android:attr/textAppearanceMedium"
-                android:text="Only stop your sensor when you actually plan to remove it, otherwise leave it running!"
+                android:text="@string/stop_sensor_warning"
                 android:layout_below="@+id/textView"
                 android:layout_alignParentStart="true"
                 android:layout_marginTop="40dp"
@@ -43,7 +43,7 @@
             <Button
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="STOP SENSOR"
+                android:text="@string/stop_sensor_uppercase"
                 android:id="@+id/stop_sensor"
                 android:layout_toEndOf="@+id/sensor_age_container"
                 android:layout_alignParentBottom="true"

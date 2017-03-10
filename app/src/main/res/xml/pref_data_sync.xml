@@ -72,37 +72,37 @@
 
         <PreferenceScreen
             android:key="dexcom_server_upload_screen"
-            android:title="Dexcom Share Server Upload"
-            android:summary="Upload data to Dexcoms Servers so you can use your data with Dexcoms apps">
+            android:title="@string/pref_header_share_upload"
+            android:summary="@string/pref_header_summary_share_upload">
 
             <CheckBoxPreference
                 android:key="share_upload"
-                android:title="Upload BG values as Dexcom Share"
-                android:summary="Enable this to upload to Dexcom's servers"
+                android:title="@string/pref_title_share_upload"
+                android:summary="@string/pref_summary_share_upload"
                 android:defaultValue="false" />
             <EditTextPreference
                 android:dependency="share_upload"
                 android:key="dexcom_account_name"
-                android:title="Dexcom Account Login"
-                android:summary="Your login for Dexcom's Website"
+                android:title="@string/pref_title_dexcom_login"
+                android:summary="@string/pref_summary_dexcom_login"
                 android:defaultValue=""/>
             <EditTextPreference
                 android:dependency="share_upload"
                 android:key="dexcom_account_password"
-                android:title="Dexcom Account Password"
+                android:title="@string/pref_title_dexcom_password"
                 android:inputType="textPassword"
-                android:summary="Your password for Dexcom's Website"
+                android:summary="@string/pref_summary_dexcom_password"
                 android:defaultValue=""/>
             <EditTextPreference
                 android:dependency="share_upload"
-                android:title="10 Character Dexcom Receiver Serial Number"
+                android:title="@string/pref_title_receiver_serial"
                 android:key="share_key"
                 android:shouldDisableView="true"
                 android:defaultValue="SM00000000"/>
             <Preference
                 android:dependency="share_upload"
-                android:title="Manage Followers"
-                android:summary="Manage your existing followers and invite new ones.">
+                android:title="@string/pref_title_manage_followers"
+                android:summary="@string/pref_summary_manage_followers">
                 <intent
                     android:action="android.intent.action.MAIN"
                     android:targetPackage="@string/target_package"
@@ -111,8 +111,8 @@
         </PreferenceScreen>
         <CheckBoxPreference
             android:key="xDripViewer_upload_mode"
-            android:title="xDripViewer upload mode"
-            android:summary="Upload more fields needed for optimum xDripViewer functioning"
+            android:title="@string/pref_title_viewer_upload"
+            android:summary="@string/pref_summary_viewer_upload"
             android:defaultValue="false" />
     </PreferenceCategory>
 
