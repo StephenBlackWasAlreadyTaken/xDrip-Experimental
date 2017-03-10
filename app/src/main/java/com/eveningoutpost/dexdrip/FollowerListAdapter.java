@@ -67,17 +67,17 @@ public class FollowerListAdapter extends BaseAdapter {
                     @Override
                     public void onResponse(Response<ResponseBody> response, Retrofit retrofit) {
                         if (response.isSuccess()) {
-                            Toast.makeText(context, "Follower deleted succesfully", Toast.LENGTH_LONG).show();
+                            Toast.makeText(context, R.string.toast_deleted_follower, Toast.LENGTH_LONG).show();
                             list.remove(position);
                             notifyDataSetChanged();
                         } else {
-                            Toast.makeText(context, "Failed to delete follower", Toast.LENGTH_LONG).show();
+                            Toast.makeText(context, R.string.toast_failed_deleting_follower, Toast.LENGTH_LONG).show();
                         }
                     }
 
                     @Override
                     public void onFailure(Throwable t) {
-                        Toast.makeText(context, "Failed to delete follower", Toast.LENGTH_LONG).show();
+                        Toast.makeText(context, R.string.toast_failed_deleting_follower, Toast.LENGTH_LONG).show();
                     }
                 };
                 shareRest.deleteContact(follower.ContactId, deleteFollowerListener);

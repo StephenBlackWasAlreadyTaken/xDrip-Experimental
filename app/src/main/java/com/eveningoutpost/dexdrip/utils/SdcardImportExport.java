@@ -1,6 +1,5 @@
 package com.eveningoutpost.dexdrip.utils;
 
-import android.app.Activity;
 import android.os.Bundle;
 import android.os.Environment;
 import android.util.Log;
@@ -40,26 +39,25 @@ public class SdcardImportExport extends ActivityWithMenu {
 
     @Override
     public String getMenuName() {
-        return "Import/Export Settings";
+        return getString(R.string.menu_sdcard);
     }
 
     public void savePreferencesToSD(View myview) {
 
         if (savePreferencesToSD()) {
-            toast("Preferences saved in sdcard '/"+FileUtils.getDirectoryName(getApplicationContext()) + "/settingsExport' ");
+            toast(getString(R.string.toast_preferences_saved, FileUtils.getDirectoryName(getApplicationContext())));
         } else {
-            toast("Couldn't write to sdcard - check permissions?");
+            toast(getString(R.string.toast_couldnt_write_sdcard));
         }
     }
 
     public void loadPreferencesToSD(View myview) {
         if (loadPreferencesFromSD()) {
-            toast("Loaded Preferences! - Restarting");
+            toast(getString(R.string.toast_loaded_preferences));
             // shared preferences are cached so we need a hard restart
             android.os.Process.killProcess(android.os.Process.myPid());
         } else {
-            toast("Could not load preferences\nPlease make sure it exists in '/" + 
-                FileUtils.getDirectoryName(getApplicationContext()) + "/settingsExport' on the sdcard");
+            toast(getString(R.string.toast_make_existing_sure, FileUtils.getDirectoryName(getApplicationContext())));
         }
     }
 
@@ -71,7 +69,7 @@ public class SdcardImportExport extends ActivityWithMenu {
             }
             return succeeded;
         } else {
-            toast("SDcard not writable - cannot save");
+            toast(getString(R.string.toast_sdcard_no_writeable_cannot_save));
             return false;
         }
     }
@@ -80,7 +78,7 @@ public class SdcardImportExport extends ActivityWithMenu {
         if (isExternalStorageWritable()) {
             return dataFromSDcopy(getPreferenceFileName());
         } else {
-            toast("SDcard not readable");
+            toast(getString(R.string.toast_sdcard_not_readable));
             return false;
         }
     }

@@ -432,7 +432,7 @@ public class BluetoothScan extends ListActivityWithMenu {
         Button cancelButton = (Button) dialog.findViewById(R.id.cancelButton);
         final EditText serialNumberView = (EditText) dialog.findViewById(R.id.editTextField);
         serialNumberView.setHint("SM00000000");
-        ((TextView) dialog.findViewById(R.id.instructionsTextField)).setText("Enter Your Dexcom Receiver Serial Number");
+        ((TextView) dialog.findViewById(R.id.instructionsTextField)).setText(R.string.enter_serial);
 
         dialog.findViewById(R.id.scannerButton).setOnClickListener(new View.OnClickListener() {
             @Override
@@ -469,7 +469,7 @@ public class BluetoothScan extends ListActivityWithMenu {
         final EditText serialNumberView = (EditText) dialog.findViewById(R.id.editTextField);
         serialNumberView.setHint("00000");
         serialNumberView.setFilters(new InputFilter[]{new InputFilter.AllCaps()});
-        ((TextView) dialog.findViewById(R.id.instructionsTextField)).setText("Enter Your Dexcom Transmitter ID");
+        ((TextView) dialog.findViewById(R.id.instructionsTextField)).setText(R.string.enter_transmitter_id);
 
         saveButton.setOnClickListener(new View.OnClickListener() {
             @Override

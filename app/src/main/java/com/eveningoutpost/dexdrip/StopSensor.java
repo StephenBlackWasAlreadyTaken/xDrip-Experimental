@@ -55,7 +55,7 @@ public class StopSensor extends ActivityWithMenu {
                 Sensor.stopSensor();
                 AlertPlayer.getPlayer().stopAlert(getApplicationContext(), true, false);
 
-                Toast.makeText(getApplicationContext(), "Sensor stopped", Toast.LENGTH_LONG).show();
+                Toast.makeText(getApplicationContext(), R.string.toast_sensor_stopped, Toast.LENGTH_LONG).show();
 
                 //If Sensor is stopped for G5, we need to prevent further BLE scanning.
                 SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());

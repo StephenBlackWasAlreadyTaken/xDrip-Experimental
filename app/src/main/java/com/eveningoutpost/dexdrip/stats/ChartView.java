@@ -8,6 +8,8 @@ import android.graphics.Paint;
 import android.graphics.RectF;
 import android.util.DisplayMetrics;
 import com.eveningoutpost.dexdrip.Models.UserError.Log;
+import com.eveningoutpost.dexdrip.R;
+
 import android.view.View;
 
 /**
@@ -40,7 +42,7 @@ public class ChartView extends View {
             myPaint.setAntiAlias(true);
             myPaint.setStyle(Paint.Style.STROKE);
             myPaint.setTextSize(dp2px(15));
-            canvas.drawText("Calculating...", dp2px(30), canvas.getHeight() / 2, myPaint);
+            canvas.drawText(getContext().getString(R.string.stats_calculating), dp2px(30), canvas.getHeight() / 2, myPaint);
         } else {
             Log.d("DrawStats", "onDraw else");
 

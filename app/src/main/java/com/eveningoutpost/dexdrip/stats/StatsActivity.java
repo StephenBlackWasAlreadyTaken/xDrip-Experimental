@@ -61,7 +61,7 @@ public class StatsActivity extends ActivityWithMenu {
         }
 
         TextView tv = new TextView(this);
-        tv.setText("Swipe left/right to switch between reports!");
+        tv.setText(R.string.stats_switching_reports);
         tv.setTextColor(Color.CYAN);
         tv.setTextSize(28);
 
@@ -246,11 +246,11 @@ public class StatsActivity extends ActivityWithMenu {
         public CharSequence getPageTitle(int position) {
             switch (position) {
                 case 0:
-                    return "General";
+                    return getString(R.string.stats_general);
                 case 1:
-                    return "Range Pi Chart";
+                    return getString(R.string.stats_range_pi_chart);
                 default:
-                    return "Percentile Chart";
+                    return getString(R.string.stats_percentile_chart);
             }
         }
 

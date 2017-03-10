@@ -31,6 +31,9 @@ public class SnoozeActivity extends ActivityWithMenu {
     public static String menu_name = "Snooze Alert";
     private static String status;
 
+    static String minutes;
+    static String hours;
+
 
     TextView alertStatus;
     Button buttonSnooze;
@@ -65,9 +68,9 @@ public class SnoozeActivity extends ActivityWithMenu {
 
     static String getNameFromTime(int time) {
         if (time < 120) {
-            return time + " minutes";
+            return time + minutes == null ? " minutes" : minutes;
         }
-        return (time / 60.0) + " hours";
+        return (time / 60.0) + hours == null ? " hours" : hours;
     }
 
     static int getTimeFromSnoozeValue(int pickedNumber) {
@@ -331,18 +334,19 @@ public class SnoozeActivity extends ActivityWithMenu {
                 status = "";
             }
             else {
-                status = "No active alert exists";
+                status = getString(R.string.snooze_no_active_alert);
             }
             buttonSnooze.setVisibility(View.GONE);
             snoozeValue.setVisibility(View.GONE);
         } else {
             if(!aba.ready_to_alarm()) {
-                status = "Active alert exists named \"" + activeBgAlert.name
-                        + (aba.is_snoozed?"\" Alert snoozed until ":"\" Alert will rerise at ")
-                        + DateFormat.getTimeInstance(DateFormat.MEDIUM).format(new Date(aba.next_alert_at)) +
-                        " (" + (aba.next_alert_at - now) / 60000 + " minutes left)";
+                if(aba.is_snoozed) {
+                    status = getString(R.string.active_alert_snoozed, activeBgAlert.name, DateFormat.getTimeInstance(DateFormat.MEDIUM).format(new Date(aba.next_alert_at)), (aba.next_alert_at - now) / 60000);
+                } else {
+                    status = getString(R.string.active_alert_not_snoozed, activeBgAlert.name, DateFormat.getTimeInstance(DateFormat.MEDIUM).format(new Date(aba.next_alert_at)), (aba.next_alert_at - now) / 60000);
+                }
             } else {
-                status = "Active alert exists named \"" + activeBgAlert.name + "\" (not snoozed)";
+                status = getString(R.string.active_alert_not_snoozed_short, activeBgAlert.name);
             }
             SetSnoozePickerValues(snoozeValue, activeBgAlert.above, activeBgAlert.default_snooze);
         }
@@ -352,19 +356,19 @@ public class SnoozeActivity extends ActivityWithMenu {
             String textToAdd = (prefs.getLong("alerts_disabled_until", 0) > now + (infiniteSnoozeValueInMinutes - 365 * 24 * 60) * 60 * 1000)
                     //if alerts would have been disabled "until you re-enable", and this test is done less than 365 * 24 * 60 minutes later, then this test will give true
                     ? "you re-enable":DateFormat.getTimeInstance(DateFormat.MEDIUM).format(new Date(prefs.getLong("alerts_disabled_until", 0)));
-            status = "All alerts disabled until " + textToAdd;
+            status = getString(R.string.all_alerts_disabled_until) + textToAdd;
         } else {
             if (prefs.getLong("low_alerts_disabled_until", 0) > now) {
                 String textToAdd = (prefs.getLong("low_alerts_disabled_until", 0) > now + (infiniteSnoozeValueInMinutes - 365 * 24 * 60) * 60 * 1000)
                         //if low alerts would have been disabled "until you re-enable", and this test is done less than 365 * 24 * 60 minutes later, then this test will give true
-                        ? "you re-enable":DateFormat.getTimeInstance(DateFormat.MEDIUM).format(new Date(prefs.getLong("low_alerts_disabled_until", 0)));
-                status += "\n\nLow alerts disabled until " + textToAdd;
+                        ? getString(R.string.you_reenable):DateFormat.getTimeInstance(DateFormat.MEDIUM).format(new Date(prefs.getLong("low_alerts_disabled_until", 0)));
+                status += getString(R.string.low_alerts_disabled_until) + textToAdd;
             }
             if (prefs.getLong("high_alerts_disabled_until", 0) > now) {
                 String textToAdd = (prefs.getLong("high_alerts_disabled_until", 0) > now + (infiniteSnoozeValueInMinutes - 365 * 24 * 60) * 60 * 1000)
                         //if high alerts would have been disabled "until you re-enable", and this test is done less than 365 * 24 * 60 minutes later, then this test will give true
-                        ? "you re-enable":DateFormat.getTimeInstance(DateFormat.MEDIUM).format(new Date(prefs.getLong("high_alerts_disabled_until", 0)));
-                status += "\n\nHigh alerts disabled until " + textToAdd;
+                        ? getString(R.string.you_reenable):DateFormat.getTimeInstance(DateFormat.MEDIUM).format(new Date(prefs.getLong("high_alerts_disabled_until", 0)));
+                status += getString(R.string.high_alerts_disabled_until) + textToAdd;
             }
         }
 

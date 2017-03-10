@@ -57,9 +57,9 @@ public class AlertList extends ActivityWithMenu {
 
     HashMap<String, String> createAlertMap(AlertType alert) {
         HashMap<String, String> map = new HashMap<String, String>();
-        String overrideSilentMode = "Override Silent Mode";
+        String overrideSilentMode = getString(R.string.override_silent_mode_status_true);
         if(alert.override_silent_mode == false) {
-            overrideSilentMode = "No Alert in Silent Mode";
+            overrideSilentMode = getString(R.string.override_silent_mode_status_false);
         }
         // We use a - sign to tell that this text should be stiked through
         String extra = "-";
@@ -177,11 +177,11 @@ public class AlertList extends ActivityWithMenu {
 
                 if (!isFinishing()){
                     new AlertDialog.Builder(AlertList.this)
-                      .setTitle("Warnining !")
-                      .setMessage("No active low alert exists, it is highly recomended that you will add a low alert.")
+                      .setTitle(R.string.dialog_title_warning)
+                      .setMessage(R.string.dialog_message_no_active_low_alert)
                       .setCancelable(false)
                       .setPositiveButton(
-                              "Ok",
+                              R.string.ok,
                               new DialogInterface.OnClickListener() {
                                   public void onClick(DialogInterface dialog, int id) {
                                       dialog.cancel();
@@ -241,7 +241,7 @@ public class AlertList extends ActivityWithMenu {
 
         if(path != null) {
             if(path.length() == 0) {
-                return "xDrip Default";
+                return getString(R.string.xdrip_default);
             }
             Ringtone ringtone = RingtoneManager.getRingtone(mContext, Uri.parse(path));
             if (ringtone != null) {

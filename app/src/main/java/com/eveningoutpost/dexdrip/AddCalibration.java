@@ -71,10 +71,10 @@ public class AddCalibration extends Activity implements NavigationDrawerFragment
                             startActivity(tableIntent);
                             finish();
                         } else {
-                            value.setError("Out of range!");
+                            value.setError(getString(R.string.out_of_range));
                         }
                     } else {
-                        value.setError("Calibration Can Not be blank");
+                        value.setError(getString(R.string.calibration_cannot_be_blank));
                     }
                 } else {
                     Log.w("CALERROR", "Sensor is not active, cannot calibrate");

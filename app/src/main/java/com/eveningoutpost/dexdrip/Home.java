@@ -1,5 +1,6 @@
 package com.eveningoutpost.dexdrip;
 
+import android.Manifest;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -69,6 +70,10 @@ import lecho.lib.hellocharts.view.PreviewLineChartView;
 public class Home extends ActivityWithMenu {
     static String TAG = Home.class.getName();
     public static String menu_name = "xDrip";
+    private static String slope_short;
+    private static String intercept_short;
+    private static String slope_long;
+    private static String intercept_long;
     private boolean updateStuff;
     private boolean updatingPreviewViewport = false;
     private boolean updatingChartViewport = false;
@@ -100,6 +105,11 @@ public class Home extends ActivityWithMenu {
         this.currentBgValueText = (TextView) findViewById(R.id.currentBgValueRealTime);
         this.notificationText = (TextView) findViewById(R.id.notices);
         this.extraStatusLineText = (TextView) findViewById(R.id.extraStatusLine);
+
+        slope_short = getString(R.string.status_slope_short);
+        intercept_short = getString(R.string.status_intercept_short);
+        slope_long = getString(R.string.status_slope);
+        intercept_long = getString(R.string.status_intercept);
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             Intent intent = new Intent();
@@ -191,12 +201,12 @@ public class Home extends ActivityWithMenu {
                     paint.setColor(Color.parseColor("#FFFFAA"));
                     paint.setStyle(Paint.Style.STROKE);
                     paint.setAlpha(100);
-                    canvas.drawText("transmitter battery", 10, chart.getHeight() / 3 - (int) (1.2 * px), paint);
+                    canvas.drawText(getString(R.string.transmitter_battery_level), 10, chart.getHeight() / 3 - (int) (1.2 * px), paint);
                     if(sensor.latest_battery_level <= Constants.TRANSMITTER_BATTERY_EMPTY){
                         paint.setTextSize((int)(px*1.5));
-                        canvas.drawText("VERY LOW", 10, chart.getHeight() / 3, paint);
+                        canvas.drawText(getString(R.string.very_low), 10, chart.getHeight() / 3, paint);
                     } else {
-                        canvas.drawText("low", 10, chart.getHeight() / 3, paint);
+                        canvas.drawText(getString(R.string.home_low), 10, chart.getHeight() / 3, paint);
                     }
                 }
 
@@ -279,15 +289,15 @@ public class Home extends ActivityWithMenu {
         }
 
         if (mPreferences.getLong("alerts_disabled_until", 0) > new Date().getTime()) {
-            notificationText.append("\n ALL ALERTS DISABLED");
+            notificationText.append(getString(R.string.all_alerts_disabled));
         } else if (mPreferences.getLong("low_alerts_disabled_until", 0) > new Date().getTime()
 			&&
 			mPreferences.getLong("high_alerts_disabled_until", 0) > new Date().getTime()) {
-            notificationText.append("\nLOW AND HIGH ALERTS DISABLED");
+            notificationText.append(getString(R.string.low_and_high_alerts_disabled));
         } else if (mPreferences.getLong("low_alerts_disabled_until", 0) > new Date().getTime()) {
-            notificationText.append("\nLOW ALERTS DISABLED");
+            notificationText.append(getString(R.string.low_alerts_disabled));
         } else if (mPreferences.getLong("high_alerts_disabled_until", 0) > new Date().getTime()) {
-            notificationText.append("\nHIGH ALERTS DISABLED");
+            notificationText.append(getString(R.string.high_alerts_disabled));
         }
         if(mPreferences.getBoolean("extra_status_line", false)) {
             extraStatusLineText.setText(extraStatusLine(mPreferences));
@@ -302,7 +312,7 @@ public class Home extends ActivityWithMenu {
 
     private void updateCurrentBgInfoForWifiWixel(TextView notificationText) {
         if (!WixelReader.IsConfigured(getApplicationContext())) {
-            notificationText.setText("First configure your wifi wixel reader ip addresses");
+            notificationText.setText(R.string.configure_wifi_wixel);
             return;
         }
 
@@ -312,7 +322,7 @@ public class Home extends ActivityWithMenu {
     
     private void updateCurrentBgInfoForxDripViewer(TextView notificationText) {
         if (!XDripViewer.isxDripViewerConfigured(getApplicationContext())) {
-            notificationText.setText("First configure Nightscout website address");
+            notificationText.setText(R.string.configure_nightscout);
             return;
         }
         
@@ -321,12 +331,12 @@ public class Home extends ActivityWithMenu {
     }
     private void updateCurrentBgInfoForBtBasedWixel(TextView notificationText) {
         if ((android.os.Build.VERSION.SDK_INT < android.os.Build.VERSION_CODES.JELLY_BEAN_MR2)) {
-            notificationText.setText("Unfortunately your android version does not support Bluetooth Low Energy");
+            notificationText.setText(R.string.ble_not_supported);
             return;
         }
 
         if (ActiveBluetoothDevice.first() == null) {
-            notificationText.setText("First pair with your BT device!");
+            notificationText.setText(R.string.pair_bt);
             return;
         }
         updateCurrentBgInfoCommon(notificationText);
@@ -338,14 +348,14 @@ public class Home extends ActivityWithMenu {
 
         final boolean isSensorActive = Sensor.isActive();
         if(!isSensorActive){
-            notificationText.setText("Now start your sensor");
+            notificationText.setText(R.string.not_start_sensor);
             return;
         }
 
         final long now = System.currentTimeMillis();
         if (Sensor.currentSensor().started_at + 60000 * 60 * 2 >= now) {
             double waitTime = (Sensor.currentSensor().started_at + 60000 * 60 * 2 - now) / 60000.0;
-            notificationText.setText("Sensor Warmup (" + String.format("%.0f", waitTime) + " minutes remaining)");
+            notificationText.setText(getString(R.string.sensor_warmup, waitTime));
             return;
         }
 
@@ -353,19 +363,19 @@ public class Home extends ActivityWithMenu {
             List<Calibration> calibrations = Calibration.latest(2);
             if (calibrations.size() > 1) {
                 if (calibrations.get(0).possible_bad != null && calibrations.get(0).possible_bad == true && calibrations.get(1).possible_bad != null && calibrations.get(1).possible_bad != true) {
-                    notificationText.setText("Possible bad calibration slope, please have a glass of water, wash hands, then recalibrate in a few!");
+                    notificationText.setText(R.string.possible_bad_calibration);
                 }
                 displayCurrentInfo();
             } else {
-                notificationText.setText("Please enter two calibrations to get started!");
+                notificationText.setText(R.string.enter_to_calibrations);
             }
         } else {
             if (BgReading.latestUnCalculated(2).size() < 2) {
-                notificationText.setText("Please wait, need 2 readings from transmitter first.");
+                notificationText.setText(R.string.two_readings_needed);
             } else {
                 List<Calibration> calibrations = Calibration.latest(2);
                 if (calibrations.size() < 2) {
-                    notificationText.setText("Please enter two calibrations to get started!");
+                    notificationText.setText(R.string.enter_to_calibrations);
                 }
             }
         }
@@ -373,28 +383,28 @@ public class Home extends ActivityWithMenu {
 
     private void updateCurrentBgInfoForBtShare(TextView notificationText) {
         if ((android.os.Build.VERSION.SDK_INT < android.os.Build.VERSION_CODES.JELLY_BEAN_MR2)) {
-            notificationText.setText("Unfortunately your android version does not support Bluetooth Low Energy");
+            notificationText.setText(R.string.ble_not_supported);
             return;
         }
 
         String receiverSn = mPreferences.getString("share_key", "SM00000000").toUpperCase();
         if (receiverSn.compareTo("SM00000000") == 0 || receiverSn.length() == 0) {
-            notificationText.setText("Please set your Dex Receiver Serial Number in App Settings");
+            notificationText.setText(R.string.set_receiver_serial);
             return;
         }
 
         if (receiverSn.length() < 10) {
-            notificationText.setText("Double Check Dex Receiver Serial Number, should be 10 characters, don't forget the letters");
+            notificationText.setText(R.string.check_receiver_serial);
             return;
         }
 
         if (ActiveBluetoothDevice.first() == null) {
-            notificationText.setText("Now pair with your Dexcom Share");
+            notificationText.setText(R.string.pair_with_share);
             return;
         }
 
         if (!Sensor.isActive()) {
-            notificationText.setText("Now choose start your sensor in your settings");
+            notificationText.setText(R.string.choose_start_sensor);
             return;
         }
 
@@ -416,10 +426,10 @@ public class Home extends ActivityWithMenu {
                 this.dexbridgeBattery.setTextSize(18);
             }
             if (bridgeBattery == 0) {
-                dexbridgeBattery.setText("xBridge Battery: Unknown, Waiting for packet");
+                dexbridgeBattery.setText(R.string.bridge_battery_unknown);
                 dexbridgeBattery.setTextColor(Color.WHITE);
             } else {
-                dexbridgeBattery.setText("xBridge Battery: " + bridgeBattery + "%");
+                dexbridgeBattery.setText(getString(R.string.bridge_battery) + bridgeBattery + "%");
             }
             dexbridgeBattery.setTextColor(Color.parseColor("#00FF00"));
             if (bridgeBattery < 50 && bridgeBattery >30) dexbridgeBattery.setTextColor(Color.YELLOW);
@@ -450,19 +460,19 @@ public class Home extends ActivityWithMenu {
         Calibration lastCalibration = Calibration.last();
         if (prefs.getBoolean("status_line_calibration_long", true) && lastCalibration != null){
             if(extraline.length()!=0) extraline.append(' ');
-            extraline.append("slope = ");
+            extraline.append(slope_long != null ? slope_long : "slope = ");
             extraline.append(String.format("%.2f",lastCalibration.slope));
             extraline.append(' ');
-            extraline.append("inter = ");
+            extraline.append(intercept_long != null ? intercept_long : "intercept = ");
             extraline.append(String.format("%.2f", lastCalibration.intercept));
         }
 
         if(prefs.getBoolean("status_line_calibration_short", false) && lastCalibration != null) {
             if(extraline.length()!=0) extraline.append(' ');
-            extraline.append("s:");
+            extraline.append(slope_short != null ? slope_short : "s:");
             extraline.append(String.format("%.2f",lastCalibration.slope));
             extraline.append(' ');
-            extraline.append("i:");
+            extraline.append(intercept_short != null ? intercept_short : "i:");
             extraline.append(String.format("%.2f", lastCalibration.intercept));
         }
 
@@ -511,7 +521,7 @@ public class Home extends ActivityWithMenu {
     private void displayCurrentInfoFromReading(BgReading lastBgReading, boolean predictive) {
         double estimate = 0;
         if ((new Date().getTime()) - (60000 * 11) - lastBgReading.timestamp > 0) {
-            notificationText.setText("Signal Missed");
+            notificationText.setText(R.string.signal_missed);
             if (!predictive) {
                 estimate = lastBgReading.calculated_value;
             } else {
@@ -541,9 +551,9 @@ public class Home extends ActivityWithMenu {
         int minutes = (int)(System.currentTimeMillis() - lastBgReading.timestamp) / (60 * 1000);
         String minutesString;
         if(BgGraphBuilder.isXLargeTablet(getApplicationContext()) || BgGraphBuilder.isLargeTablet(getApplicationContext())) {
-            minutesString = " Min ago";
+            minutesString = getString(R.string.min_ago);
         } else {
-            minutesString = minutes==1 ?" Minute ago":" Minutes ago";
+            minutesString = minutes==1 ?getString(R.string.minute_ago):getString(R.string.minutes_ago);
         }
         notificationText.append("\n" + minutes + minutesString);
         List<BgReading> bgReadingList = BgReading.latest(2);
@@ -607,10 +617,10 @@ public class Home extends ActivityWithMenu {
                 @Override
                 protected String doInBackground(Void... params) {
                     int permissionCheck = ContextCompat.checkSelfPermission(Home.this,
-                            android.Manifest.permission.READ_EXTERNAL_STORAGE);
+                            Manifest.permission.READ_EXTERNAL_STORAGE);
                     if (permissionCheck != PackageManager.PERMISSION_GRANTED) {
                         ActivityCompat.requestPermissions(Home.this,
-                                new String[]{android.Manifest.permission.READ_EXTERNAL_STORAGE},
+                                new String[]{Manifest.permission.READ_EXTERNAL_STORAGE},
                                 0);
                         return null;
                     } else {
@@ -627,12 +637,12 @@ public class Home extends ActivityWithMenu {
                                 Snackbar.with(Home.this)
                                         .type(SnackbarType.MULTI_LINE)
                                         .duration(4000)
-                                        .text("Exported to " + filename) // text to display
+                                        .text(getString(R.string.exported_to) + filename) // text to display
                                         .actionLabel("Share") // action button label
                                         .actionListener(new SnackbarUriListener(Uri.fromFile(new File(filename)))),
                                 Home.this);
                     } else {
-                        Toast.makeText(Home.this, "Could not export Database :(", Toast.LENGTH_LONG).show();
+                        Toast.makeText(Home.this, R.string.could_not_export_db, Toast.LENGTH_LONG).show();
                     }
                 }
             }.execute();
@@ -652,10 +662,10 @@ public class Home extends ActivityWithMenu {
                 @Override
                 protected String doInBackground(Void... params) {
                     int permissionCheck = ContextCompat.checkSelfPermission(Home.this,
-                            android.Manifest.permission.READ_EXTERNAL_STORAGE);
+                            Manifest.permission.READ_EXTERNAL_STORAGE);
                     if (permissionCheck != PackageManager.PERMISSION_GRANTED) {
                         ActivityCompat.requestPermissions(Home.this,
-                                new String[]{android.Manifest.permission.READ_EXTERNAL_STORAGE},
+                                new String[]{Manifest.permission.READ_EXTERNAL_STORAGE},
                                 0);
                         return null;
                     } else {
@@ -671,12 +681,12 @@ public class Home extends ActivityWithMenu {
                                 Snackbar.with(Home.this)
                                         .type(SnackbarType.MULTI_LINE)
                                         .duration(4000)
-                                        .text("Exported to " + filename) // text to display
-                                        .actionLabel("Share") // action button label
+                                        .text(getString(R.string.exported_to) + filename) // text to display
+                                        .actionLabel(R.string.share) // action button label
                                         .actionListener(new SnackbarUriListener(Uri.fromFile(new File(filename)))),
                                 Home.this);
                     } else {
-                        Toast.makeText(Home.this, "Could not export CSV :(", Toast.LENGTH_LONG).show();
+                        Toast.makeText(Home.this, R.string.could_not_export_csv, Toast.LENGTH_LONG).show();
                     }
                 }
             }.execute();
@@ -740,7 +750,7 @@ public class Home extends ActivityWithMenu {
             shareIntent.setAction(Intent.ACTION_SEND);
             shareIntent.putExtra(Intent.EXTRA_STREAM, uri);
             shareIntent.setType("application/octet-stream");
-            startActivity(Intent.createChooser(shareIntent, "Share database..."));
+            startActivity(Intent.createChooser(shareIntent, getString(R.string.share_database)));
         }
     }
 }
