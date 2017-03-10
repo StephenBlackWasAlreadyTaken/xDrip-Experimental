@@ -21,6 +21,14 @@
     <string name="pref_summary_light_ring_history">Less eyecandy. (Circle WF)</string>
     <string name="pref_title_show_animations">Show Animations</string>
     <string name="pref_summary_show_animations">Animations. (Circle WF)</string>
+    <string name="no_status">no status</string>
+    <string name="hyphens_minute_ago">-- Minute ago</string>
+    <string name="minute_ago">" Minute ago"</string>
+    <string name="minutes_ago">" Minutes ago"</string>
+    <string name="uploader_short">"U: "</string>
+    <string name="uploader">"Uploader: "</string>
+    <string name="raw_short">"R: "</string>
+    <string name="status_short">"S: "</string>
 
     <string-array name="chart_timeframe">
         <item>1 hour</item>

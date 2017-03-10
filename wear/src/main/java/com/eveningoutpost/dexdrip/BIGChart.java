@@ -148,12 +148,12 @@ public class BIGChart extends WatchFace implements SharedPreferences.OnSharedPre
     }
 
     public String readingAge(boolean shortString) {
-        if (datetime == 0) { return shortString?"--'":"-- Minute ago"; }
+        if (datetime == 0) { return shortString?"--'":getString(R.string.hyphens_minute_ago); }
         int minutesAgo = (int) Math.floor(timeSince()/(1000*60));
         if (minutesAgo == 1) {
-            return minutesAgo + (shortString?"'":" Minute ago");
+            return minutesAgo + (shortString?"'":getString(R.string.minute_ago));
         }
-        return minutesAgo + (shortString?"'":" Minutes ago");
+        return minutesAgo + (shortString?"'":getString(R.string.minutes_ago));
     }
 
     @Override
