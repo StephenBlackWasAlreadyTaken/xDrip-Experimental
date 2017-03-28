@@ -88,9 +88,10 @@ public class PebbleSync extends Service {
 //    private AlarmManager alarm = (AlarmManager) getSystemService(ALARM_SERVICE);
     private static boolean sentInitialSync = false;
 
-
     // local statics for Pebble side load from app.
     private static final String WATCHAPP_FILENAME = "xDrip-pebble2.pbw";
+    private static boolean watchFaceInstalled = false;
+    private static boolean faceInactive=false;
 
 
     @Override
@@ -99,6 +100,7 @@ public class PebbleSync extends Service {
         mContext = getApplicationContext();
         bgGraphBuilder = new BgGraphBuilder(mContext);
         mBgReading = BgReading.last();
+        sentInitialSync=false;
         init();
     }
 
@@ -120,13 +122,17 @@ public class PebbleSync extends Service {
             dictionary.addInt32(SYNC_KEY, 0);
             PebbleKit.sendDataToPebble(mContext, PEBBLEAPP_UUID, dictionary);
             dictionary.remove(SYNC_KEY);
-            if(pebble_app_version.isEmpty() && sentInitialSync){
+            if(!faceInactive && !watchFaceInstalled && pebble_app_version.isEmpty() && sentInitialSync){
                 Log.d(TAG,"onStartCommand: No watch app version, sideloading");
                 sideloadInstall(mContext, WATCHAPP_FILENAME);
             }
-            if(!pebble_app_version.contentEquals("xDrip-Pebble2") && sentInitialSync){
+            else if(!faceInactive && !watchFaceInstalled && !pebble_app_version.contentEquals("xDrip-Pebble2") && sentInitialSync){
                 Log.d(TAG,"onStartCommand: Wrong watch app version, sideloading");
                 sideloadInstall(mContext, WATCHAPP_FILENAME);
+            }
+            else if(!faceInactive && !watchFaceInstalled && pebble_app_version.contentEquals("xDrip-Pebble2")&& sentInitialSync) {
+                Log.d(TAG,"onStartCommand: Watch face is installed");
+                watchFaceInstalled=true;
             }
             sentInitialSync = true;
         } else {
@@ -167,10 +173,6 @@ public class PebbleSync extends Service {
                 transactionOk = false;
                 messageInTransit = false;
                 sendStep = 5;
-                /*if (pebble_app_version.isEmpty()) {
-                    Log.i(TAG,"receiveData: Side Loading Pebble App");
-                    //sideloadInstall(mContext, WATCHAPP_FILENAME);
-                }*/
                 sendData();
             }
         });
@@ -179,6 +181,7 @@ public class PebbleSync extends Service {
             @Override
             public void receiveAck(Context context, int transactionId) {
                 Log.i(TAG, "receiveAck: Got an Ack for transactionId " + transactionId);
+                faceInactive=false;
                 currentTransactionId++;
                 messageInTransit = false;
                 transactionOk = true;
@@ -191,7 +194,7 @@ public class PebbleSync extends Service {
             @Override
             public void receiveNack(Context context, int transactionId) {
                 Log.i(TAG, "receiveNack: Got an Nack for transactionId " + transactionId + ". Waiting and retrying.");
-
+                faceInactive=true;
                 if (retries < 3) {
                     transactionFailed = true;
                     transactionOk = false;
@@ -317,8 +320,10 @@ public class PebbleSync extends Service {
                             .setWidthPx(84)
                             .showHighLine(highLine)
                             .showLowLine(lowLine)
-                            .setTinyDots(false)
-                            .setSmallDots(true)
+                            .setTinyDots(true)
+                            .setSmallDots(false)
+//                          .setTinyDots(false)
+//                          .setSmallDots(true)
                             .build();
                 }
                 else {
@@ -558,6 +563,7 @@ public class PebbleSync extends Service {
             ctx.startActivity(intent);
         } catch (IOException e) {
             Toast.makeText(ctx, "App install failed: " + e.getLocalizedMessage(), Toast.LENGTH_LONG).show();
+            Log.d(TAG,"sideloadInstall; Watch face could not be installed" + e.getLocalizedMessage());
         }
     }
     /*public void setResponseTImer(){
