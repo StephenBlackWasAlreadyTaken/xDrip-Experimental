@@ -11,6 +11,7 @@ import com.eveningoutpost.dexdrip.Models.UserError.Log;
 import com.eveningoutpost.dexdrip.UtilityModels.Constants;
 
 import java.text.DecimalFormat;
+import java.text.DecimalFormatSymbols;
 import java.util.Locale;
 
 /**
@@ -127,6 +128,7 @@ public class BgToSpeech {
                 df.setMaximumFractionDigits(0);
                 text =  df.format(value);
             } else {
+                df = new DecimalFormat("##.#", new DecimalFormatSymbols(Locale.US));
                 df.setMaximumFractionDigits(1);
                 df.setMinimumFractionDigits(1);
                 text =  df.format(value* Constants.MGDL_TO_MMOLL);
