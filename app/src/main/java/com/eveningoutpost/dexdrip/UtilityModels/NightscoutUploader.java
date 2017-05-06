@@ -55,8 +55,8 @@ import retrofit.http.POST;
 public class NightscoutUploader {
 
         private static final String TAG = NightscoutUploader.class.getSimpleName();
-        private static final int SOCKET_TIMEOUT = 60000;
-        private static final int CONNECTION_TIMEOUT = 30000;
+        private static final int SOCKET_TIMEOUT = 600000;
+        private static final int CONNECTION_TIMEOUT = 300000;
         private Context mContext;
         private Boolean enableRESTUpload;
         private Boolean enableMongoUpload;
